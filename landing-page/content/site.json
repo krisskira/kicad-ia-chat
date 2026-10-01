@@ -2,17 +2,17 @@
   "slug": "kicad-ia-pluging",
   "name": "KiCad IA",
   "shortName": "KiCad IA",
-  "badge": "Próximamente",
-  "title": "KiCad IA | El esquemático se pide en un chat",
-  "description": "Chat para armar el esquemático de KiCad con las piezas de las bibliotecas que ya tienes configuradas, no con una lista del plugin. Aún en preparación.",
-  "keywords": ["KiCad", "esquemático", "chat", "bibliotecas de KiCad"],
+  "badge": "KiCad 10",
+  "title": "KiCad IA | El esquemático sale de un chat",
+  "description": "Plugin de KiCad 10. Describes el circuito en un chat y las piezas salen de las bibliotecas que ya tienes configuradas. Instalación, ajustes y paso a la placa.",
+  "keywords": ["KiCad", "esquemático", "chat", "bibliotecas de KiCad", "placa"],
   "lang": "es-CO",
   "locale": "es_CO",
   "url": "https://krisskira.github.io/kicad-ia-pluging",
   "logo": "media/logo.svg",
   "favicon": "media/logo.svg",
   "ogImage": "media/og-cover.svg",
-  "ogImageAlt": "KiCad IA: el esquemático se pide en un chat, con las piezas de tus bibliotecas",
+  "ogImageAlt": "KiCad IA: el esquemático sale de un chat, con las bibliotecas de KiCad",
   "ogImageWidth": 1200,
   "ogImageHeight": 630,
   "icons": [],
@@ -30,16 +30,17 @@
   "schema": {
     "@type": "SoftwareApplication",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "KiCad"
+    "operatingSystem": "KiCad 10"
   },
   "footer": {
-    "text": "Un chat para armar el esquemático con las piezas que ya están en KiCad. La página pública está en preparación.",
+    "text": "Un chat para armar el esquemático con las piezas que ya están en KiCad, y pasar el circuito a la placa cuando confirmas.",
     "rights": "KiCad IA",
     "columns": [
       {
         "title": "Proyecto",
         "links": [
-          { "label": "Idea", "href": "#idea" },
+          { "label": "Flujo", "href": "#flujo" },
+          { "label": "Instalar", "href": "#instalar" },
           { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging" }
         ]
       },

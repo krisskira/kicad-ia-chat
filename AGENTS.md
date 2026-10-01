@@ -4,7 +4,7 @@ Chat para armar el esquemático con las bibliotecas de KiCad. El plugin se traba
 
 ## Página pública
 
-Skill `.cursor/skills/kicad-ia-pagina/SKILL.md`. Estado: Próximamente. Solo la idea de arriba.
+Skill `.cursor/skills/kicad-ia-pagina/SKILL.md`. README y landing: instalación, ajustes y flujo de uso.
 
 El código de la landing y el esquema JSON están en el template, no aquí: `git@github.com:krisskira/kriver-template-projects.git`.
 
@@ -20,6 +20,6 @@ Docs: `app/README.md`, `app/doc/architecture.md`, `app/doc/mcp.md`.
 
 ## Reglas
 
-- No publicar en el README raíz ni en `landing-page/content/` el roadmap, LCSC ni la tabla de herramientas.
+- No publicar en el README raíz ni en `landing-page/content/` el roadmap, LCSC ni la tabla de herramientas. El uso (instalación, ajustes, flujo) sí va ahí.
 - No editar `landing-page/src/`.
 - Responder en español.

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560">
+  <rect width="1200" height="560" rx="28" fill="#f6f6f4"/>
+  <text x="40" y="46" fill="#5d5d5d" font-family="ui-sans-serif, sans-serif" font-size="13" font-weight="600" letter-spacing="1.4">FLUJO</text>
+
+  <g font-family="ui-sans-serif, sans-serif" text-anchor="middle">
+    <rect x="40" y="68" width="250" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="165" y="106" fill="#2f2f2f" font-size="18" font-weight="600">1 · Editor de PCB</text>
+    <text x="165" y="132" fill="#5d5d5d" font-size="14">KiCad 10 abierto</text>
+
+    <rect x="330" y="68" width="250" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="455" y="106" fill="#2f2f2f" font-size="18" font-weight="600">2 · Chat</text>
+    <text x="455" y="132" fill="#5d5d5d" font-size="14">Botón KiCad IA</text>
+
+    <rect x="620" y="68" width="250" height="96" rx="16" fill="#2a74c0"/>
+    <text x="745" y="106" fill="#ffffff" font-size="18" font-weight="600">3 · Bibliotecas</text>
+    <text x="745" y="132" fill="#e7f1fb" font-size="14">Las que ya configuraste</text>
+
+    <rect x="910" y="68" width="250" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="1035" y="106" fill="#2f2f2f" font-size="18" font-weight="600">4 · Esquemático</text>
+    <text x="1035" y="132" fill="#5d5d5d" font-size="14">.kicad_sch y una copia</text>
+
+    <path d="M290 116 H330 M580 116 H620 M870 116 H910" stroke="#2a74c0" stroke-width="2"/>
+    <path d="M322 110 L334 116 L322 122 M612 110 L624 116 L612 122 M902 110 L914 116 L902 122" fill="#2a74c0"/>
+
+    <rect x="330" y="220" width="540" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="600" y="258" fill="#2f2f2f" font-size="18" font-weight="600">5 · F8, actualizar la placa</text>
+    <text x="600" y="284" fill="#5d5d5d" font-size="14">En KiCad: Herramientas, Actualizar PCB desde el esquemático</text>
+
+    <path d="M1035 164 V196 H600 V220" stroke="#2a74c0" stroke-width="2" fill="none"/>
+    <path d="M594 212 L600 224 L606 212" fill="#2a74c0"/>
+
+    <rect x="40" y="372" width="280" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="180" y="410" fill="#2f2f2f" font-size="18" font-weight="600">Organizar</text>
+    <text x="180" y="436" fill="#5d5d5d" font-size="14">Grupos por función</text>
+
+    <rect x="360" y="372" width="400" height="96" rx="16" fill="#ffffff" stroke="#d9d9d6"/>
+    <text x="560" y="410" fill="#2f2f2f" font-size="18" font-weight="600">Colocar o autorutear</text>
+    <text x="560" y="436" fill="#5d5d5d" font-size="14">Primero la propuesta. Se aplica si confirmas</text>
+
+    <rect x="800" y="372" width="360" height="96" rx="16" fill="#fff8d6" stroke="#e4d36a"/>
+    <text x="980" y="410" fill="#2f2f2f" font-size="18" font-weight="600">Autoruteo aparte</text>
+    <text x="980" y="436" fill="#5d5d5d" font-size="14">Apagado hasta activarlo en Ajustes</text>
+
+    <path d="M420 316 V348 H180 V372" stroke="#2a74c0" stroke-width="2" fill="none"/>
+    <path d="M174 364 L180 376 L186 364" fill="#2a74c0"/>
+    <path d="M600 316 V372" stroke="#2a74c0" stroke-width="2"/>
+    <path d="M594 364 L600 376 L606 364" fill="#2a74c0"/>
+    <path d="M780 316 V348 H980 V372" stroke="#2a74c0" stroke-width="2" fill="none"/>
+    <path d="M974 364 L980 376 L986 364" fill="#2a74c0"/>
+  </g>
+
+  <text x="40" y="516" fill="#5d5d5d" font-family="ui-sans-serif, sans-serif" font-size="15">Si la pieza no está en las bibliotecas, no se dibuja otra en su lugar. El editor de esquemáticos tiene que estar cerrado para escribir.</text>
+  <rect y="548" width="400" height="12" fill="#2a74c0"/>
+  <rect x="400" y="548" width="400" height="12" fill="#f0df41"/>
+  <rect x="800" y="548" width="400" height="12" fill="#eb5151"/>
+</svg>

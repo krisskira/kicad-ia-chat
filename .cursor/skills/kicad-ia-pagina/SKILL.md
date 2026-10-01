@@ -1,14 +1,14 @@
 ---
 name: kicad-ia-pagina
 description: >-
-  Página pública de KiCad IA: README, landing en Próximamente y GitHub Pages.
-  Usar al editar el README raíz, landing-page/content, la portada o el
-  workflow de Pages. El plugin en sí sigue en app/AGENTS.md.
+  Página pública de KiCad IA: README, landing y GitHub Pages. Usar al editar
+  el README raíz, landing-page/content, la portada o el workflow de Pages.
+  El plugin en sí sigue en app/AGENTS.md.
 ---
 
 # Página de KiCad IA
 
-Coming soon. Solo la idea central del plugin.
+La página pública explica el uso: instalación, ajustes y el flujo del chat a la placa.
 
 ## Referencia
 
@@ -22,9 +22,9 @@ No copies el esquema ni el código del template. Léelos allí:
 
 ## Qué puede decir esta página
 
-Un chat arma el esquemático de KiCad con las piezas de las bibliotecas que ya tienes configuradas, no con una lista del plugin.
+Un chat arma el esquemático de KiCad con las piezas de las bibliotecas que ya tienes configuradas. Si la pieza no está, no se inventa. El paso a paso, los cuatro modos de instalación, los Ajustes y el flujo hasta F8 sí van en el README y en la landing.
 
-Eso está en `app/README.md`. No pongas en la página el roadmap, LCSC, el revisor, MCP, IPC, FreeRouting ni la tabla de herramientas. Si la pieza no está, no se inventa: eso sí es parte de la idea (`app/AGENTS.md`).
+Eso está en `app/README.md` y en la interfaz del chat. No pongas el roadmap, LCSC ni la tabla de herramientas. El enlace con Cursor se menciona y apunta a `app/doc/mcp.md`; no copies aquí esa guía.
 
 ## Archivos de este proyecto
 

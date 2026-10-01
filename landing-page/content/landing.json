@@ -2,44 +2,212 @@
   "sections": [
     {
       "type": "hero",
-      "badge": "Próximamente",
+      "badge": "KiCad 10",
       "title": "El esquemático se pide en un chat,",
       "highlight": "con las piezas que ya tienes",
-      "lead": "Plugin para KiCad. Describes el circuito y las piezas salen de las bibliotecas que tienes configuradas, no de una lista del plugin. Esta página solo presenta esa idea.",
+      "lead": "Plugin para KiCad. Describes el circuito, el chat busca en las bibliotecas configuradas y escribe el esquemático del proyecto abierto. A la placa se pasa con F8.",
       "actions": [
-        { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github" }
+        { "label": "Cómo se instala", "href": "#instalar" },
+        { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github", "variant": "secondary" }
       ],
       "media": {
-        "src": "media/og-cover.svg",
-        "alt": "Tarjeta oscura: KiCad IA, el esquemático sale de un chat, próximamente",
-        "width": 1200,
-        "height": 630,
-        "frame": "window",
-        "title": "kicad-ia"
+        "src": "media/chat-inicio.png",
+        "alt": "Chat de KiCad IA con KiCad 10 conectado, el proyecto abierto y las acciones rápidas a la izquierda",
+        "width": 1280,
+        "height": 1120,
+        "frame": "plain"
       },
-      "next": { "label": "La idea", "href": "#idea" }
+      "next": { "label": "El flujo", "href": "#flujo" }
     },
     {
       "type": "features",
       "id": "idea",
       "nav": "Idea",
       "kicker": "La idea",
-      "title": "Una frase, el archivo del proyecto",
-      "lead": "El chat trabaja sobre el proyecto de KiCad que está abierto.",
+      "title": "Tus bibliotecas, tu proyecto",
+      "lead": "El chat trabaja sobre el KiCad que está abierto.",
       "columns": 3,
       "items": [
-        { "icon": "circuit", "title": "Tus bibliotecas", "text": "Las piezas salen de las bibliotecas configuradas en KiCad." },
-        { "icon": "file", "title": "El esquemático", "text": "El resultado es el esquemático de ese proyecto." },
-        { "icon": "search", "title": "Sin inventar piezas", "text": "Si la pieza no está, no se dibuja una de mentira." }
+        { "icon": "circuit", "title": "Tus bibliotecas", "text": "Símbolos y huellas salen de `sym-lib-table` y `fp-lib-table`." },
+        { "icon": "file", "title": "El esquemático", "text": "Escribe el `.kicad_sch` del proyecto y deja una copia en `.kicad-ia-backup/`." },
+        { "icon": "shield", "title": "Sin inventar piezas", "text": "Si la pieza no está, no se dibuja otra en su lugar. Colocar y autorutear esperan tu confirmación." }
+      ]
+    },
+    {
+      "type": "split",
+      "id": "flujo",
+      "nav": "Flujo",
+      "tone": "alt",
+      "kicker": "Paso a paso",
+      "title": "Del botón en KiCad a la placa",
+      "body": [
+        "Abres el editor de PCB y pulsas **KiCad IA**. El chat queda en el navegador, en `http://127.0.0.1:8765`.",
+        "Cierras el editor de esquemáticos antes de que escriba: KiCad 10 no expone el esquemático por API, así que el plugin edita el archivo. Después, en KiCad, **F8** actualiza la placa."
+      ],
+      "bullets": [
+        "Sin modelo configurado solo puedes mirar el estado.",
+        "Colocar muestra la propuesta y se aplica cuando confirmas.",
+        "El autoruteo no aparece hasta que lo activas en Ajustes."
+      ],
+      "media": {
+        "src": "media/flujo.svg",
+        "alt": "Diagrama de bloques: editor de PCB, chat, bibliotecas, esquemático, F8, y luego organizar, colocar o autorutear",
+        "width": 1200,
+        "height": 560,
+        "frame": "plain",
+        "caption": "Colocar y autorutear no tocan la placa hasta que confirmas."
+      }
+    },
+    {
+      "type": "steps",
+      "id": "usar",
+      "kicker": "Uso",
+      "title": "Siete pasos",
+      "items": [
+        { "title": "Instala", "text": "Gestor de complementos, script o zip. Reinicia KiCad." },
+        { "title": "Abre la placa", "text": "Entra al editor de PCB del proyecto y pulsa **KiCad IA**." },
+        { "title": "Elige el modelo", "text": "En Ajustes: Gemini, Ollama, OpenAI o una URL compatible." },
+        { "title": "Describe el circuito", "text": "Una frase, o una acción rápida del panel izquierdo." },
+        { "title": "Deja escribir", "text": "Cierra el editor de esquemáticos. El chat guarda el archivo y una copia." },
+        { "title": "Pasa a la placa", "text": "En KiCad, Herramientas → Actualizar PCB desde el esquemático (F8)." },
+        { "title": "Revisa la propuesta", "text": "Organizar, colocar o autorutear. Los dos últimos se aplican si confirmas." }
+      ]
+    },
+    {
+      "type": "showcase",
+      "id": "capturas",
+      "nav": "Capturas",
+      "tone": "alt",
+      "kicker": "El chat",
+      "title": "Lo que ves al abrirlo",
+      "lead": "La barra dice si KiCad responde y qué modelo está elegido. A la izquierda, el proyecto y las acciones.",
+      "items": [
+        {
+          "label": "Inicio",
+          "title": "Proyecto abierto",
+          "text": "Con KiCad en marcha el indicador muestra la versión. El autoruteo solo sale en la lista si lo activaste.",
+          "media": {
+            "src": "media/chat-inicio.png",
+            "alt": "Pantalla de inicio del chat, conectada a KiCad 10.0.1, con bibliotecas y acciones rápidas",
+            "width": 1280,
+            "height": 1120,
+            "frame": "window"
+          }
+        },
+        {
+          "label": "Ajustes",
+          "title": "Modelo, Java y autoruteo",
+          "text": "La API key se queda en este equipo. Java solo hace falta para autorutear. Los anchos mínimos aparecen cuando el autoruteo está activo.",
+          "media": {
+            "src": "media/chat-ajustes.png",
+            "alt": "Ajustes con Google Gemini, la API key vacía, Java detectado y el autoruteo activado",
+            "width": 1100,
+            "height": 1053,
+            "frame": "window"
+          }
+        }
+      ]
+    },
+    {
+      "type": "specs",
+      "id": "instalar",
+      "nav": "Instalar",
+      "kicker": "Instalación",
+      "title": "Cuatro formas, la misma carpeta",
+      "lead": "Hace falta KiCad 10. La primera vez, red para que KiCad instale las dependencias. Java 17 o posterior, solo si vas a autorutear.",
+      "groups": [
+        {
+          "title": "Dónde queda",
+          "rows": [
+            ["Carpeta", "`Documentos/KiCad/<versión>/plugins/kicad-ia`"],
+            ["Después", "Reinicia KiCad, abre el editor de PCB y pulsa KiCad IA"]
+          ]
+        },
+        {
+          "title": "Vías",
+          "rows": [
+            ["Gestor de complementos", "Preferencias → Gestor de complementos, y el índice del repositorio"],
+            ["macOS y Linux", "`install/install.sh`"],
+            ["Windows", "`install/install.ps1` en PowerShell"],
+            ["Zip", "Release `kicad-ia-<versión>.zip`, con `plugin.json` en la raíz"]
+          ]
+        },
+        {
+          "title": "Ajustes",
+          "rows": [
+            ["Modelo", "Gemini, Ollama, OpenAI o una URL compatible con OpenAI"],
+            ["Revisor", "Opcional. Vacío: el chat escribe sin esa segunda lectura"],
+            ["macOS", "`~/Library/Application Support/kicad-ia/user-settings.json`"],
+            ["Linux y Windows", "`~/.config/kicad-ia/user-settings.json`"],
+            ["Autoruteo", "Apagado hasta activarlo. FreeRouting 2.0.1 y Java 17 o posterior"],
+            ["Placa", "Prechequeo IPC Clase 2. No es una certificación"]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "code",
+      "id": "comandos",
+      "tone": "alt",
+      "kicker": "Comandos",
+      "title": "Instalar desde la terminal",
+      "body": "El gestor de complementos usa la URL del índice. Los scripts aceptan versión y desinstalación.",
+      "tabs": [
+        {
+          "label": "macOS y Linux",
+          "code": "curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.sh | sh\n# sh install.sh --version 0.1.0 --kicad-version 10.0\n# sh install.sh --uninstall"
+        },
+        {
+          "label": "Windows",
+          "code": "irm https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.ps1 | iex\n# .\\install.ps1 -Version 0.1.0 -KicadVersion 10.0\n# .\\install.ps1 -Uninstall"
+        },
+        {
+          "label": "Gestor",
+          "code": "https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/app/packaging/repository.json"
+        }
+      ]
+    },
+    {
+      "type": "faq",
+      "id": "preguntas",
+      "nav": "Preguntas",
+      "kicker": "Preguntas",
+      "title": "Antes de instalar",
+      "items": [
+        {
+          "q": "¿Qué KiCad hace falta?",
+          "a": "KiCad 10. Abre KiCad una vez antes de instalar, para que exista la carpeta `Documentos/KiCad/<versión>/`."
+        },
+        {
+          "q": "¿De dónde salen las piezas?",
+          "a": "De las bibliotecas que ya configuraste en KiCad. Si una pieza no está, el chat no dibuja un símbolo inventado."
+        },
+        {
+          "q": "¿Por qué hay que cerrar el editor de esquemáticos?",
+          "a": "KiCad 10 no deja escribir el esquemático por API. El plugin edita el `.kicad_sch` y guarda una copia en `.kicad-ia-backup/`. Con el editor abierto, no escribe."
+        },
+        {
+          "q": "¿El chat actualiza la placa solo?",
+          "a": "No. Después del esquemático, en el editor de PCB usas F8: Herramientas → Actualizar PCB desde el esquemático."
+        },
+        {
+          "q": "¿El autoruteo viene activado?",
+          "a": "No. Lo enciendes en Ajustes, con Java 17 o posterior y los anchos mínimos de fabricación. La propuesta se aplica cuando confirmas."
+        },
+        {
+          "q": "¿Colocar la placa certifica el diseño?",
+          "a": "No. El informe es un prechequeo IPC Clase 2. Validar corrige solo lo que puede hacer con seguridad."
+        }
       ]
     },
     {
       "type": "cta",
-      "id": "estado",
-      "title": "Todavía no hay más que mostrar",
-      "lead": "El desarrollo del plugin está en el repositorio. Esta página se queda en la idea hasta que el proyecto esté listo.",
+      "id": "repo",
+      "title": "El código y el desarrollo",
+      "lead": "La página cubre el uso. El arranque del plugin, las pruebas y el enlace con Cursor están en el repositorio.",
       "actions": [
-        { "label": "Ver el repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github" }
+        { "label": "Ver el repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github" },
+        { "label": "Guía de desarrollo", "href": "https://github.com/krisskira/kicad-ia-pluging/blob/main/app/README.md", "variant": "secondary" }
       ]
     }
   ]
