@@ -1,0 +1,52 @@
+{
+  "packages": [
+    {
+      "$schema": "https://go.kicad.org/pcm/schemas/v1",
+      "name": "KiCad IA",
+      "description": "Chat para crear el esquemático, pasar a la PCB y trabajar con bibliotecas de KiCad.",
+      "description_full": "Plugin IPC de KiCad: chat en el navegador para diseñar el esquemático con las piezas de tus bibliotecas, consultar la selección, organizar la placa, pre-chequeo IPC Clase 2 e importar desde LCSC. Configura el modelo (Gemini, OpenAI, Ollama u otro compatible con OpenAI) en Ajustes. La primera vez KiCad instala las dependencias de Python del plugin.",
+      "identifier": "dev.krisskira.kicad-ia",
+      "type": "plugin",
+      "author": {
+        "name": "Krisskira",
+        "contact": {
+          "github": "https://github.com/krisskira"
+        }
+      },
+      "maintainer": {
+        "name": "Krisskira",
+        "contact": {
+          "github": "https://github.com/krisskira"
+        }
+      },
+      "license": "MIT",
+      "resources": {
+        "homepage": "https://github.com/krisskira/kicad-ia-pluging",
+        "repository": "https://github.com/krisskira/kicad-ia-pluging"
+      },
+      "tags": [
+        "ai",
+        "schematic",
+        "pcb",
+        "assistant"
+      ],
+      "versions": [
+        {
+          "version": "0.1.0",
+          "status": "testing",
+          "kicad_version": "10.0",
+          "runtime": "ipc",
+          "platforms": [
+            "windows",
+            "macos",
+            "linux"
+          ],
+          "download_url": "https://github.com/krisskira/kicad-ia-pluging/releases/download/v0.1.0/kicad-ia-0.1.0-pcm.zip",
+          "download_sha256": "659c0bb6da389a26876d49a143a3ea84bc1de125715037120349d3ae5472bc59",
+          "download_size": 115147,
+          "install_size": 337239
+        }
+      ]
+    }
+  ]
+}

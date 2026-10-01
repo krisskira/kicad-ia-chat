@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "kicad-ia": {
+      "command": "/ABSOLUTE/PATH/TO/kicad-ia-pluging/app/.venv/bin/python",
+      "args": ["-m", "kicad_ia.mcp"],
+      "cwd": "/ABSOLUTE/PATH/TO/kicad-ia-pluging/app",
+      "env": {
+        "KICAD_MODE": "auto"
+      }
+    }
+  }
+}

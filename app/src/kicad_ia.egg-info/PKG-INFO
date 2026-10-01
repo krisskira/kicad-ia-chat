@@ -1,0 +1,91 @@
+Metadata-Version: 2.4
+Name: kicad-ia
+Version: 0.1.0
+Summary: Plugin conversacional de KiCad para esquemático, PCB, bibliotecas y ruteo.
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115
+Requires-Dist: httpx>=0.27
+Requires-Dist: pydantic>=2
+Requires-Dist: uvicorn>=0.32
+Provides-Extra: kicad
+Requires-Dist: kicad-python>=0.4; extra == "kicad"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+
+# KiCad IA
+
+Chat para construir el esquemático, pasarlo a la placa y consultar lo que está seleccionado. El modelo no dibuja a ciegas: llama herramientas que hablan con KiCad por la API IPC (`kicad-python`).
+
+## Arranque
+
+```bash
+cd app
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+cp .env.example .env
+python -m kicad_ia
+```
+
+El chat queda en `http://127.0.0.1:8765`.
+
+`KICAD_MODE=auto` usa KiCad si la API responde. Si no hay editor, arranca en memoria para poder probar el flujo. `fake` no intenta conectar. `live` exige KiCad.
+
+El modelo es cualquier endpoint compatible con `/chat/completions`:
+
+```bash
+LLM_BASE_URL=http://127.0.0.1:11434/v1
+LLM_API_KEY=
+LLM_MODEL=qwen2.5-coder
+```
+
+Sin modelo siguen funcionando `/estado`, `/seleccion` y `/herramientas`.
+
+## Qué puede pedir
+
+- Crear un circuito: busca el símbolo, lee sus pines y coloca cables sobre la retícula de 1,27 mm.
+- Trabajar sobre la selección del editor, si KiCad la entrega.
+- Buscar símbolos y huellas, asignar huella y listar el modelo 3D de esa huella.
+- Pasar el esquemático a la PCB (netlist) y mover huellas.
+- Ver el cobre y, si lo pides, lanzar una acción del router o un ruteador Specctra externo (`ROUTER_COMMAND`, con `{dsn}` y `{ses}`).
+
+Ejemplos:
+
+- «Crea un divisor con dos resistencias de 10k entre VCC y GND.»
+- «¿Qué huella y qué modelo 3D tiene lo seleccionado?»
+- «Pasa el esquemático a la placa y dime cuántas huellas hay.»
+
+## KiCad
+
+| Versión | Qué hace el plugin |
+|---|---|
+| 9 y 10 | PCB, selección de la placa, bibliotecas, modelos 3D de las huellas, importar netlist. El botón del plugin está en el editor de PCB. |
+| 11 | Además, colocar símbolos, cables y leer la selección del esquemático. |
+
+La API de esquemático no existe en KiCad 9 ni 10. El chat lo dice cuando la herramienta no puede ejecutarse; no simula el cambio dentro del editor.
+
+Para instalar el botón:
+
+```bash
+python app/scripts/link_plugin.py
+```
+
+Eso enlaza esta carpeta en `~/Documents/KiCad/<versión>/plugins/kicad-ia`. KiCad crea un entorno con `requirements.txt` la primera vez. También puedes dejar KiCad abierto y lanzar `python -m kicad_ia` desde aquí: en desarrollo usa el socket por defecto si solo hay una instancia.
+
+## Pruebas
+
+```bash
+cd app && .venv/bin/pytest
+```
+
+## Mapa
+
+| Ruta | Rol |
+|---|---|
+| `src/kicad_ia/agent/` | Bucle del modelo y herramientas |
+| `src/kicad_ia/tools/registry.py` | Contrato que ve el modelo |
+| `src/kicad_ia/kicad/kipy_gateway.py` | KiCad real |
+| `src/kicad_ia/kicad/fake.py` | Mismo contrato, en memoria |
+| `src/kicad_ia/server/` | Chat local |
+| `plugin.json`, `ipc_entry.py` | Entrada del plugin IPC |

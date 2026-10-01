@@ -1,0 +1,55 @@
+{
+  "slug": "kicad-ia-pluging",
+  "name": "KiCad IA",
+  "shortName": "KiCad IA",
+  "badge": "Próximamente",
+  "title": "KiCad IA | El esquemático se pide en un chat",
+  "description": "Chat para armar el esquemático de KiCad con las piezas de las bibliotecas que ya tienes configuradas, no con una lista del plugin. Aún en preparación.",
+  "keywords": ["KiCad", "esquemático", "chat", "bibliotecas de KiCad"],
+  "lang": "es-CO",
+  "locale": "es_CO",
+  "url": "https://krisskira.github.io/kicad-ia-pluging",
+  "logo": "media/logo.svg",
+  "favicon": "media/logo.svg",
+  "ogImage": "media/og-cover.svg",
+  "ogImageAlt": "KiCad IA: el esquemático se pide en un chat, con las piezas de tus bibliotecas",
+  "ogImageWidth": 1200,
+  "ogImageHeight": 630,
+  "icons": [],
+  "defaultTheme": "system",
+  "themeColor": { "light": "#ffffff", "dark": "#141414" },
+  "repo": "https://github.com/krisskira/kicad-ia-pluging",
+  "cta": { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-pluging" },
+  "nav": [],
+  "author": {
+    "name": "Crhistian David Vergara Gómez",
+    "url": "https://krisskira.github.io/krisskira/",
+    "email": "krisskira@gmail.com"
+  },
+  "maker": { "name": "Kriver Devices", "url": "https://krisskira.github.io/krisskira/" },
+  "schema": {
+    "@type": "SoftwareApplication",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "KiCad"
+  },
+  "footer": {
+    "text": "Un chat para armar el esquemático con las piezas que ya están en KiCad. La página pública está en preparación.",
+    "rights": "KiCad IA",
+    "columns": [
+      {
+        "title": "Proyecto",
+        "links": [
+          { "label": "Idea", "href": "#idea" },
+          { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging" }
+        ]
+      },
+      {
+        "title": "Autor",
+        "links": [
+          { "label": "Kriver Devices", "href": "https://krisskira.github.io/krisskira/" },
+          { "label": "LinkedIn", "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/" }
+        ]
+      }
+    ]
+  }
+}

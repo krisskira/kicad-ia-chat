@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "../content/theme.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./assets/fonts/Poppins-Regular.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("./assets/fonts/Poppins-SemiBold.woff") format("woff");
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("./assets/fonts/NotoSans-Regular.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("./assets/fonts/NotoSans-SemiBold.woff") format("woff");
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+/*
+ * Los colores y fuentes del proyecto viven en content/theme.css.
+ * Aquí solo se exponen como utilidades de Tailwind: bg-bg, text-fg,
+ * text-accent, border-line, font-display, etc.
+ */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-line: var(--line);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+  --color-on-accent: var(--on-accent);
+  --color-hero: var(--hero-bg);
+  --color-hero-fg: var(--hero-fg);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-heading);
+  --font-mono: var(--font-code);
+}
+
+@theme {
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 32px -12px rgba(0, 0, 0, 0.25);
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-spin-slow: spin 80s linear infinite;
+  --animate-sweep: sweep 4.5s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes sweep {
+    0% {
+      transform: translateX(500%);
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    62% {
+      opacity: 1;
+    }
+    70%,
+    100% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hero, CTA y footer son oscuros en ambos modos: su texto usa --hero-fg. */
+.bg-hero {
+  --fg: var(--hero-fg);
+  --soft: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.16);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--accent), var(--accent-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

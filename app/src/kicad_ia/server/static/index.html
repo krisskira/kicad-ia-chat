@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KiCad IA</title>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button class="icon-button only-narrow" id="toggle-side" type="button" aria-label="Mostrar panel">☰</button>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">⌁</span>
+        <span class="brand-name">KiCad IA</span>
+        <span class="brand-project" id="project-name"></span>
+      </div>
+      <div class="indicators">
+        <span class="pill" id="ind-ws" title="Canal en vivo con el servidor"><i></i><span>Conectando</span></span>
+        <span class="pill" id="ind-kicad" title="Conexión con KiCad"><i></i><span>KiCad</span></span>
+        <span class="pill" id="ind-model" title="Modelo de lenguaje"><i></i><span>Modelo</span></span>
+        <button class="icon-button" id="open-settings" type="button" title="Ajustes" aria-label="Ajustes">⚙</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="side" id="side">
+        <section class="card">
+          <h2>Proyecto</h2>
+          <dl class="facts" id="facts">
+            <dt>Estado</dt><dd>Esperando al servidor…</dd>
+          </dl>
+          <ul class="notes" id="notes"></ul>
+        </section>
+
+        <section class="card">
+          <h2>Selección <span class="count" id="selection-count">0</span></h2>
+          <div class="chips" id="selection"><span class="muted">Selecciona huellas en el editor de PCB.</span></div>
+        </section>
+
+        <section class="card">
+          <h2>Acciones rápidas</h2>
+          <div class="actions">
+            <button type="button" data-prompt="Enséñame una imagen del esquemático.">🖼️ Imagen del esquemático</button>
+            <button type="button" data-prompt="Enséñame la placa en 3D.">🧊 Placa en 3D</button>
+            <button type="button" data-prompt="Enséñame la placa vista desde arriba con las capas de cobre.">🟩 Capas de la placa</button>
+            <button type="button" data-prompt="Organiza el circuito agrupado por funciones, en el esquemático y en la placa. Antes explícame los grupos que vas a usar.">🧩 Organizar por funciones</button>
+            <button type="button" data-prompt="Coloca los componentes en la PCB siguiendo normas IPC Clase 2. Primero muéstrame la propuesta sin aplicar.">📐 Colocar IPC</button>
+            <button type="button" id="btn-autoroute" data-prompt="Autorutea la placa con FreeRouting, valida con DRC e IPC y enséñame el antes y el después sin aplicar todavía.">🛤️ Autorutear</button>
+            <button type="button" data-prompt="Valida la PCB con DRC e IPC Clase 2 y corrige solo lo seguro. Explica qué no puedes corregir solo.">🔍 Validar IPC</button>
+            <button type="button" data-prompt="Valida el esquemático con ERC y dime qué hay que corregir.">✅ Revisar ERC</button>
+            <button type="button" data-local="/estado">ℹ️ Estado de KiCad</button>
+          </div>
+        </section>
+
+        <section class="card subtle">
+          <button class="link-button" id="new-chat" type="button">Empezar una conversación nueva</button>
+        </section>
+      </aside>
+
+      <main class="chat">
+        <div class="messages" id="messages" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <h1>¿Qué diseñamos?</h1>
+            <p>Pido piezas a las bibliotecas de tu KiCad, escribo el esquemático, ordeno la placa y te enseño imágenes del resultado.</p>
+            <div class="examples">
+              <button type="button" data-prompt="Diseña un LED con su resistencia alimentado a 5 V por USB-C.">LED con USB-C</button>
+              <button type="button" data-prompt="¿Qué tengo seleccionado en la placa?">¿Qué tengo seleccionado?</button>
+              <button type="button" data-prompt="Agrupa los componentes por función y distribúyelos mejor en la placa.">Ordenar la placa</button>
+            </div>
+          </div>
+        </div>
+
+        <form class="composer" id="composer">
+          <textarea id="input" rows="1" placeholder="Escribe aquí. Enter envía, Shift+Enter hace un salto de línea." maxlength="8000"></textarea>
+          <button type="submit" id="send" class="send" aria-label="Enviar">➤</button>
+        </form>
+        <div class="composer-hint" id="hint"></div>
+      </main>
+    </div>
+
+    <div class="lightbox" id="lightbox" hidden>
+      <button class="icon-button close" type="button" id="lightbox-close" aria-label="Cerrar">✕</button>
+      <img alt="Vista ampliada del circuito" id="lightbox-img" />
+      <a class="lightbox-open" id="lightbox-open" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+    </div>
+
+    <div class="modal" id="settings-modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="modal-head">
+          <h2 id="settings-title">Ajustes</h2>
+          <button class="icon-button" type="button" id="settings-close" aria-label="Cerrar">✕</button>
+        </header>
+        <form id="settings-form" class="settings-form">
+          <section>
+            <h3>Modelo (LLM)</h3>
+            <label>Proveedor
+              <select id="set-preset"></select>
+            </label>
+            <label>URL base
+              <input id="set-base-url" type="url" placeholder="https://…/v1" autocomplete="off" />
+            </label>
+            <label>API key
+              <input id="set-api-key" type="password" placeholder="Se guarda en este equipo" autocomplete="off" />
+            </label>
+            <p class="field-hint" id="set-api-hint"></p>
+            <label>Modelo
+              <input id="set-model" type="text" placeholder="gemini-2.5-flash" />
+            </label>
+            <label>Modelo revisor (opcional)
+              <input id="set-review-model" type="text" placeholder="Vacío = sin revisor" />
+            </label>
+          </section>
+
+          <section>
+            <h3>Java (FreeRouting)</h3>
+            <label>Ruta de <code>java</code>
+              <input id="set-java" type="text" placeholder="/ruta/…/bin/java" spellcheck="false" />
+            </label>
+            <div class="row-actions">
+              <button type="button" id="set-java-detect">Detectar Java</button>
+              <span class="field-hint" id="set-java-status"></span>
+            </div>
+          </section>
+
+          <section>
+            <h3>Autoruteo</h3>
+            <label class="check">
+              <input id="set-autoroute" type="checkbox" />
+              Permitir que el agente autorutee con FreeRouting
+            </label>
+            <div id="fab-fields" class="fab-fields" hidden>
+              <p class="field-hint">Valores mínimos de fabricación (mm). Se aplican al candidato antes de rutear.</p>
+              <div class="fab-grid">
+                <label>Ancho de pista
+                  <input id="fab-track" type="number" min="0.05" step="0.01" />
+                </label>
+                <label>Clearance
+                  <input id="fab-clearance" type="number" min="0.05" step="0.01" />
+                </label>
+                <label>Diámetro de vía
+                  <input id="fab-via-dia" type="number" min="0.1" step="0.01" />
+                </label>
+                <label>Taladro de vía
+                  <input id="fab-via-drill" type="number" min="0.1" step="0.01" />
+                </label>
+                <label>Agujero mínimo
+                  <input id="fab-hole" type="number" min="0.1" step="0.01" />
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <footer class="modal-foot">
+            <p class="field-hint" id="settings-path"></p>
+            <div class="row-actions">
+              <button type="button" id="settings-cancel">Cancelar</button>
+              <button type="submit" class="primary">Guardar</button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="assertive"></div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

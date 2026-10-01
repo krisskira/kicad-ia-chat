@@ -1,0 +1,46 @@
+{
+  "sections": [
+    {
+      "type": "hero",
+      "badge": "Próximamente",
+      "title": "El esquemático se pide en un chat,",
+      "highlight": "con las piezas que ya tienes",
+      "lead": "Plugin para KiCad. Describes el circuito y las piezas salen de las bibliotecas que tienes configuradas, no de una lista del plugin. Esta página solo presenta esa idea.",
+      "actions": [
+        { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github" }
+      ],
+      "media": {
+        "src": "media/og-cover.svg",
+        "alt": "Tarjeta oscura: KiCad IA, el esquemático sale de un chat, próximamente",
+        "width": 1200,
+        "height": 630,
+        "frame": "window",
+        "title": "kicad-ia"
+      },
+      "next": { "label": "La idea", "href": "#idea" }
+    },
+    {
+      "type": "features",
+      "id": "idea",
+      "nav": "Idea",
+      "kicker": "La idea",
+      "title": "Una frase, el archivo del proyecto",
+      "lead": "El chat trabaja sobre el proyecto de KiCad que está abierto.",
+      "columns": 3,
+      "items": [
+        { "icon": "circuit", "title": "Tus bibliotecas", "text": "Las piezas salen de las bibliotecas configuradas en KiCad." },
+        { "icon": "file", "title": "El esquemático", "text": "El resultado es el esquemático de ese proyecto." },
+        { "icon": "search", "title": "Sin inventar piezas", "text": "Si la pieza no está, no se dibuja una de mentira." }
+      ]
+    },
+    {
+      "type": "cta",
+      "id": "estado",
+      "title": "Todavía no hay más que mostrar",
+      "lead": "El desarrollo del plugin está en el repositorio. Esta página se queda en la idea hasta que el proyecto esté listo.",
+      "actions": [
+        { "label": "Ver el repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging", "icon": "github" }
+      ]
+    }
+  ]
+}

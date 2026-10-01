@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dependencias de empaquetado
+        run: pip install "kicad-python>=0.4" pillow
+
+      - name: Comprobar versión del tag
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' app/pyproject.toml | head -n1)"
+          if [ "$tag" != "$version" ]; then
+            echo "El tag ${GITHUB_REF_NAME} no coincide con pyproject.toml (${version})"
+            exit 1
+          fi
+
+      - name: Empaquetar
+        run: |
+          python app/scripts/package_release.py \
+            --update-index \
+            --validate \
+            --release-tag "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}"
+
+      - name: Publicar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/kicad-ia-*.zip
+            dist/SHA256SUMS
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+      - name: Actualizar índice PCM en main
+        run: |
+          mkdir -p /tmp/pcm-index
+          cp app/packaging/packages.json app/packaging/repository.json /tmp/pcm-index/
+          git fetch origin main
+          git checkout -B main origin/main
+          mkdir -p app/packaging
+          cp /tmp/pcm-index/packages.json app/packaging/packages.json
+          cp /tmp/pcm-index/repository.json app/packaging/repository.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/packaging/packages.json app/packaging/repository.json
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el índice PCM"
+          else
+            git commit -m "chore: índice PCM para ${GITHUB_REF_NAME}"
+            git push origin main
+          fi

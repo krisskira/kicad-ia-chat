@@ -1,0 +1,48 @@
+/*
+ * Identidad visual del proyecto. Solo variables: el template las convierte
+ * en utilidades de Tailwind (bg-bg, text-accent, font-display…).
+ *
+ * --accent, --accent-2, --accent-3  → barra tricolor, botones, degradados
+ * --hero-bg / --hero-fg             → hero, CTA y footer (oscuros en ambos modos)
+ * --glow-1 / --glow-2               → halos del hero
+ */
+:root {
+  --font-heading: "Poppins", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-code: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --bg: #ffffff;
+  --bg-alt: #f6f6f4;
+  --fg: #2f2f2f;
+  --muted: #5d5d5d;
+  --card: #ffffff;
+  --line: #d9d9d6;
+  --soft: #f0f0ee;
+
+  --accent: #2a74c0;
+  --accent-2: #f0df41;
+  --accent-3: #eb5151;
+  --on-accent: #ffffff;
+
+  --hero-bg: #333333;
+  --hero-fg: #fffdf8;
+  --glow-1: rgba(240, 223, 65, 0.16);
+  --glow-2: rgba(81, 161, 235, 0.2);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #1b1b1b;
+  --bg-alt: #212121;
+  --fg: #f2f2f2;
+  --muted: #c2c2c2;
+  --card: #262626;
+  --line: #3d3d3d;
+  --soft: #2c2c2c;
+
+  --accent: #51a1eb;
+  --on-accent: #0f1720;
+
+  --hero-bg: #141414;
+  color-scheme: dark;
+}

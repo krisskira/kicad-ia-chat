@@ -1,0 +1,2 @@
+[console_scripts]
+kicad-ia = kicad_ia.__main__:main

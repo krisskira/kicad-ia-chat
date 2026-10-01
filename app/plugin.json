@@ -1,0 +1,21 @@
+{
+  "$schema": "https://go.kicad.org/api/schemas/v1",
+  "identifier": "dev.krisskira.kicad-ia",
+  "name": "KiCad IA",
+  "description": "Chat para crear el esquemático, pasar a la PCB, consultar la selección y trabajar con bibliotecas, huellas y modelos 3D.",
+  "runtime": {
+    "type": "python"
+  },
+  "actions": [
+    {
+      "identifier": "open_chat",
+      "name": "KiCad IA",
+      "description": "Abre el chat del asistente",
+      "scopes": ["pcb"],
+      "entrypoint": "ipc_entry.py",
+      "show-button": true,
+      "icons-light": ["icons/kicad-ia-light-24.png", "icons/kicad-ia-light-48.png"],
+      "icons-dark": ["icons/kicad-ia-dark-24.png", "icons/kicad-ia-dark-48.png"]
+    }
+  ]
+}
