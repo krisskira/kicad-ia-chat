@@ -38,6 +38,10 @@ UI (static/) ──WebSocket/HTTP──► server/app.py
 2. `ChatService` lanza un turno en hilo; publica `turn.started` / `llm.*` / `tool.*` / `turn.finished`.
 3. `run_turn` llama al LLM con `registry.openai_tools(exclude=…)`; cada tool pasa por el handler del registro.
 4. `CircuitReviewer` puede bloquear `place_circuit`; `PcbReviewer` valida candidatos de PCB.
+5. `commit_intent` guarda el contrato del usuario en la sesión (versión nueva; no se borra un componente obligatorio sin `confirm_removed`). `select_component` solo acepta símbolos que devolvió la biblioteca. `place_circuit` no escribe si falta el contrato, si el símbolo no fue seleccionado, o si desaparece un componente obligatorio.
+6. `sync_board`, `board_state` e `ipc_place_components` devuelven `board_area`. Si no hay Edge.Cuts y ya hay huellas, el rectángulo es su caja más 5 mm. Si aún no hay huellas, el texto dice que no se elija el tamaño a ojo y que se vuelva a medir tras F8.
+
+El orquestador sigue siendo el bucle del chat. La intención no diseña. La selección de componentes se puede volver a llamar desde la placa: no vive solo al principio.
 
 ## PCB seguro (IPC + autoruteo)
 

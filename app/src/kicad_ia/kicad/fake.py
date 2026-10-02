@@ -212,11 +212,19 @@ class FakeGateway(Gateway):
             "created": created,
             "footprints": [item.as_dict() for item in self.footprints.values()],
             "note": "En KiCad real esto exporta el netlist e importa la placa.",
+            "board_area": self._board_area_payload(),
         }
+
+    def _board_area_payload(self) -> dict:
+        from kicad_ia.kicad.board_area import board_area_report
+
+        boxes = [(item.x_mm - 4, item.y_mm - 4, 8, 8) for item in self.footprints.values()]
+        return board_area_report(None, boxes)
 
     def board_state(self) -> dict:
         return {
             "ok": True,
+            "board_area": self._board_area_payload(),
             "footprints": [item.as_dict() for item in self.footprints.values()],
             "tracks": 0,
             "vias": 0,

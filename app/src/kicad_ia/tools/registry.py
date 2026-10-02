@@ -13,6 +13,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from kicad_ia.agent.components import select_component
+from kicad_ia.agent.intent import current_memory, guard_place
 from kicad_ia.kicad.gateway import Gateway
 
 Handler = Callable[[Gateway, dict], dict]
@@ -105,6 +107,14 @@ def _describe(gateway: Gateway, args: dict) -> dict:
     return gateway.describe_part(lib_id)
 
 
+def _commit_intent(gateway: Gateway, args: dict) -> dict:
+    return current_memory(gateway).commit(args)
+
+
+def _select_component(gateway: Gateway, args: dict) -> dict:
+    return select_component(gateway, args, current_memory(gateway))
+
+
 def _place(gateway: Gateway, args: dict) -> dict:
     symbols = args.get("symbols") or []
     if not isinstance(symbols, list) or not symbols:
@@ -112,6 +122,9 @@ def _place(gateway: Gateway, args: dict) -> dict:
     for spec in symbols:
         if not isinstance(spec, dict) or not spec.get("lib_id") or not spec.get("reference"):
             return {"ok": False, "error": "Cada símbolo necesita lib_id y reference."}
+    blocked = guard_place(current_memory(gateway), symbols)
+    if blocked is not None:
+        return blocked
     return gateway.place_circuit(
         symbols=symbols,
         nets=list(args.get("nets") or []),
@@ -248,6 +261,52 @@ _CONNECTION = {
 def build_registry() -> ToolRegistry:
     return ToolRegistry(
         [
+            Tool(
+                "commit_intent",
+                "Registra lo que pidió el usuario. required_components solo si lo nombró como obligatorio. unknowns es lo que no dijo: no lo inventes. No quites un required sin confirm_removed.",
+                _object(
+                    {
+                        "goal": {"type": "string"},
+                        "required_functions": {"type": "array", "items": {"type": "string"}},
+                        "required_components": {"type": "array", "items": {"type": "string"}},
+                        "forbidden_components": {"type": "array", "items": {"type": "string"}},
+                        "preferred": {"type": "array", "items": {"type": "string"}},
+                        "constraints": {"type": "array", "items": {"type": "string"}},
+                        "assumptions": {"type": "array", "items": {"type": "string"}},
+                        "unknowns": {"type": "array", "items": {"type": "string"}},
+                        "acceptance": {"type": "array", "items": {"type": "string"}},
+                        "confirm_removed": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Componentes obligatorios que el usuario autorizó quitar.",
+                        },
+                    },
+                    ["goal"],
+                ),
+                _commit_intent,
+            ),
+            Tool(
+                "select_component",
+                "Elige un símbolo que exista en las bibliotecas. Si el pedido no está, no inventes un sustituto: devuelve decision_required o request_user. allow_substitution solo si el usuario ya aceptó ese lib_id.",
+                _object(
+                    {
+                        "requested_part": {"type": "string"},
+                        "function": {"type": "string", "description": "Función pedida, por ejemplo regulador lineal 5V. No la deduzcas de un número de parte que no está."},
+                        "stage": {"type": "string"},
+                        "queries": {"type": "array", "items": {"type": "string"}},
+                        "required_pins": {"type": "array", "items": {"type": "string"}},
+                        "hard": {
+                            "type": "object",
+                            "description": "Solo restricciones que el usuario dijo: voltage, current, power, temperature, tolerance, frequency.",
+                            "additionalProperties": {"type": "string"},
+                        },
+                        "architectural_change": {"type": "boolean"},
+                        "allow_substitution": {"type": "boolean"},
+                    },
+                    [],
+                ),
+                _select_component,
+            ),
             Tool(
                 "inspect_context",
                 "Lee el proyecto abierto, la selección actual del editor, el esquemático y la placa. Úsala antes de modificar nada.",

@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 from kicad_ia.config import Settings
+from kicad_ia.kicad.board_area import board_area_report
 from kicad_ia.kicad.candidates import STORE
 from kicad_ia.kicad.cli import export_netlist, find_kicad_cli, read_netlist, run_drc, run_erc
 from kicad_ia.kicad.copper_apply import apply_copper_to_board
@@ -213,7 +214,10 @@ class KipyGateway(Gateway):
         cli = find_kicad_cli(self._settings.kicad_cli)
         if result.get("written") and cli:
             result["erc"] = run_erc(cli, schematic)
-        result["next"] = "Abre el esquemático en KiCad para verlo. Para la PCB: F8 en el editor de PCB."
+        result["next"] = (
+            "Abre el esquemático en KiCad para verlo. Para la PCB llama a sync_board y copia "
+            "board_area.must_tell_user: el rectángulo de Edge.Cuts en mm, o la orden de no elegir el tamaño a ojo."
+        )
         return result
 
     def assign_footprint(self, reference: str, footprint: str) -> dict:
@@ -246,6 +250,7 @@ class KipyGateway(Gateway):
             "symbols_without_footprint": missing,
             "imported": False,
             "next": "En el editor de PCB: Herramientas > Actualizar PCB desde esquemático (F8). Luego usa board_state.",
+            "board_area": self._board_area_payload(),
         }
 
     def board_state(self) -> dict:
@@ -258,7 +263,14 @@ class KipyGateway(Gateway):
             "tracks": len(list(_call(board, "get_tracks") or [])),
             "vias": len(list(_call(board, "get_vias") or [])),
             "zones": len(list(_call(board, "get_zones") or [])),
+            "board_area": self._board_area_payload(),
         }
+
+    def _board_area_payload(self) -> dict:
+        board = _try(self._board)
+        if board is None:
+            return board_area_report(None, [])
+        return _area_from_board(board)
 
     def move_footprints(self, placements: list[dict]) -> dict:
         board = self._board()
@@ -502,6 +514,7 @@ class KipyGateway(Gateway):
             "groups": plan_groups,
             "ipc_findings": [item.as_dict() for item in findings],
             "copper_tracks": len(tracks),
+            "board_area": _area_from_board(board),
         }
         if tracks:
             result["warning"] = (
@@ -960,6 +973,27 @@ def _vec_mm(vector) -> tuple[float, float]:
     x = float(getattr(vector, "x", 0) or 0)
     y = float(getattr(vector, "y", 0) or 0)
     return x / 1_000_000, y / 1_000_000
+
+
+def _area_from_board(board) -> dict:
+    boxes = []
+    for footprint in list(_call(board, "get_footprints") or []):
+        box = _footprint_box(board, footprint)
+        if box is not None:
+            boxes.append(box)
+    return board_area_report(_board_outline(board), boxes)
+
+
+def _footprint_box(board, footprint) -> tuple[float, float, float, float] | None:
+    got = _call(board, "get_item_bounding_box", [footprint])
+    box = got[0] if isinstance(got, list) and got else None
+    if box is not None:
+        x_mm, y_mm = _vec_mm(getattr(box, "pos", None))
+        width, height = _vec_mm(getattr(box, "size", None))
+        if width > 0 and height > 0:
+            return x_mm, y_mm, width, height
+    x_mm, y_mm = _vec_mm(getattr(footprint, "position", None))
+    return x_mm - 4, y_mm - 4, 8, 8
 
 
 def _board_outline(board) -> tuple[float, float, float, float] | None:

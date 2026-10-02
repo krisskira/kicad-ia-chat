@@ -22,6 +22,13 @@ def test_verdict_reads_tool_call():
     assert _verdict(reply)["problems"] == ["EN de U2 va a la salida"]
 
 
+def _ready(name: str) -> Session:
+    session = Session(name)
+    session.memory.commit({"goal": "divisor", "unknowns": ["tensiones"]})
+    session.memory.accepted.add("Device:R")
+    return session
+
+
 def test_rejected_design_is_not_written_until_approved():
     gateway = FakeGateway()
     designer = ScriptedClient([_place("1"), _place("2"), LlmReply("Corregido.")])
@@ -33,7 +40,7 @@ def test_rejected_design_is_not_written_until_approved():
             ]
         )
     )
-    turn = run_turn(Session("s"), "haz el divisor", designer, build_registry(), gateway, reviewer)
+    turn = run_turn(_ready("s"), "haz el divisor", designer, build_registry(), gateway, reviewer)
     assert turn.steps[0]["result"]["review"] == "rejected"
     assert turn.steps[0]["result"]["written"] is False
     assert turn.steps[1]["result"]["review"] == "approved"
@@ -50,7 +57,7 @@ def test_review_stops_after_two_rejections():
         ]
     )
     reviewer = CircuitReviewer(reviewer_client)
-    turn = run_turn(Session("s"), "hazlo", designer, build_registry(), gateway, reviewer)
+    turn = run_turn(_ready("s2"), "hazlo", designer, build_registry(), gateway, reviewer)
     assert [step["result"]["review"] for step in turn.steps] == ["rejected", "rejected", "exhausted"]
     assert gateway.symbols == {}
     assert len(reviewer_client.seen) == 2
@@ -64,6 +71,6 @@ def test_reviewer_outage_does_not_block_writing():
 
     gateway = FakeGateway()
     designer = ScriptedClient([_place("1"), LlmReply("Listo.")])
-    turn = run_turn(Session("s"), "hazlo", designer, build_registry(), gateway, CircuitReviewer(Down()))
+    turn = run_turn(_ready("s3"), "hazlo", designer, build_registry(), gateway, CircuitReviewer(Down()))
     assert turn.steps[0]["result"]["review"] == "skipped"
     assert set(gateway.symbols) == {"R1", "R2"}

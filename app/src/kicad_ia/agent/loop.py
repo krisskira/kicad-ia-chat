@@ -6,6 +6,7 @@ import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+from kicad_ia.agent.intent import activate, reset
 from kicad_ia.agent.llm import LlmReply
 from kicad_ia.events import LLM_ROUND, LLM_TEXT, TOOL_FINISHED, TOOL_STARTED
 from kicad_ia.kicad.gateway import Gateway
@@ -38,6 +39,10 @@ Trabajas solo con las herramientas. El estado real es el que ellas devuelven. Pi
 
 Antes de crear o cambiar nada, llama a inspect_context. Si hay componentes seleccionados, el trabajo se refiere a ellos salvo que pidan otra cosa.
 
+La primera vez llama a commit_intent: qué pidió el usuario, required_components (solo lo que nombró como obligatorio), unknowns (lo que no dijo). No rellenes unknowns. Una versión nueva solo si el usuario cambia el pedido; no quites un required sin confirm_removed.
+
+Cada símbolo nuevo pasa por select_component antes de place_circuit. Si decision es decision_required o request_user, para y pregunta. No elijas entre varias alternativas ni inventes un lib_id. allow_substitution solo después de que el usuario acepte ese sustituto. Un cambio de arquitectura no se aplica solo.
+
 Las piezas salen de las bibliotecas que el usuario tiene configuradas en KiCad. Para un circuito:
 1. search_parts kind=symbol con el nombre del fabricante o la familia (ESP32-S3-WROOM-1, AP2112K, Battery_Cell). Prueba dos o tres consultas antes de rendirte.
 2. describe_part de cada símbolo elegido. Usa sus números o nombres de pin; no los inventes.
@@ -56,7 +61,7 @@ Si search_parts no encuentra la pieza, llama a search_lcsc. Enseña código, fab
 
 Si el esquemático está abierto en el editor, place_circuit falla: pide al usuario que lo cierre y vuelve a intentarlo.
 
-Para la placa: sync_board valida y devuelve el paso F8 que hace el usuario. Después board_state. move_footprints solo con referencias que ya estén en la placa.
+Para la placa: sync_board valida y devuelve el paso F8. En la misma respuesta copia board_area.must_tell_user, con el rectángulo en mm si viene. No pidas colocar ni autorutear sin ese contorno de Edge.Cuts, y no dejes el tamaño a ojo del usuario. Después board_state. move_footprints solo con referencias que ya estén en la placa.
 Huellas y modelos 3D: search_parts kind=footprint o model, describe_footprint, assign_footprint y list_models.
 Ruteo: routing con mode=status. mode=interactive solo si el usuario pide arrancar el router y te da, o acepta, un nombre de acción.
 
@@ -87,6 +92,13 @@ class Turn:
 class Session:
     id: str
     messages: list[dict] = field(default_factory=list)
+    memory: object = None
+
+    def __post_init__(self) -> None:
+        if self.memory is None:
+            from kicad_ia.agent.intent import DesignMemory
+
+            self.memory = DesignMemory()
 
 
 def _call_tool(call, registry: ToolRegistry, gateway: Gateway, reviewer, pcb_reviewer=None, exclude: set[str] | None = None) -> dict:
@@ -122,18 +134,17 @@ def _call_tool(call, registry: ToolRegistry, gateway: Gateway, reviewer, pcb_rev
     return result
 
 
-def run_turn(
+def _run_turn(
     session: Session,
     user_text: str,
     client,
     registry: ToolRegistry,
     gateway: Gateway,
-    reviewer=None,
-    emit: Callable[[str, dict], None] | None = None,
-    pcb_reviewer=None,
-    settings=None,
+    reviewer,
+    notify,
+    pcb_reviewer,
+    settings,
 ) -> Turn:
-    notify = emit or (lambda _type, _data: None)
     session.messages.append({"role": "user", "content": user_text})
     steps: list[dict] = []
     exclude = set()
@@ -170,3 +181,22 @@ def run_turn(
     text = "Paré después de varias herramientas para no dejar la sesión dando vueltas. Revisa los pasos y dime cómo seguir."
     session.messages.append({"role": "assistant", "content": text})
     return Turn(reply=text, steps=steps)
+
+
+def run_turn(
+    session: Session,
+    user_text: str,
+    client,
+    registry: ToolRegistry,
+    gateway: Gateway,
+    reviewer=None,
+    emit: Callable[[str, dict], None] | None = None,
+    pcb_reviewer=None,
+    settings=None,
+) -> Turn:
+    notify = emit or (lambda _type, _data: None)
+    token = activate(session.memory)
+    try:
+        return _run_turn(session, user_text, client, registry, gateway, reviewer, notify, pcb_reviewer, settings)
+    finally:
+        reset(token)
