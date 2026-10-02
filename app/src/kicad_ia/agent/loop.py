@@ -15,7 +15,7 @@ from kicad_ia.tools.registry import ToolRegistry
 MAX_ROUNDS = 20
 
 
-def system_prompt(gateway: Gateway, settings=None) -> str:
+def system_prompt(gateway: Gateway, settings=None, prior: str = "") -> str:
     caps = json.dumps(gateway.capabilities(), ensure_ascii=False)
     autoroute_block = ""
     if settings is not None and not getattr(settings, "autoroute_enabled", False):
@@ -33,7 +33,16 @@ def system_prompt(gateway: Gateway, settings=None) -> str:
             f"taladro{fab.get('min_via_drill_mm')}, agujero≥{fab.get('min_hole_mm')}. "
             "Menciona estas reglas al resumir el candidato.\n"
         )
+    memory = ""
+    if prior.strip():
+        memory = (
+            "\nMemoria de este mismo proyecto, sacada de sesiones anteriores. "
+            "Es solo lectura: no continúa esas conversaciones, no las reabre y no deshace lo ya hecho. "
+            "Úsala para no repetir trabajo ni contradecir una decisión previa. Si falta un dato, pregunta.\n"
+            f"{prior.strip()}\n"
+        )
     return f"""Eres KiCad IA, el asistente dentro del editor de KiCad. Respondes en español, en frases cortas.
+{memory}
 
 Trabajas solo con las herramientas. El estado real es el que ellas devuelven. Pide en la misma respuesta las búsquedas y descripciones que no dependen entre sí.
 
@@ -95,6 +104,7 @@ class Session:
     memory: object = None
     title: str = ""
     updated: str = ""
+    project: str = ""
 
     def __post_init__(self) -> None:
         if self.memory is None:
@@ -146,13 +156,14 @@ def _run_turn(
     notify,
     pcb_reviewer,
     settings,
+    prior: str = "",
 ) -> Turn:
     session.messages.append({"role": "user", "content": user_text})
     steps: list[dict] = []
     exclude = set()
     if settings is not None and not getattr(settings, "autoroute_enabled", False):
         exclude.add("autoroute_board")
-    system = system_prompt(gateway, settings)
+    system = system_prompt(gateway, settings, prior)
     for round_number in range(1, MAX_ROUNDS + 1):
         notify(LLM_ROUND, {"round": round_number})
         try:
@@ -199,10 +210,11 @@ def run_turn(
     emit: Callable[[str, dict], None] | None = None,
     pcb_reviewer=None,
     settings=None,
+    prior: str = "",
 ) -> Turn:
     notify = emit or (lambda _type, _data: None)
     token = activate(session.memory)
     try:
-        return _run_turn(session, user_text, client, registry, gateway, reviewer, notify, pcb_reviewer, settings)
+        return _run_turn(session, user_text, client, registry, gateway, reviewer, notify, pcb_reviewer, settings, prior)
     finally:
         reset(token)

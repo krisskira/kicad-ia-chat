@@ -41,11 +41,40 @@ class ChatService:
             book.store = self._store
         self._on_turn_end = on_turn_end
         self._busy: set[str] = set()
+        self._project = ""
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chat-turn")
 
+    def project_key(self) -> str:
+        """Carpeta del proyecto abierto. Si KiCad parpadea, se conserva la última conocida."""
+        try:
+            caps = self._gateway.capabilities() or {}
+        except Exception:
+            return self._project
+        path = str(caps.get("project_path") or "").strip()
+        if path:
+            self._project = path
+        return self._project
+
     def session_id(self, wanted: str | None) -> str:
-        return self.book.session(wanted).id
+        project = self.project_key()
+        found = self.book.find(wanted)
+        if found is not None and project and found.project and found.project != project:
+            found = None
+        session = found if found is not None else self.book.session(None)
+        if project and not session.project:
+            session.project = project
+        return session.id
+
+    def _stamp(self, session) -> None:
+        project = self.project_key()
+        if project and not session.project:
+            session.project = project
+
+    def _prior(self, session) -> str:
+        if self._store is None or not session.project:
+            return ""
+        return self._store.digest(session.project, session.id)
 
     def busy(self, session_id: str) -> bool:
         with self._lock:
@@ -54,6 +83,7 @@ class ChatService:
     def submit(self, session_id: str, text: str) -> str | None:
         """Devuelve el id del turno, o None si la sesión ya tiene uno en marcha."""
         session = self.book.session(session_id)
+        self._stamp(session)
         with self._lock:
             if session.id in self._busy:
                 return None
@@ -70,15 +100,31 @@ class ChatService:
             self._client = client
 
     def summaries(self) -> list[dict]:
-        return self._store.summaries() if self._store is not None else []
+        if self._store is None:
+            return []
+        return self._store.summaries(self.project_key())
+
+    def preview(self, session_id: str) -> dict | None:
+        found = self.book.find(session_id)
+        if found is None:
+            return None
+        project = self.project_key()
+        if project and found.project and found.project != project:
+            return None
+        return {"session_id": found.id, "title": found.title or "Conversación", "history": self.history(found.id)}
 
     def forget(self, session_id: str) -> bool:
+        found = self.book.find(session_id)
+        project = self.project_key()
+        if found is not None and project and found.project and found.project != project:
+            return False
         self.book.sessions.pop(session_id, None)
         return self._store.delete(session_id) if self._store is not None else False
 
     def run_sync(self, session_id: str | None, text: str) -> dict:
         session = self.book.session(session_id)
-        payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client)
+        self._stamp(session)
+        payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client, prior=self._prior(session))
         self._remember(session)
         return payload
 
@@ -118,7 +164,9 @@ class ChatService:
             self._bus.publish(Event(kind, {**base, **data}, target=session.id))
 
         try:
-            payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client, emit)
+            payload = dispatch(
+                text, session, self._settings, self._gateway, self._registry, self._client, emit, prior=self._prior(session)
+            )
             self._remember(session)
             self._bus.publish(
                 Event(

@@ -64,7 +64,7 @@
       "Escribe el esquemático del proyecto con copia de seguridad",
       "No coloca un componente sin huella verificada",
       "Conserva los componentes que ya están en el esquemático y en la placa",
-      "Guarda las conversaciones para volver a abrirlas",
+      "Guarda las sesiones de cada proyecto como memoria de solo lectura",
       "Propone colocación y autoruteo, y los aplica cuando confirmas"
     ]
   },

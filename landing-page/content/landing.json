@@ -33,7 +33,7 @@
         { "icon": "shield", "title": "Sin inventar piezas", "text": "Si la pieza no está, no se dibuja otra en su lugar. Colocar y autorutear esperan tu confirmación." },
         { "icon": "search", "title": "Con huella", "text": "Un componente sin huella no se escribe. El chat elige una de tus bibliotecas con el mismo número de pads, o te pregunta." },
         { "icon": "layers", "title": "Lo que ya está se queda", "text": "Si la referencia ya está en el esquemático y en la placa, se conserva con su id. No se duplica ni se rompe el enlace con la PCB." },
-        { "icon": "clock", "title": "Conversaciones guardadas", "text": "Cada conversación queda en tu equipo. La retomas desde la barra lateral, con lo que ya habías decidido." }
+        { "icon": "clock", "title": "Memoria del proyecto", "text": "Las sesiones de este proyecto quedan en tu equipo. El chat las lee como resumen; no se puede volver atrás en una conversación." }
       ]
     },
     {
@@ -89,7 +89,7 @@
         {
           "label": "Inicio",
           "title": "Proyecto abierto",
-          "text": "Con KiCad en marcha el indicador muestra la versión. Las conversaciones guardadas se abren con un clic; el **＋** de esa lista empieza otra.",
+          "text": "Con KiCad en marcha el indicador muestra la versión. El historial es de este proyecto: un clic lo enseña en solo lectura y el **＋** empieza otra sesión.",
           "media": {
             "src": "media/chat-inicio.png",
             "alt": "Pantalla de inicio del chat, conectada a KiCad 10.0.1, con bibliotecas y tres conversaciones guardadas",
@@ -209,7 +209,7 @@
         },
         {
           "q": "¿Se guardan las conversaciones?",
-          "a": "Sí, en este equipo, junto a los ajustes. La barra lateral las lista; puedes abrirlas o borrarlas. No guardan la API key."
+          "a": "Sí, por proyecto, junto a los ajustes. Otro proyecto no las ve. El chat las usa como resumen de solo lectura: no reabren la conversación ni deshacen lo hecho. No guardan la API key."
         },
         {
           "q": "¿Por qué hay que cerrar el editor de esquemáticos?",

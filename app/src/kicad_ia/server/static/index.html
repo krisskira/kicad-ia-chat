@@ -25,6 +25,30 @@
 
     <div class="layout">
       <aside class="side" id="side">
+        <section class="card coffee">
+          <a class="coffee-qr" href="https://www.paypal.com/donate/?hosted_button_id=6REM8H9YX742C" target="_blank" rel="noopener" title="Donar con PayPal">
+            <img src="/static/donar-qr.png" width="88" height="88" alt="Código QR para donar con PayPal" />
+          </a>
+          <div class="coffee-text">
+            <strong class="">☕ ¿Te ahorró tiempo?</strong>
+            <span class="coffee-text">Invítame un café y ayúdame a seguir mejorando KiCad IA.</span>
+            <div id="donate-button-container">
+              <div id="donate-button"></div>
+              <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+              <script>
+                PayPal.Donation.Button({
+                  env: 'production',
+                  hosted_button_id: 'C3Q42UPEN2KRG',
+                  image: {
+                    src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif',
+                    alt: 'Donate with PayPal button',
+                    title: 'PayPal - The safer, easier way to pay online!',
+                  }
+                }).render('#donate-button');
+              </script>
+            </div>
+          </div>
+        </section>
         <section class="card">
           <h2>Proyecto</h2>
           <dl class="facts" id="facts">
@@ -39,8 +63,8 @@
         </section>
 
         <section class="card sessions-card">
-          <h2>Conversaciones <button class="icon-button" id="new-chat" type="button" title="Conversación nueva" aria-label="Conversación nueva">＋</button></h2>
-          <p class="muted" id="sessions-empty">Aquí aparecen las conversaciones guardadas.</p>
+          <h2>Historial <button class="icon-button" id="new-chat" type="button" title="Conversación nueva" aria-label="Conversación nueva">＋</button></h2>
+          <p class="muted" id="sessions-empty">Lo hecho en este proyecto queda aquí, solo para leer. El chat lo usa como memoria.</p>
           <ul class="sessions" id="sessions"></ul>
         </section>
       </aside>
@@ -84,6 +108,17 @@
       <button class="icon-button close" type="button" id="lightbox-close" aria-label="Cerrar">✕</button>
       <img alt="Vista ampliada del circuito" id="lightbox-img" />
       <a class="lightbox-open" id="lightbox-open" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+    </div>
+
+    <div class="modal" id="history-modal" hidden>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="history-title">
+        <header class="modal-head">
+          <h2 id="history-title">Conversación</h2>
+          <button class="icon-button" type="button" id="history-close" aria-label="Cerrar">✕</button>
+        </header>
+        <p class="field-hint">Solo lectura. No continúa esta conversación: el chat la usa como memoria del proyecto.</p>
+        <div class="transcript" id="history-body"></div>
+      </div>
     </div>
 
     <div class="modal" id="settings-modal" hidden>

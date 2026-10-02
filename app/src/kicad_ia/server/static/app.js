@@ -1,6 +1,15 @@
 "use strict";
 
-const SESSION_KEY = "kicad-ia-session";
+const PROJECT_KEY = "kicad-ia-project";
+
+function sessionKey(project) {
+  return `kicad-ia-session:${project || sessionStorage.getItem(PROJECT_KEY) || ""}`;
+}
+
+function projectPath(status) {
+  const caps = status && status.capabilities;
+  return (caps && caps.project_path) || "";
+}
 const TOOL_LABELS = {
   inspect_context: "Leer el proyecto",
   search_parts: "Buscar en bibliotecas",
@@ -69,13 +78,14 @@ const state = {
   heartbeat: null,
   settingsLoaded: null,
   sessionId: "",
+  projectKey: sessionStorage.getItem(PROJECT_KEY) || "",
 };
 
 // ---------- WebSocket ----------
 
 function connect() {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
-  const session = sessionStorage.getItem(SESSION_KEY) || "";
+  const session = sessionStorage.getItem(sessionKey()) || "";
   const socket = new WebSocket(`${scheme}://${location.host}/ws?session=${encodeURIComponent(session)}`);
   state.socket = socket;
   setPill(els.ws, "warn", "Conectando");
@@ -118,7 +128,8 @@ function send(message) {
 function handle(message) {
   switch (message.type) {
     case "hello":
-      sessionStorage.setItem(SESSION_KEY, message.session_id);
+      rememberProject(projectPath(message.status));
+      sessionStorage.setItem(sessionKey(), message.session_id);
       state.sessionId = message.session_id;
       renderStatus(message.status);
       renderSelection(message.selection);
@@ -129,18 +140,23 @@ function handle(message) {
       setBusy(Boolean(message.busy));
       break;
     case "session.opened":
-      sessionStorage.setItem(SESSION_KEY, message.session_id);
+      rememberProject(projectPath(message.status));
+      sessionStorage.setItem(sessionKey(), message.session_id);
       state.sessionId = message.session_id;
       clearMessages();
       renderSessions(message.sessions, message.session_id);
       if (message.history && message.history.length) renderHistory(message.history);
       setBusy(false);
       break;
+    case "session.preview":
+      showHistory(message);
+      break;
     case "sessions":
       renderSessions(message.sessions, state.sessionId);
       break;
     case "status":
       renderStatus(message);
+      noteProject(projectPath(message));
       break;
     case "selection":
       renderSelection(message);
@@ -366,6 +382,44 @@ function clearMessages() {
   els.welcome.hidden = false;
 }
 
+function rememberProject(path) {
+  if (!path) return;
+  state.projectKey = path;
+  sessionStorage.setItem(PROJECT_KEY, path);
+}
+
+function noteProject(path) {
+  if (!path) return;
+  if (!state.projectKey) {
+    rememberProject(path);
+    send({ type: "session.sync" });
+    return;
+  }
+  if (path === state.projectKey) return;
+  rememberProject(path);
+  if (state.busy) return;
+  clearMessages();
+  send({ type: "session.bind" });
+}
+
+function showHistory(message) {
+  const modal = $("history-modal");
+  $("history-title").textContent = message.title || "Conversación";
+  const body = $("history-body");
+  const lines = message.history || [];
+  body.replaceChildren(
+    ...(lines.length
+      ? lines
+          .filter((row) => row.role === "user" || row.role === "assistant")
+          .map((row) => {
+            const who = el("span", { className: "who" }, row.role === "user" ? "Tú" : "KiCad IA");
+            return el("p", {}, who, row.text || "");
+          })
+      : [el("p", { className: "muted" }, "Esta conversación no tiene texto.")]),
+  );
+  modal.hidden = false;
+}
+
 function renderSessions(rows, activeId) {
   if (!els.sessions) return;
   const list = rows || [];
@@ -374,8 +428,7 @@ function renderSessions(rows, activeId) {
     ...list.map((row) => {
       const open = el("button", { type: "button", className: "open", title: row.title }, row.title);
       open.addEventListener("click", () => {
-        if (row.id === state.sessionId || state.busy) return;
-        send({ type: "session.open", session_id: row.id });
+        send({ type: "session.preview", session_id: row.id });
       });
       const drop = el("button", { type: "button", className: "drop", title: "Borrar conversación", "aria-label": "Borrar conversación" }, "✕");
       drop.addEventListener("click", (event) => {
@@ -618,6 +671,13 @@ document.addEventListener("click", (event) => {
   els.side.classList.remove("open");
 });
 $("toggle-side").addEventListener("click", () => els.side.classList.toggle("open"));
+function closeModal(id) {
+  $(id).hidden = true;
+}
+$("history-close").addEventListener("click", () => closeModal("history-modal"));
+$("history-modal").addEventListener("click", (event) => {
+  if (event.target === $("history-modal")) closeModal("history-modal");
+});
 $("new-chat").addEventListener("click", () => {
   if (state.busy) {
     toast("Espera a que termine el turno actual.");

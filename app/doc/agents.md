@@ -250,7 +250,7 @@ flowchart TD
 
 ## Conversaciones
 
-Cada turno con texto del usuario se guarda en `sessions/` dentro del directorio de ajustes. La barra lateral las lista. Abrir una restaura los mensajes y el contrato de intención. El botón ＋ de esa lista empieza otra. El ＋ del campo de texto abre las acciones rápidas.
+Cada turno con texto del usuario se guarda en `sessions/` dentro del directorio de ajustes, marcado con la carpeta del proyecto abierto. La barra solo lista ese proyecto. Abrir una sesión enseña el texto y no la continúa: el modelo recibe un resumen de las demás sesiones del mismo proyecto y no puede usarlo para deshacer trabajo. El botón ＋ de esa lista empieza otra sesión. El ＋ del campo de texto abre las acciones rápidas.
 
 ## Tokens
 

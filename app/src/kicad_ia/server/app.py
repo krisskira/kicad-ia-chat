@@ -241,21 +241,26 @@ def create_app(
         if kind == "status.refresh":
             watcher.poke(force=True)
             return None
-        if kind == "session.reset":
+        if kind == "session.reset" or kind == "session.bind":
+            if kind == "session.bind" and chat.busy(client.session_id):
+                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
             fresh = chat.session_id(None)
             hub.move(client, fresh)
-            return await _hello(fresh)
-        if kind == "session.open":
-            if chat.busy(client.session_id):
-                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
-            wanted = str(message.get("session_id") or "")
-            found = chat.book.find(wanted)
-            if found is None:
-                return {"type": "error", "error": "No encuentro esa conversación."}
-            hub.move(client, found.id)
-            opened = await _hello(found.id)
-            opened["type"] = "session.opened"
+            opened = await _hello(fresh)
+            if kind == "session.bind":
+                opened["type"] = "session.opened"
             return opened
+        if kind == "session.sync":
+            chat.session_id(client.session_id)
+            listing = await _hello(client.session_id)
+            listing["type"] = "sessions"
+            return listing
+        if kind == "session.preview" or kind == "session.open":
+            wanted = str(message.get("session_id") or "")
+            preview = chat.preview(wanted)
+            if preview is None:
+                return {"type": "error", "error": "No encuentro esa conversación en este proyecto."}
+            return {"type": "session.preview", **preview}
         if kind == "session.delete":
             if chat.busy(client.session_id):
                 return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}

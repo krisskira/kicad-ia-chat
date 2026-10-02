@@ -51,6 +51,7 @@ def dispatch(
     registry: ToolRegistry,
     client,
     emit: Callable[[str, dict], None] | None = None,
+    prior: str = "",
 ) -> dict:
     cleaned = text.strip()
     if not cleaned:
@@ -87,6 +88,7 @@ def dispatch(
         shrunk_emit if emit else None,
         pcb_reviewer,
         settings,
+        prior,
     )
     return _payload(session, turn.reply, turn.steps)
 

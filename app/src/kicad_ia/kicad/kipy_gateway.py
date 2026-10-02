@@ -99,6 +99,7 @@ class KipyGateway(Gateway):
             "kicad_version": self._version,
             "kicad_major": self._major,
             "project": project.get("name") if project else "",
+            "project_path": str(project["path"]) if project else "",
             "schematic_file": str(schematic or ""),
             "schematic_open_in_editor": schematic_open,
             "schematic_write": bool(schematic and schematic.is_file() and not schematic_open),

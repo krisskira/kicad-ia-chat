@@ -27,6 +27,13 @@ def _now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
+def _clip(text: str, limit: int) -> str:
+    compact = " ".join(text.split())
+    if len(compact) <= limit:
+        return compact
+    return compact[: limit - 1] + "…"
+
+
 def _title_from(messages: list[dict]) -> str:
     for message in messages:
         if message.get("role") == "user" and str(message.get("content") or "").strip():
@@ -41,6 +48,7 @@ def session_to_dict(session: Session) -> dict:
         "id": session.id,
         "title": session.title or _title_from(session.messages),
         "updated": session.updated or _now(),
+        "project": session.project,
         "messages": session.messages,
         "memory": memory.to_dict(),
     }
@@ -52,6 +60,7 @@ def session_from_dict(data: dict) -> Session:
         messages=list(data.get("messages") or []),
         title=str(data.get("title") or ""),
         updated=str(data.get("updated") or ""),
+        project=str(data.get("project") or ""),
     )
     session.memory = DesignMemory.from_dict(data.get("memory") or {})
     return session
@@ -95,7 +104,7 @@ class SessionStore:
         path.unlink()
         return True
 
-    def summaries(self) -> list[dict]:
+    def summaries(self, project: str | None = None) -> list[dict]:
         rows = []
         for path in self.root.glob("*.json"):
             try:
@@ -104,9 +113,42 @@ class SessionStore:
                 continue
             if not isinstance(data, dict) or not data.get("id"):
                 continue
+            if project is not None and str(data.get("project") or "") != project:
+                continue
             title = str(data.get("title") or "").strip()
             if not title:
                 continue
             rows.append({"id": data["id"], "title": title, "updated": str(data.get("updated") or "")})
         rows.sort(key=lambda row: row["updated"], reverse=True)
         return rows[:80]
+
+    def digest(self, project: str, exclude: str = "") -> str:
+        """Resumen de otras sesiones del mismo proyecto, para el modelo. No incluye la sesión en curso."""
+        if not project:
+            return ""
+        parts: list[str] = []
+        for row in self.summaries(project):
+            if row["id"] == exclude:
+                continue
+            session = self.load(row["id"])
+            if session is None:
+                continue
+            asks: list[str] = []
+            closing = ""
+            for message in session.messages:
+                content = str(message.get("content") or "").strip()
+                if not content:
+                    continue
+                if message.get("role") == "user":
+                    asks.append(_clip(content, 140))
+                elif message.get("role") == "assistant":
+                    closing = _clip(content, 220)
+            if not asks:
+                continue
+            line = f"- {session.title}: pidió {'; '.join(asks[:5])}."
+            if closing:
+                line += f" Quedó: {closing}"
+            parts.append(line)
+            if len(parts) >= 8:
+                break
+        return "\n".join(parts)[:3500]

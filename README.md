@@ -105,7 +105,7 @@ La API key no va en el repositorio. El autoruteo usa FreeRouting 2.0.1 y Java 17
 
 La barra superior dice si el canal está en vivo, si KiCad responde, qué modelo hay y cuántos tokens van. Si el proveedor no informa el consumo, el número es una estimación y lleva `~`.
 
-A la izquierda ves el proyecto, la selección del editor de PCB y tus conversaciones. Un clic abre una conversación con sus mensajes y lo que ya habías decidido; el **＋** de esa lista empieza otra y la **✕** la borra. Se guardan en la carpeta `sessions/`, junto a los ajustes, sin la API key.
+A la izquierda ves el proyecto, la selección del editor de PCB y el historial de este proyecto. Un clic enseña una sesión en solo lectura; no la continúa ni deshace lo hecho. El chat la usa como resumen de lo ya decidido en ese proyecto, y otro proyecto no la ve. El **＋** empieza otra sesión y la **✕** la borra. Se guardan en la carpeta `sessions/`, junto a los ajustes, sin la API key.
 
 <img src="landing-page/public/media/chat-acciones.png" alt="Menú de acciones rápidas abierto encima del campo de texto del chat" width="100%" />
 

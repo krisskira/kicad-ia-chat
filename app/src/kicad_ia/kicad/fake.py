@@ -22,6 +22,7 @@ class FakeGateway(Gateway):
         self.selected: list[dict] = []
         self.fallback_reason = ""
         self.router_runs: list[dict] = []
+        self.project_path = ""
 
     def capabilities(self) -> dict:
         notes = [
@@ -34,6 +35,8 @@ class FakeGateway(Gateway):
             "connected": False,
             "backend": "fake",
             "kicad_version": None,
+            "project": "desarrollo" if self.project_path else "",
+            "project_path": self.project_path,
             "schematic_edit": True,
             "board_selection": True,
             "schematic_selection": True,

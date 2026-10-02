@@ -17,6 +17,21 @@ def test_sessions_save_reload_and_list(tmp_path):
     assert store.load("abc123") is None
 
 
+def test_summaries_stay_inside_one_project(tmp_path):
+    store = SessionStore(tmp_path)
+    first = Session("uno", project="/placas/alfa")
+    first.messages.append({"role": "user", "content": "un LED"})
+    first.messages.append({"role": "assistant", "content": "Quedó U1 con huella 0603."})
+    other = Session("dos", project="/placas/beta")
+    other.messages.append({"role": "user", "content": "un regulador"})
+    assert store.save(first) and store.save(other)
+    assert [row["id"] for row in store.summaries("/placas/alfa")] == ["uno"]
+    text = store.digest("/placas/alfa", exclude="otra")
+    assert "un LED" in text and "0603" in text
+    assert "regulador" not in text
+    assert store.digest("/placas/alfa", exclude="uno") == ""
+
+
 def test_empty_session_is_not_saved(tmp_path):
     store = SessionStore(tmp_path)
     assert store.save(Session("vacio")) is False
