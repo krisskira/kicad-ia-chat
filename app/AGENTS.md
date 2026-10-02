@@ -50,6 +50,7 @@ Agentes en `.cursor/agents/` delegan al skill homónimo.
 - ALWAYS al pasar a la placa, repetir `board_area.must_tell_user` (rectángulo de Edge.Cuts o la orden de medir).
 - NEVER aceptar un componente sin huella verificada (salvo `power:*`) ni marcar como PASS un dato que no se leyó.
 - NEVER secretos en el repo; API keys en Ajustes o `.env`.
+- NEVER editar a mano `packaging/packages.json` ni `packaging/repository.json`: los genera `release.yml` desde el ZIP publicado. Cambios del paquete en `packaging/metadata.json`.
 - NEVER afirmar cambios en KiCad si `ok: false` o backend `fake`.
 - NEVER `run_action` del router sin petición explícita y nombre de acción.
 

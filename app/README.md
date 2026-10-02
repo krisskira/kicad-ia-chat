@@ -64,7 +64,17 @@ En Windows: `Documentos\KiCad\<versión>\plugins\kicad-ia`. La carpeta debe cont
 python app/scripts/link_plugin.py
 ```
 
-Enlaza esta carpeta en `~/Documents/KiCad/<versión>/plugins/kicad-ia`. Iconos: `python3 app/scripts/make_icons.py`. Empaquetado de release: `python app/scripts/package_release.py --validate`. En macOS KiCad usa Python 3.9 (`eval_type_backport` en `requirements.txt`).
+Enlaza esta carpeta en `~/Documents/KiCad/<versión>/plugins/kicad-ia`. Iconos: `python3 app/scripts/make_icons.py`. Empaquetado local: `python app/scripts/package_release.py --validate`. En macOS KiCad usa Python 3.9 (`eval_type_backport` en `requirements.txt`).
+
+### Releases
+
+Cada push o merge a `main` que toque lo que va en el ZIP (`app/src`, `app/icons`, `plugin.json`, `ipc_entry.py`, `requirements.txt`, `packaging/metadata.json`) crea el tag siguiente (`.github/workflows/version.yml`). El nivel sale de Conventional Commits: `feat!:` o `BREAKING CHANGE` → major (minor en 0.x), `feat:` → minor, el resto → patch. Desde Actions se puede forzar el nivel.
+
+El tag dispara `.github/workflows/release.yml`: construye los ZIP, crea el release (nunca reemplaza los ZIP de un tag existente) y escribe en `main` el índice PCM calculado desde el ZIP publicado, junto con la versión de `pyproject.toml`. Relanzarlo a mano con un tag existente repara el índice.
+
+`packages.json` y `repository.json` los genera CI: no se editan a mano. Lo que describe el paquete va en `packaging/metadata.json`.
+
+Para que el push del tag dispare el release directamente, crea el secreto `RELEASE_TOKEN` (PAT con Contents y Actions en escritura; si `main` está protegida, con permiso para saltar la protección). Sin él, `version.yml` lanza el release por `workflow_dispatch`.
 
 ## Arranque
 

@@ -1,73 +1,171 @@
 name: Release
 
+# Lo dispara el tag vX.Y.Z que crea version.yml (o uno creado a mano).
+# Publica el release una sola vez: los ZIP de un tag no se reemplazan.
+# El índice PCM de main se genera siempre desde el ZIP ya publicado, así que
+# relanzar este workflow con un tag existente repara el índice sin reconstruir.
+
 on:
   push:
     tags:
-      - "v*"
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag a publicar o reparar (vX.Y.Z)
+        required: true
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Dependencias de empaquetado
-        run: pip install "kicad-python>=0.4" pillow
-
-      - name: Comprobar versión del tag
+      - name: Datos del tag
+        id: meta
         run: |
-          tag="${GITHUB_REF_NAME#v}"
-          version="$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' app/pyproject.toml | head -n1)"
-          if [ "$tag" != "$version" ]; then
-            echo "El tag ${GITHUB_REF_NAME} no coincide con pyproject.toml (${version})"
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Tag no válido: $TAG"
             exit 1
           fi
+          git rev-parse -q --verify "refs/tags/$TAG^{commit}" >/dev/null || { echo "No existe el tag $TAG"; exit 1; }
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "El release $TAG ya existe: no se reconstruye"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          latest="$(git tag --list 'v*.*.*' --sort=-v:refname | head -n1)"
+          if [ "$latest" = "$TAG" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+            echo "$TAG no es el último tag ($latest): no se toca el índice de main"
+          fi
+
+      - name: Dependencias de empaquetado
+        if: steps.meta.outputs.exists == 'false'
+        run: pip install "kicad-python>=0.4" pillow
 
       - name: Empaquetar
+        if: steps.meta.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           python app/scripts/package_release.py \
-            --update-index \
+            --version "$VERSION" \
             --validate \
-            --release-tag "${GITHUB_REF_NAME}" \
-            --repo "${GITHUB_REPOSITORY}"
+            --release-tag "$TAG" \
+            --repo "$GITHUB_REPOSITORY"
 
       - name: Publicar GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/kicad-ia-*.zip
-            dist/SHA256SUMS
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-
-      - name: Actualizar índice PCM en main
+        if: steps.meta.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          mkdir -p /tmp/pcm-index
-          cp app/packaging/packages.json app/packaging/repository.json /tmp/pcm-index/
+          gh release create "$TAG" \
+            "dist/kicad-ia-${VERSION}.zip" \
+            "dist/kicad-ia-${VERSION}-pcm.zip" \
+            dist/SHA256SUMS \
+            --verify-tag \
+            --title "KiCad IA $TAG" \
+            --generate-notes
+
+      - name: Descargar el ZIP publicado
+        if: steps.meta.outputs.latest == 'true'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          dir="$RUNNER_TEMP/published"
+          mkdir -p "$dir"
+          gh release download "$TAG" \
+            --pattern "kicad-ia-${VERSION}-pcm.zip" \
+            --pattern SHA256SUMS \
+            --dir "$dir" \
+            --clobber
+          (cd "$dir" && sha256sum --check --ignore-missing SHA256SUMS)
+
+      - name: Generar índice PCM sobre main
+        if: steps.meta.outputs.latest == 'true'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
           git fetch origin main
           git checkout -B main origin/main
-          mkdir -p app/packaging
-          cp /tmp/pcm-index/packages.json app/packaging/packages.json
-          cp /tmp/pcm-index/repository.json app/packaging/repository.json
+          python app/scripts/package_release.py \
+            --version "$VERSION" \
+            --release-tag "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --index-from "$RUNNER_TEMP/published/kicad-ia-${VERSION}-pcm.zip"
+          sed -i -E "0,/^version = \"[^\"]*\"/s//version = \"${VERSION}\"/" app/pyproject.toml
+
+      - name: Verificar índice
+        if: steps.meta.outputs.latest == 'true'
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          python - <<'EOF'
+          import hashlib, json, os, sys
+          from pathlib import Path
+
+          def sha(path):
+              return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+          version = os.environ["VERSION"]
+          zip_path = Path(os.environ["RUNNER_TEMP"]) / "published" / f"kicad-ia-{version}-pcm.zip"
+          repository = json.loads(Path("app/packaging/repository.json").read_text())
+          packages = json.loads(Path("app/packaging/packages.json").read_text())
+          entry = packages["packages"][0]["versions"][0]
+          errors = []
+          if repository["packages"]["sha256"] != sha("app/packaging/packages.json"):
+              errors.append("repository.json no coincide con packages.json")
+          if entry["version"] != version:
+              errors.append(f"packages.json anuncia {entry['version']}, no {version}")
+          if entry["download_sha256"] != sha(zip_path):
+              errors.append("packages.json no coincide con el ZIP publicado")
+          if entry["download_size"] != zip_path.stat().st_size:
+              errors.append("El tamaño del ZIP no coincide")
+          if errors:
+              sys.exit("\n".join(errors))
+          print(f"Índice correcto para {version}: {entry['download_sha256']}")
+          EOF
+
+      - name: Publicar índice en main
+        if: steps.meta.outputs.latest == 'true'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add app/packaging/packages.json app/packaging/repository.json
+          git add app/packaging/packages.json app/packaging/repository.json app/pyproject.toml
           if git diff --cached --quiet; then
-            echo "Sin cambios en el índice PCM"
-          else
-            git commit -m "chore: índice PCM para ${GITHUB_REF_NAME}"
-            git push origin main
+            echo "El índice ya estaba al día"
+            exit 0
           fi
+          git commit -m "chore(release): $TAG [skip ci]"
+          for attempt in 1 2 3; do
+            if git push origin main; then
+              exit 0
+            fi
+            git pull --rebase origin main
+          done
+          echo "No se pudo publicar el índice en main"
+          exit 1

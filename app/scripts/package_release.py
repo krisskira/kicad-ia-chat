@@ -148,8 +148,8 @@ def update_pcm_index(version: str, pcm_zip: Path, release_tag: str, repo: str) -
         "download_size": pcm_zip.stat().st_size,
         "install_size": install_size_from_zip(pcm_zip),
     }
-    versions = [item for item in metadata.get("versions", []) if item.get("version") != version]
-    metadata["versions"] = [version_entry, *versions]
+    # El índice solo anuncia la versión publicada: las de metadata.json no tienen download_url.
+    metadata["versions"] = [version_entry]
 
     packages_path = PACKAGING / "packages.json"
     write_json(packages_path, {"packages": [metadata]})
@@ -212,9 +212,27 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Valida el plugin y el ZIP PCM con kicad-python",
     )
+    parser.add_argument(
+        "--version",
+        default="",
+        help="Versión del paquete (por defecto la de pyproject.toml)",
+    )
+    parser.add_argument(
+        "--index-from",
+        type=Path,
+        help="Solo regenera el índice PCM a partir de este ZIP ya publicado",
+    )
     args = parser.parse_args(argv)
 
-    version = read_version()
+    version = args.version or read_version()
+    tag = args.release_tag or f"v{version}"
+
+    if args.index_from:
+        if not args.index_from.is_file():
+            raise SystemExit(f"No existe {args.index_from}")
+        update_pcm_index(version, args.index_from, tag, args.repo)
+        return 0
+
     ensure_icons()
     DIST.mkdir(parents=True, exist_ok=True)
 
@@ -253,7 +271,6 @@ def main(argv: list[str] | None = None) -> int:
         try_validate(pcm_zip)
 
     if args.update_index:
-        tag = args.release_tag or f"v{version}"
         update_pcm_index(version, pcm_zip, tag, args.repo)
 
     return 0

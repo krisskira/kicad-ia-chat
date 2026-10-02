@@ -1,0 +1,76 @@
+name: Versión
+
+# Cada push o merge a main calcula la versión siguiente y crea el tag vX.Y.Z.
+# El tag es lo que dispara release.yml.
+#
+# Un tag creado con GITHUB_TOKEN no dispara otros workflows. Con el secreto
+# RELEASE_TOKEN (PAT con contents y actions en escritura) el push del tag
+# dispara el release; sin él, este workflow lanza release.yml para ese tag.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Forzar el nivel de la versión
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: version-main
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    runs-on: ubuntu-latest
+    env:
+      HAS_RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Calcular versión
+        id: next
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          if [ -n "$BUMP" ] && [ "$BUMP" != "auto" ]; then
+            python .github/scripts/next_version.py --bump "$BUMP"
+          else
+            python .github/scripts/next_version.py
+          fi
+
+      - name: Crear tag
+        if: steps.next.outputs.tag != ''
+        env:
+          TAG: ${{ steps.next.outputs.tag }}
+          PREVIOUS: ${{ steps.next.outputs.previous }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "El tag $TAG ya existe"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "KiCad IA $TAG" -m "Anterior: ${PREVIOUS:-ninguno}"
+          git push origin "refs/tags/$TAG"
+
+      - name: Lanzar release sin RELEASE_TOKEN
+        if: steps.next.outputs.tag != '' && env.HAS_RELEASE_TOKEN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.next.outputs.tag }}
+        run: gh workflow run release.yml --ref "$TAG" -f tag="$TAG"
