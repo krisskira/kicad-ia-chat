@@ -55,6 +55,21 @@ class IntentContract:
     unknowns: list[str]
     acceptance: list[str]
 
+    @classmethod
+    def from_dict(cls, data: dict) -> IntentContract:
+        return cls(
+            version=int(data.get("version") or 1),
+            goal=str(data.get("goal") or ""),
+            required_functions=list(data.get("required_functions") or []),
+            required_components=list(data.get("required_components") or []),
+            forbidden_components=list(data.get("forbidden_components") or []),
+            preferred=list(data.get("preferred") or []),
+            constraints=list(data.get("constraints") or []),
+            assumptions=list(data.get("assumptions") or []),
+            unknowns=list(data.get("unknowns") or []),
+            acceptance=list(data.get("acceptance") or []),
+        )
+
     def as_dict(self) -> dict:
         return {
             "version": self.version,
@@ -130,6 +145,30 @@ class DesignMemory:
             acceptance=_strings(payload.get("acceptance")),
         )
         return {"ok": True, "intent": "committed", "contract": self.contract.as_dict()}
+
+    def to_dict(self) -> dict:
+        accepted = self.accepted
+        if not isinstance(accepted, dict):
+            accepted = {str(item): "" for item in accepted}
+        return {
+            "contract": self.contract.as_dict() if self.contract else None,
+            "history": [item.as_dict() for item in self.history],
+            "accepted": dict(accepted),
+            "substitutions": dict(self.substitutions),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> DesignMemory:
+        memory = cls()
+        if not isinstance(data, dict):
+            return memory
+        if data.get("contract"):
+            memory.contract = IntentContract.from_dict(data["contract"])
+        memory.history = [IntentContract.from_dict(row) for row in data.get("history") or [] if isinstance(row, dict)]
+        raw = data.get("accepted") or {}
+        memory.accepted = dict(raw) if isinstance(raw, dict) else {str(item): "" for item in raw}
+        memory.substitutions = {str(key): str(value) for key, value in (data.get("substitutions") or {}).items()}
+        return memory
 
 
 def _blocked(intent: str, error: str, **extra) -> dict:

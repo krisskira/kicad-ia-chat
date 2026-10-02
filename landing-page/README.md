@@ -1,7 +1,7 @@
 # Landing de KiCad IA
 
 Generada con el template de landings (`kriver-template-projects`).
-Se publica en <https://krisskira.github.io/kicad-ia-pluging/>.
+Se publica en <https://krisskira.github.io/kicad-ia-chat/>.
 
 ```bash
 npm install

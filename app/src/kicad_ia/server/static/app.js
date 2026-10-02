@@ -46,6 +46,10 @@ const els = {
   kicad: $("ind-kicad"),
   model: $("ind-model"),
   tokens: $("ind-tokens"),
+  sessions: $("sessions"),
+  sessionsEmpty: $("sessions-empty"),
+  quickMenu: $("quick-menu"),
+  quickActions: $("quick-actions"),
   side: $("side"),
   toasts: $("toasts"),
   lightbox: $("lightbox"),
@@ -64,6 +68,7 @@ const state = {
   typing: null,
   heartbeat: null,
   settingsLoaded: null,
+  sessionId: "",
 };
 
 // ---------- WebSocket ----------
@@ -114,12 +119,25 @@ function handle(message) {
   switch (message.type) {
     case "hello":
       sessionStorage.setItem(SESSION_KEY, message.session_id);
+      state.sessionId = message.session_id;
       renderStatus(message.status);
       renderSelection(message.selection);
+      renderSessions(message.sessions, message.session_id);
       if (message.history && message.history.length && !els.messages.querySelector(".msg")) {
         renderHistory(message.history);
       }
       setBusy(Boolean(message.busy));
+      break;
+    case "session.opened":
+      sessionStorage.setItem(SESSION_KEY, message.session_id);
+      state.sessionId = message.session_id;
+      clearMessages();
+      renderSessions(message.sessions, message.session_id);
+      if (message.history && message.history.length) renderHistory(message.history);
+      setBusy(false);
+      break;
+    case "sessions":
+      renderSessions(message.sessions, state.sessionId);
       break;
     case "status":
       renderStatus(message);
@@ -219,16 +237,15 @@ function renderTokens(tokens) {
   if (!els.tokens || !tokens) return;
   const label = els.tokens.querySelector("span");
   const number = new Intl.NumberFormat("es").format(tokens.total || 0);
-  if (!tokens.reported && tokens.calls) {
-    label.textContent = "tokens: sin dato";
-    els.tokens.title = `El proveedor no devolvió consumo en ${tokens.calls} llamadas.`;
-    return;
-  }
-  label.textContent = `${number} tokens`;
-  els.tokens.title =
+  const prefix = tokens.estimated ? "~" : "";
+  label.textContent = `${prefix}${number} tokens`;
+  const detail =
     `Entrada ${new Intl.NumberFormat("es").format(tokens.prompt || 0)} · ` +
     `salida ${new Intl.NumberFormat("es").format(tokens.completion || 0)} · ` +
-    `${tokens.calls || 0} llamadas al modelo desde que se abrió el chat`;
+    `${tokens.calls || 0} llamadas desde que se abrió el chat`;
+  els.tokens.title = tokens.estimated
+    ? `Estimado, porque el proveedor no informó el consumo. ${detail}`
+    : detail;
 }
 
 function renderSelection(selection) {
@@ -337,10 +354,38 @@ function captionFor(message) {
 
 function finishTurn(message) {
   hideTyping();
+  if (message.tokens) renderTokens(message.tokens);
   const said = document.querySelectorAll(`.msg.assistant[data-turn="${message.turn_id}"]`);
   const lastText = said.length ? said[said.length - 1].dataset.raw : "";
   if (message.reply && message.reply !== lastText) addAssistant(message.reply, message.turn_id);
   setBusy(false);
+}
+
+function clearMessages() {
+  els.messages.querySelectorAll(".msg, .steps, .figure").forEach((node) => node.remove());
+  els.welcome.hidden = false;
+}
+
+function renderSessions(rows, activeId) {
+  if (!els.sessions) return;
+  const list = rows || [];
+  els.sessionsEmpty.hidden = list.length > 0;
+  els.sessions.replaceChildren(
+    ...list.map((row) => {
+      const open = el("button", { type: "button", className: "open", title: row.title }, row.title);
+      open.addEventListener("click", () => {
+        if (row.id === state.sessionId || state.busy) return;
+        send({ type: "session.open", session_id: row.id });
+      });
+      const drop = el("button", { type: "button", className: "drop", title: "Borrar conversación", "aria-label": "Borrar conversación" }, "✕");
+      drop.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (state.busy) return;
+        send({ type: "session.delete", session_id: row.id });
+      });
+      return el("li", { className: row.id === activeId ? "session-row active" : "session-row" }, open, drop);
+    }),
+  );
 }
 
 function renderHistory(rows) {
@@ -554,9 +599,21 @@ els.input.addEventListener("keydown", (event) => {
   }
 });
 els.input.addEventListener("input", autosize);
+els.quickActions.addEventListener("click", (event) => {
+  event.stopPropagation();
+  const open = els.quickMenu.hidden;
+  els.quickMenu.hidden = !open;
+  els.quickActions.setAttribute("aria-expanded", open ? "true" : "false");
+});
 document.addEventListener("click", (event) => {
+  if (!els.quickMenu.hidden && !els.quickMenu.contains(event.target)) {
+    els.quickMenu.hidden = true;
+    els.quickActions.setAttribute("aria-expanded", "false");
+  }
   const button = event.target.closest("[data-prompt], [data-local]");
   if (!button || button.disabled) return;
+  els.quickMenu.hidden = true;
+  els.quickActions.setAttribute("aria-expanded", "false");
   submit(button.dataset.prompt || button.dataset.local);
   els.side.classList.remove("open");
 });
@@ -566,8 +623,7 @@ $("new-chat").addEventListener("click", () => {
     toast("Espera a que termine el turno actual.");
     return;
   }
-  els.messages.querySelectorAll(".msg, .steps, .figure").forEach((node) => node.remove());
-  els.welcome.hidden = false;
+  clearMessages();
   send({ type: "session.reset" });
 });
 $("lightbox-close").addEventListener("click", closeLightbox);

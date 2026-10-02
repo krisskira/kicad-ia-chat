@@ -31,6 +31,6 @@ Eso está en `app/README.md` y en la interfaz del chat. No pongas el roadmap, LC
 - `README.md`
 - `docs/pagina.md`
 - `landing-page/content/` y `landing-page/public/media/`
-- `.github/workflows/pages.yml` → `https://krisskira.github.io/kicad-ia-pluging`
+- `.github/workflows/pages.yml` → `https://krisskira.github.io/kicad-ia-chat`
 
 No editar `landing-page/src/`. El arranque y el mapa del código siguen en `app/README.md`.

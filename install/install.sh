@@ -2,7 +2,7 @@
 # Instala KiCad IA en ~/Documents/KiCad/<versión>/plugins/kicad-ia
 set -eu
 
-REPO="${KICAD_IA_REPO:-krisskira/kicad-ia-pluging}"
+REPO="${KICAD_IA_REPO:-krisskira/kicad-ia-chat}"
 API="https://api.github.com/repos/${REPO}"
 VERSION=""
 KICAD_VERSION=""
@@ -18,7 +18,7 @@ Uso: install.sh [--version X.Y.Z] [--kicad-version V] [--uninstall] [--help]
   --help                Esta ayuda
 
 Ejemplos:
-  curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.sh | sh
+  curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh
   sh install.sh --version 0.1.0 --kicad-version 10.0
 EOF
 }

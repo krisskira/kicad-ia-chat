@@ -19,6 +19,7 @@ TOOL_FINISHED = "tool.finished"
 LLM_ROUND = "llm.round"
 LLM_TEXT = "llm.text"
 LLM_USAGE = "llm.usage"
+SESSIONS = "sessions"
 
 
 @dataclass(frozen=True)

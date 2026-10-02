@@ -16,7 +16,7 @@ Las tres vías dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia`
 2. Añade:
 
 ```text
-https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/app/packaging/repository.json
+https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/repository.json
 ```
 
 3. Instala **KiCad IA**, reinicia y abre el editor de PCB.
@@ -24,13 +24,13 @@ https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/app/packaging/
 ### Script (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh
 ```
 
 O bájalo, léelo y ejecútalo:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh -o install.sh
 less install.sh
 sh install.sh
 ```
@@ -42,14 +42,14 @@ Opciones: `--version 0.1.0`, `--kicad-version 10.0`, `--uninstall`.
 En PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex
 ```
 
 O descarga `install/install.ps1`, revísalo y ejecuta `.\install.ps1`. Parámetros: `-Version 0.1.0`, `-KicadVersion 10.0`, `-Uninstall`.
 
 ### Copia manual
 
-1. En [Releases](https://github.com/krisskira/kicad-ia-pluging/releases) descarga `kicad-ia-<versión>.zip` (no el `-pcm.zip`).
+1. En [Releases](https://github.com/krisskira/kicad-ia-chat/releases) descarga `kicad-ia-<versión>.zip` (no el `-pcm.zip`).
 2. Descomprímelo en:
 
 ```text
@@ -134,7 +134,8 @@ Copia [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) a `.cursor/mcp.
 | Esquemático → PCB | F8 en el editor. `kipy` 0.8 no importa netlists. `sync_board` devuelve el área de la placa (Edge.Cuts o rectángulo propuesto en mm). |
 | Intención | `commit_intent` guarda lo que pidió el usuario; `place_circuit` no lo contradice. |
 | Selección | `select_component`: símbolo de la biblioteca con huella verificada (existe y tiene pads para cada pin). Si falta, propone huellas reales y pregunta el encapsulado. |
-| Tokens | Cabecera del chat, a la derecha del modelo: suma del modelo y del revisor desde que se abrió. |
+| Tokens | Cabecera del chat, a la derecha del modelo. Si el proveedor no informa el consumo, el número es una estimación y lleva `~`. |
+| Conversaciones | Se guardan solas. La barra lateral las lista y permite abrirlas o borrarlas. |
 
 ## Qué puede pedir
 

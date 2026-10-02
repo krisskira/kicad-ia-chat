@@ -1,6 +1,6 @@
 from kicad_ia.agent.components import select_component
 from kicad_ia.agent.intent import DesignMemory, guard_place
-from kicad_ia.agent.llm import TokenMeter
+from kicad_ia.agent.llm import TokenMeter, parse_usage
 from kicad_ia.kicad.board_area import area_from_boxes, board_area_report
 from kicad_ia.kicad.fake import FakeGateway
 from kicad_ia.tools.registry import build_registry
@@ -148,7 +148,17 @@ def test_token_meter_sums_provider_usage():
     meter.add({"prompt_tokens": 120, "completion_tokens": 30, "total_tokens": 150})
     meter.add(None)
     snap = meter.snapshot()
-    assert snap == {"prompt": 120, "completion": 30, "total": 150, "calls": 2, "reported": True}
+    assert snap == {"prompt": 120, "completion": 30, "total": 150, "calls": 2, "reported": True, "estimated": False}
+
+
+def test_zero_usage_does_not_count_as_reported_and_gemini_metadata_does():
+    assert parse_usage({"usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}})[2] is False
+    assert parse_usage({"usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 4}}) == (10, 4, True)
+    meter = TokenMeter()
+    meter.add_estimate(80, 20)
+    snap = meter.snapshot()
+    assert snap["estimated"] is True
+    assert snap["total"] == 100
 
 
 def test_board_area_uses_footprints_or_asks_for_a_measure():

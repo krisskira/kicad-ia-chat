@@ -8,9 +8,9 @@
     }
   },
   "packages": {
-    "url": "https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/app/packaging/packages.json",
-    "sha256": "4741ae886ed84049a187d8b80b6a34bd49f2632fdfe0b350ad6be6ae43543988",
-    "update_timestamp": 1790888435,
-    "update_time_utc": "2026-10-01 21:00:35"
+    "url": "https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/packages.json",
+    "sha256": "4f3d3c1d65175d51d7d5800b22bb8477204777caefb1de37a9838783e4ae3769",
+    "update_timestamp": 1790909809,
+    "update_time_utc": "2026-10-02 02:56:49"
   }
 }

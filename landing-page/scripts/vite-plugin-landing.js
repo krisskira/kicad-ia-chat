@@ -25,6 +25,12 @@ function absolute(base, path) {
   return base ? `${base}/${path.replace(/^\.?\//, '')}` : undefined;
 }
 
+const IMAGE_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' };
+
+function imageType(path) {
+  return IMAGE_TYPES[String(path).split('?')[0].split('.').pop().toLowerCase()];
+}
+
 function heroOf(landing) {
   return landing.sections.find((section) => section.type === 'hero') ?? {};
 }
@@ -94,6 +100,25 @@ function structuredData(site, landing, base) {
   if (site.schema) {
     const { '@id': schemaId = '#product', ...schema } = resolveIds(site.schema, base);
     const page = PAGE_TYPES.has(schema['@type']);
+    const productId = schemaId.startsWith('#') ? `${base}/${schemaId}` : schemaId;
+    if (!page) {
+      graph.push({
+        '@type': 'WebPage',
+        '@id': `${base}/#webpage`,
+        url,
+        name: site.title || site.name,
+        description: site.description,
+        inLanguage: site.lang,
+        isPartOf: { '@id': `${base}/#website` },
+        about: { '@id': productId },
+        mainEntity: { '@id': productId },
+        dateModified: new Date().toISOString().slice(0, 10),
+        ...(absolute(base, site.ogImage)
+          ? { primaryImageOfPage: { '@type': 'ImageObject', url: absolute(base, site.ogImage) } }
+          : {}),
+        ...(author ? { author: { '@id': author['@id'] } } : {}),
+      });
+    }
     graph.push({
       name: site.title || site.name,
       description: site.description,
@@ -102,8 +127,9 @@ function structuredData(site, landing, base) {
       ...(page ? { isPartOf: { '@id': `${base}/#website` }, inLanguage: site.lang } : {}),
       ...(author ? { author: { '@id': author['@id'] } } : {}),
       ...(maker && !page ? { publisher: { '@id': maker['@id'] } } : {}),
+      ...(page ? {} : { mainEntityOfPage: { '@id': `${base}/#webpage` } }),
       ...schema,
-      '@id': schemaId.startsWith('#') ? `${base}/${schemaId}` : schemaId,
+      '@id': productId,
     });
   }
   if (author) graph.push(author);
@@ -155,12 +181,40 @@ function themeScript(site) {
 })();`;
 }
 
+// Solo un id de contenedor válido llega al HTML: el valor va dentro de un <script>.
+function gtmId(site) {
+  const id = String(site.gtm ?? '').trim();
+  return /^GTM-[A-Z0-9]+$/.test(id) ? id : '';
+}
+
+function gtmHead(site) {
+  const id = gtmId(site);
+  if (!id) return '';
+  return `<!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','${id}');</script>
+    <!-- End Google Tag Manager -->`;
+}
+
+function gtmBody(site) {
+  const id = gtmId(site);
+  if (!id) return '';
+  return `<!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${id}"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->`;
+}
+
 function headTags(site, landing, base) {
   const title = site.title || site.name;
   const canonical = base ? `${base}/` : undefined;
   const image = absolute(base, site.ogImage);
   const color = site.themeColor ?? {};
   const tags = [
+    gtmHead(site),
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(site.description)}" />`,
     site.keywords?.length ? `<meta name="keywords" content="${esc(site.keywords.join(', '))}" />` : '',
@@ -190,6 +244,8 @@ function headTags(site, landing, base) {
     `<meta property="og:title" content="${esc(title)}" />`,
     `<meta property="og:description" content="${esc(site.description)}" />`,
     image ? `<meta property="og:image" content="${esc(image)}" />` : '',
+    image && /^https:/.test(image) ? `<meta property="og:image:secure_url" content="${esc(image)}" />` : '',
+    image && imageType(image) ? `<meta property="og:image:type" content="${imageType(image)}" />` : '',
     image && site.ogImageAlt ? `<meta property="og:image:alt" content="${esc(site.ogImageAlt)}" />` : '',
     image ? `<meta property="og:image:width" content="${esc(site.ogImageWidth || 1200)}" />` : '',
     image ? `<meta property="og:image:height" content="${esc(site.ogImageHeight || 630)}" />` : '',
@@ -359,6 +415,7 @@ export function landingFiles({ siteUrl } = {}) {
       return html
         .replaceAll('%LANG%', esc(site.lang || 'es'))
         .replace('<!-- landing:head -->', headTags(site, landing, base))
+        .replace('<!-- landing:body -->', gtmBody(site))
         .replace('<!-- landing:noscript -->', noscript(site, landing));
     },
     closeBundle() {

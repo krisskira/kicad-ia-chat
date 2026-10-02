@@ -34,20 +34,26 @@ class TokenMeter:
         self._completion = 0
         self._calls = 0
         self._reported = False
+        self._estimated = False
 
     def add(self, usage) -> None:
+        """Suma el `usage` de una respuesta. Si viene vacío o en cero, no cuenta."""
+        prompt, completion, reported = parse_usage({"usage": usage} if isinstance(usage, dict) else {})
         with self._lock:
             self._calls += 1
-            if not isinstance(usage, dict):
+            if not reported:
                 return
-            prompt = int(usage.get("prompt_tokens") or 0)
-            completion = int(usage.get("completion_tokens") or 0)
-            total = int(usage.get("total_tokens") or 0)
-            if not prompt and not completion and total:
-                prompt = total
             self._prompt += prompt
             self._completion += completion
-            self._reported = self._reported or bool(prompt or completion)
+            self._reported = True
+
+    def add_estimate(self, prompt: int, completion: int) -> None:
+        """Cuando el proveedor no informa consumo. La UI lo marca con ~."""
+        with self._lock:
+            self._calls += 1
+            self._prompt += max(0, prompt)
+            self._completion += max(0, completion)
+            self._estimated = True
 
     def snapshot(self) -> dict:
         with self._lock:
@@ -57,7 +63,56 @@ class TokenMeter:
                 "total": self._prompt + self._completion,
                 "calls": self._calls,
                 "reported": self._reported,
+                "estimated": self._estimated and not self._reported,
             }
+
+
+def _as_int(value) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _first_int(data: dict, *keys: str) -> int:
+    for key in keys:
+        number = _as_int(data.get(key))
+        if number:
+            return number
+    return 0
+
+
+def parse_usage(body: dict) -> tuple[int, int, bool]:
+    """Lee el consumo venga como lo mande el proveedor.
+
+    OpenAI usa prompt_tokens / completion_tokens. Gemini a veces manda
+    usageMetadata con promptTokenCount, y a veces un usage con todo a cero:
+    ese cero no es un dato, es ausencia.
+    """
+    if not isinstance(body, dict):
+        return 0, 0, False
+    usage = body.get("usage") if isinstance(body.get("usage"), dict) else {}
+    meta = body.get("usageMetadata") or body.get("usage_metadata") or {}
+    if not isinstance(meta, dict):
+        meta = {}
+    prompt = _first_int(usage, "prompt_tokens", "input_tokens", "promptTokenCount") or _first_int(
+        meta, "promptTokenCount", "prompt_token_count"
+    )
+    completion = _first_int(
+        usage, "completion_tokens", "output_tokens", "candidatesTokenCount", "completionTokenCount"
+    ) or _first_int(meta, "candidatesTokenCount", "candidates_token_count", "completionTokenCount")
+    if prompt or completion:
+        return prompt, completion, True
+    total = _first_int(usage, "total_tokens", "totalTokenCount") or _first_int(meta, "totalTokenCount", "total_token_count")
+    if total:
+        return total, 0, True
+    return 0, 0, False
+
+
+def rough_tokens(value) -> int:
+    """Aproximación de 4 caracteres por token. Solo se usa si no hay usage."""
+    text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    return max(1, len(text) // 4) if text else 0
 
 
 USAGE = TokenMeter()
@@ -148,8 +203,14 @@ class OpenAiCompatibleClient:
             raise LlmError(f"El modelo respondió {response.status_code}: {response.text[:300]}")
 
         body = response.json()
-        USAGE.add(body.get("usage"))
         message = body["choices"][0]["message"]
+        prompt, completion, reported = parse_usage(body)
+        if reported:
+            USAGE.add({"prompt_tokens": prompt, "completion_tokens": completion})
+        else:
+            outgoing = rough_tokens([{"role": "system", "content": system}, *messages])
+            incoming = rough_tokens(message.get("content") or "") + rough_tokens(message.get("tool_calls") or "")
+            USAGE.add_estimate(outgoing, incoming)
         calls = []
         for call in message.get("tool_calls") or []:
             raw = call.get("function", {}).get("arguments") or "{}"

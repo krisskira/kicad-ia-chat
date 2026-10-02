@@ -1,36 +1,72 @@
 {
-  "slug": "kicad-ia-pluging",
+  "slug": "kicad-ia-chat",
   "name": "KiCad IA",
   "shortName": "KiCad IA",
   "badge": "KiCad 10",
   "title": "KiCad IA | El esquemático sale de un chat",
   "description": "Plugin de KiCad 10. Describes el circuito en un chat y las piezas salen de las bibliotecas que ya tienes configuradas. Instalación, ajustes y paso a la placa.",
-  "keywords": ["KiCad", "esquemático", "chat", "bibliotecas de KiCad", "placa"],
+  "keywords": [
+    "KiCad",
+    "KiCad 10",
+    "plugin de KiCad",
+    "esquemático",
+    "chat",
+    "IA para electrónica",
+    "bibliotecas de KiCad",
+    "huellas",
+    "PCB",
+    "FreeRouting"
+  ],
   "lang": "es-CO",
   "locale": "es_CO",
-  "url": "https://krisskira.github.io/kicad-ia-pluging",
+  "url": "https://krisskira.github.io/kicad-ia-chat",
+  "gtm": "GTM-TWN288N",
   "logo": "media/logo.svg",
   "favicon": "media/logo.svg",
-  "ogImage": "media/og-cover.svg",
+  "ogImage": "media/og-cover.png",
   "ogImageAlt": "KiCad IA: el esquemático sale de un chat, con las bibliotecas de KiCad",
   "ogImageWidth": 1200,
   "ogImageHeight": 630,
   "icons": [],
   "defaultTheme": "system",
   "themeColor": { "light": "#ffffff", "dark": "#141414" },
-  "repo": "https://github.com/krisskira/kicad-ia-pluging",
-  "cta": { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-pluging" },
+  "repo": "https://github.com/krisskira/kicad-ia-chat",
+  "cta": { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-chat" },
   "nav": [],
   "author": {
     "name": "Crhistian David Vergara Gómez",
     "url": "https://krisskira.github.io/krisskira/",
-    "email": "krisskira@gmail.com"
+    "email": "krisskira@gmail.com",
+    "sameAs": [
+      "https://github.com/krisskira",
+      "https://www.linkedin.com/in/cristian-david-vergara-gomez/"
+    ]
   },
   "maker": { "name": "Kriver Devices", "url": "https://krisskira.github.io/krisskira/" },
   "schema": {
     "@type": "SoftwareApplication",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "KiCad 10"
+    "applicationSubCategory": "Diseño electrónico (EDA)",
+    "operatingSystem": "macOS, Linux, Windows",
+    "softwareRequirements": "KiCad 10. Java 17 o posterior, solo para autorutear.",
+    "softwareVersion": "0.1.0",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "installUrl": "https://krisskira.github.io/kicad-ia-chat/#instalar",
+    "sameAs": ["https://github.com/krisskira/kicad-ia-chat"],
+    "screenshot": [
+      "https://krisskira.github.io/kicad-ia-chat/media/chat-inicio.png",
+      "https://krisskira.github.io/kicad-ia-chat/media/chat-acciones.png",
+      "https://krisskira.github.io/kicad-ia-chat/media/chat-ajustes.png"
+    ],
+    "featureList": [
+      "Busca símbolos y huellas en las bibliotecas configuradas en KiCad",
+      "Escribe el esquemático del proyecto con copia de seguridad",
+      "No coloca un componente sin huella verificada",
+      "Conserva los componentes que ya están en el esquemático y en la placa",
+      "Guarda las conversaciones para volver a abrirlas",
+      "Propone colocación y autoruteo, y los aplica cuando confirmas"
+    ]
   },
   "footer": {
     "text": "Un chat para armar el esquemático con las piezas que ya están en KiCad, y pasar el circuito a la placa cuando confirmas.",
@@ -41,13 +77,14 @@
         "links": [
           { "label": "Flujo", "href": "#flujo" },
           { "label": "Instalar", "href": "#instalar" },
-          { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-pluging" }
+          { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-chat" }
         ]
       },
       {
         "title": "Autor",
         "links": [
           { "label": "Kriver Devices", "href": "https://krisskira.github.io/krisskira/" },
+          { "label": "Blog", "href": "https://krisskira.github.io/personal-landing-page/tutoriales/kicad-conectado-a-un-llm" },
           { "label": "LinkedIn", "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/" }
         ]
       }

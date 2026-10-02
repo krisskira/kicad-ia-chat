@@ -240,14 +240,26 @@ flowchart TD
     CS --> W[place_circuit + F8 + volver a validar]
 ```
 
+## No regenerar lo que ya está
+
+`place_circuit` mira el esquemático y, en KiCad real, la placa.
+
+- Si la referencia ya está y el símbolo es el mismo, se conserva el uuid. No se crea otra pieza ni se le cambia el id que la une con la huella de la placa.
+- Si además la placa tiene esa referencia, `replace` se niega: rehacer la hoja rompería ese id.
+- Una pieza nueva sin huella (ni en el pedido ni en la biblioteca) no se escribe. Hay que elegirla con `select_component`.
+
+## Conversaciones
+
+Cada turno con texto del usuario se guarda en `sessions/` dentro del directorio de ajustes. La barra lateral las lista. Abrir una restaura los mensajes y el contrato de intención. El botón ＋ de esa lista empieza otra. El ＋ del campo de texto abre las acciones rápidas.
+
 ## Tokens
 
-`OpenAiCompatibleClient` suma el campo `usage` de cada respuesta en
-`llm.USAGE` (`TokenMeter`): modelo principal y revisores, desde que arrancó el
-chat. El bucle publica `llm.usage` tras cada ronda y tras las herramientas con
-revisor; el estado del vigilante también lo lleva para que la cabecera se
-recupere al recargar. Si el proveedor no manda `usage`, la cabecera dice
-"tokens: sin dato" en lugar de 0.
+`OpenAiCompatibleClient` suma el consumo en `llm.USAGE` (`TokenMeter`): modelo
+principal y revisores, desde que arrancó el chat. Acepta `usage` de OpenAI y
+`usageMetadata` de Gemini. Un `usage` con todo a cero no cuenta como dato: en
+ese caso se estima por el tamaño del texto (unos 4 caracteres por token) y la
+cabecera lo marca con `~`. El bucle publica `llm.usage` tras cada ronda y el
+turno terminado también trae el total, para que la cabecera no se quede en 0.
 
 ## Qué falta de la arquitectura objetivo
 

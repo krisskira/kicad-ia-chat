@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Captura el chat y Ajustes para la landing.
+"""Captura el chat, el menú de acciones y Ajustes para la landing.
 
 Necesita el chat ya en marcha (el botón KiCad IA, o `python -m kicad_ia`)
 y Google Chrome. No guarda la API key: vacía el campo antes de la foto
 y no pulsa Guardar.
 
-Uso, desde landing-page/:
+Para que la barra lateral muestre conversaciones sin usar las tuyas, arranca
+un chat aparte con un directorio de ajustes propio y siembra ejemplos:
+
+  python3 resources/capturar-chat.py --seed /tmp/kicad-ia-captura-config
+  KICAD_IA_CONFIG=/tmp/kicad-ia-captura-config PORT=8766 python -m kicad_ia
+  python3 resources/capturar-chat.py --url http://127.0.0.1:8766/
+
+Uso normal, desde landing-page/:
   python3 resources/capturar-chat.py
-  python3 resources/capturar-chat.py --url http://127.0.0.1:8765/
 """
 
 from __future__ import annotations
@@ -30,7 +36,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8765/")
     parser.add_argument("--port", type=int, default=9333)
+    parser.add_argument("--seed", type=Path, help="escribe conversaciones de ejemplo en DIR/sessions y sale")
     args = parser.parse_args()
+    if args.seed:
+        seed_sessions(args.seed)
+        return
 
     import websockets.sync.client as wsclient
 
@@ -63,14 +73,23 @@ def main() -> None:
         session.wait("document.body.innerText.includes('KiCad')")
         time.sleep(0.4)
         session.shoot(OUT / "chat-inicio.png", 1280, 1120)
+        session.js("document.getElementById('quick-actions').click()")
+        session.wait("!document.getElementById('quick-menu').hidden")
+        session.shoot(OUT / "chat-acciones.png", 1280, 1120)
+        session.js("document.body.click()")
         session.js("document.getElementById('open-settings').click()")
         session.wait("!document.getElementById('settings-modal').hidden")
+        session.wait("document.getElementById('settings-path').textContent.length > 0")
         session.js(
             """
             (() => {
               const key = document.getElementById('set-api-key');
               key.value = '';
               key.placeholder = 'Se guarda en este equipo';
+              document.getElementById('set-api-hint').textContent =
+                'Gemini y OpenAI necesitan API key. Ollama puede ir vacío.';
+              document.getElementById('settings-path').textContent =
+                'Se guardan en ~/Library/Application Support/kicad-ia/user-settings.json';
               return 'ok';
             })()
             """
@@ -85,6 +104,29 @@ def main() -> None:
         sock.close()
     finally:
         proc.terminate()
+
+
+DEMO_SESSIONS = [
+    ("Diseña un LED con su resistencia alimentado a 5 V por USB-C", "2026-10-01T20:40:00+00:00"),
+    ("Regulador de 3,3 V para un ESP32 desde 5 V", "2026-10-01T18:05:00+00:00"),
+    ("Organiza el circuito por funciones", "2026-09-30T22:15:00+00:00"),
+]
+
+
+def seed_sessions(config_dir: Path) -> None:
+    root = config_dir / "sessions"
+    root.mkdir(parents=True, exist_ok=True)
+    for index, (title, updated) in enumerate(DEMO_SESSIONS, start=1):
+        session_id = f"demo{index}"
+        payload = {
+            "id": session_id,
+            "title": title,
+            "updated": updated,
+            "messages": [{"role": "user", "content": title}],
+            "memory": {},
+        }
+        (root / f"{session_id}.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    print("conversaciones de ejemplo en", root)
 
 
 def _debugger(port: int) -> str:

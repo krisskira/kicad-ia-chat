@@ -9,8 +9,10 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 
 from kicad_ia.agent.dispatch import ChatBook, dispatch
+from kicad_ia.agent.llm import USAGE
+from kicad_ia.agent.sessions import SessionStore
 from kicad_ia.config import Settings
-from kicad_ia.events import TURN_FAILED, TURN_FINISHED, TURN_STARTED, Event, EventBus
+from kicad_ia.events import SESSIONS, TURN_FAILED, TURN_FINISHED, TURN_STARTED, Event, EventBus
 from kicad_ia.tools.registry import ToolRegistry
 
 log = logging.getLogger(__name__)
@@ -26,13 +28,17 @@ class ChatService:
         bus: EventBus,
         book: ChatBook | None = None,
         on_turn_end=None,
+        store: SessionStore | None = None,
     ) -> None:
         self._settings = settings
         self._gateway = gateway
         self._registry = registry
         self._client = client
         self._bus = bus
-        self.book = book or ChatBook()
+        self._store = store if store is not None else SessionStore()
+        self.book = book or ChatBook(store=self._store)
+        if book is not None and book.store is None:
+            book.store = self._store
         self._on_turn_end = on_turn_end
         self._busy: set[str] = set()
         self._lock = threading.Lock()
@@ -63,9 +69,23 @@ class ChatService:
             self._settings = settings
             self._client = client
 
+    def summaries(self) -> list[dict]:
+        return self._store.summaries() if self._store is not None else []
+
+    def forget(self, session_id: str) -> bool:
+        self.book.sessions.pop(session_id, None)
+        return self._store.delete(session_id) if self._store is not None else False
+
     def run_sync(self, session_id: str | None, text: str) -> dict:
         session = self.book.session(session_id)
-        return dispatch(text, session, self._settings, self._gateway, self._registry, self._client)
+        payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client)
+        self._remember(session)
+        return payload
+
+    def _remember(self, session) -> None:
+        if self._store is None or not self._store.save(session):
+            return
+        self._bus.publish(Event(SESSIONS, {"sessions": self._store.summaries()}))
 
     def history(self, session_id: str) -> list[dict]:
         session = self.book.sessions.get(session_id)
@@ -99,7 +119,14 @@ class ChatService:
 
         try:
             payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client, emit)
-            self._bus.publish(Event(TURN_FINISHED, {**base, "reply": payload["reply"], "steps": payload["steps"]}, target=session.id))
+            self._remember(session)
+            self._bus.publish(
+                Event(
+                    TURN_FINISHED,
+                    {**base, "reply": payload["reply"], "steps": payload["steps"], "tokens": USAGE.snapshot()},
+                    target=session.id,
+                )
+            )
         except Exception as exc:
             log.exception("Falló un turno de chat")
             self._bus.publish(Event(TURN_FAILED, {**base, "error": str(exc)}, target=session.id))

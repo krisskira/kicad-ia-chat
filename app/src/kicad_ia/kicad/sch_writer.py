@@ -147,7 +147,17 @@ class SchematicDocument:
         anchor = next((i for i, item in enumerate(self.tree) if head(item) == "sheet_instances"), len(self.tree))
         self.tree.insert(anchor, node)
 
-    def add_symbol(self, lib_id: str, definition: list, reference: str, value: str, footprint: str, x: float, y: float) -> PlacedPart:
+    def add_symbol(
+        self,
+        lib_id: str,
+        definition: list,
+        reference: str,
+        value: str,
+        footprint: str,
+        x: float,
+        y: float,
+        symbol_uuid: str | None = None,
+    ) -> PlacedPart:
         self.ensure_lib_symbol(lib_id, definition)
         props = {str(prop[1]): prop for prop in children(definition, "property") if len(prop) > 2}
         overrides = {"Reference": reference}
@@ -164,7 +174,7 @@ class SchematicDocument:
             [Sym("in_bom"), Sym("yes")],
             [Sym("on_board"), Sym("yes")],
             [Sym("dnp"), Sym("no")],
-            [Sym("uuid"), _uuid()],
+            [Sym("uuid"), symbol_uuid or _uuid()],
         ]
         for name, prop in props.items():
             if name.startswith("ki_"):
@@ -255,12 +265,46 @@ class SchematicDocument:
             ]
         )
 
-    def clear(self) -> None:
+    def symbols_by_reference(self) -> dict[str, dict]:
+        """Símbolos ya dibujados, por referencia. La clave es no perder su uuid."""
+        found = {}
+        for symbol in children(self.tree, "symbol"):
+            props = {str(prop[1]): str(prop[2]) for prop in children(symbol, "property") if len(prop) > 2}
+            reference = props.get("Reference", "")
+            if not reference:
+                continue
+            lib = child(symbol, "lib_id")
+            at = child(symbol, "at")
+            uid = child(symbol, "uuid")
+            found[reference] = {
+                "node": symbol,
+                "lib_id": str(lib[1]) if lib and len(lib) > 1 else "",
+                "value": props.get("Value", ""),
+                "footprint": props.get("Footprint", ""),
+                "x": number(at[1]) if at else 0.0,
+                "y": number(at[2]) if at else 0.0,
+                "uuid": str(uid[1]) if uid and len(uid) > 1 else "",
+            }
+        return found
+
+    def clear(self, keep_references: set[str] | None = None) -> None:
+        """Quita el dibujo. Con keep_references conserva esos símbolos y su uuid."""
         drawn = {"symbol", "wire", "label", "global_label", "junction", "no_connect", "bus", "bus_entry", "text", "rectangle"}
-        self.tree[:] = [item for item in self.tree if head(item) not in drawn]
-        holder = child(self.tree, "lib_symbols")
-        if holder is not None:
-            del holder[1:]
+        kept = keep_references or set()
+
+        def drop(item) -> bool:
+            kind = head(item)
+            if kind not in drawn:
+                return False
+            if kind == "symbol" and _reference_of(item) in kept:
+                return False
+            return True
+
+        self.tree[:] = [item for item in self.tree if not drop(item)]
+        if not kept:
+            holder = child(self.tree, "lib_symbols")
+            if holder is not None:
+                del holder[1:]
 
     def save(self) -> Path:
         backup_dir = self.path.parent / ".kicad-ia-backup"
@@ -361,6 +405,42 @@ def grouped_layout_on_paper(
     return paper, shifted, blocks
 
 
+def _reference_of(node) -> str:
+    for prop in children(node, "property"):
+        if len(prop) > 2 and str(prop[1]) == "Reference":
+            return str(prop[2])
+    return ""
+
+
+def _library_footprint(definition) -> str:
+    for prop in children(definition, "property"):
+        if len(prop) > 2 and str(prop[1]) == "Footprint":
+            return str(prop[2]).strip()
+    return ""
+
+
+def _needs_footprint(lib_id: str, definition) -> bool:
+    """Los símbolos de alimentación no van a la placa. El resto necesita huella."""
+    if lib_id.startswith("power:") or child(definition, "power") is not None:
+        return False
+    return not _reference_of(definition).startswith("#")
+
+
+def _set_property(node, name: str, value: str) -> None:
+    for prop in children(node, "property"):
+        if len(prop) > 2 and str(prop[1]) == name:
+            prop[2] = value
+            return
+    at = child(node, "at") or [Sym("at"), 0, 0, 0]
+    node.append([Sym("property"), name, value, _at(number(at[1]), number(at[2])), _effects()])
+
+
+def _part_from_definition(reference, lib_id, value, footprint, x, y, definition) -> PlacedPart:
+    pins = [pin for pin in symbol_pins(definition) if pin["unit"] in (0, 1)]
+    placed = [{**pin, "x_abs": snap_mm(x + pin["x_mm"]), "y_abs": snap_mm(y + pin["y_mm"])} for pin in pins]
+    return PlacedPart(reference, lib_id, value, footprint, x, y, placed)
+
+
 def write_circuit(
     path: Path,
     index: LibraryIndex,
@@ -369,85 +449,150 @@ def write_circuit(
     replace: bool = False,
     groups: list[dict] | None = None,
     check_power: bool = True,
+    board_parts: dict | None = None,
 ) -> dict:
+    """Escribe el circuito. Si la referencia ya está, reutiliza ese símbolo y su uuid.
+
+    `board_parts` es lo que hay en la placa, por referencia. Si la misma
+    referencia está en el esquemático y en la placa, no se regenera: el id es
+    lo que mantiene unidas las dos. `replace` (rehacer la hoja) se niega
+    cuando eso pasa.
+    """
     if lock_file(path).exists():
         raise SchematicLocked(
             f"{path.name} está abierto en el editor de esquemáticos. Ciérralo para que pueda escribirlo; KiCad 10 no lo recarga solo."
         )
     document = SchematicDocument(path, index)
+    board_parts = board_parts or {}
+    already = document.symbols_by_reference()
+    protected = sorted(ref for ref in already if ref in board_parts and not ref.startswith("#"))
+    if replace and protected:
+        return {
+            "ok": False,
+            "written": False,
+            "errors": [
+                "Estas referencias ya están en el esquemático y en la placa: "
+                + ", ".join(protected)
+                + ". No las regenero: cambiar el id las desconecta. Añade solo lo nuevo, sin replace."
+            ],
+        }
     if replace:
         document.clear()
+        already = {}
     taken = document.references()
     errors: list[str] = []
+    notes: list[str] = []
     definitions = []
     for spec in symbols:
         lib_id = str(spec.get("lib_id") or "")
+        reference = str(spec.get("reference") or "")
         definition = index.load_symbol(lib_id)
         if definition is None:
             errors.append(f"No está en las bibliotecas de KiCad: {lib_id}. Busca con search_parts.")
             continue
-        footprint = str(spec.get("footprint") or "")
-        if footprint and index.describe_footprint(footprint) is None:
-            errors.append(f"{spec.get('reference')}: la huella {footprint} no está en las bibliotecas de KiCad. Búscala con search_parts kind=footprint.")
-        definitions.append((spec, definition))
-    errors.extend(_check_nets(definitions, nets, check_power))
+        current = already.get(reference)
+        if current and current["lib_id"] and current["lib_id"] != lib_id:
+            errors.append(
+                f"{reference} ya está en el esquemático como {current['lib_id']}. "
+                f"No lo sustituyo por {lib_id} ni le cambio el id."
+            )
+            continue
+        footprint = str(spec.get("footprint") or "").strip() or _library_footprint(definition)
+        if current and current["footprint"]:
+            if footprint and footprint != current["footprint"]:
+                notes.append(f"{reference} conserva la huella {current['footprint']}.")
+            footprint = current["footprint"]
+        elif reference in board_parts and not footprint:
+            footprint = str(board_parts[reference].get("footprint") or "")
+        if footprint and index.describe_footprint(footprint) is None and not (current and current["footprint"] == footprint):
+            errors.append(f"{reference or lib_id}: la huella {footprint} no está en las bibliotecas de KiCad. Búscala con search_parts kind=footprint.")
+        elif _needs_footprint(lib_id, definition) and not footprint:
+            errors.append(
+                f"{reference or lib_id}: no tiene huella. Elige una con select_component (parámetro footprint) antes de colocarlo."
+            )
+        definitions.append((spec, definition, footprint, current))
+    errors.extend(_check_nets([(spec, definition) for spec, definition, _, _ in definitions], nets, check_power))
     if errors:
-        return {"ok": False, "written": False, "errors": errors}
+        return {"ok": False, "written": False, "errors": errors, "notes": notes}
 
+    fresh = [row for row in definitions if row[3] is None]
     sizes = []
     offsets = []
-    for spec, definition in definitions:
+    for spec, definition, _footprint, _current in fresh:
         pins = [pin for pin in symbol_pins(definition) if not pin["hidden"]]
         xs = [pin["x_mm"] for pin in pins] or [0.0]
         ys = [pin["y_mm"] for pin in pins] or [0.0]
         sizes.append({"width": max(xs) - min(xs), "height": max(ys) - min(ys)})
         offsets.append(((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2))
-    existing = [number(at[2]) for at in (child(symbol, "at") for symbol in children(document.tree, "symbol")) if at]
-    top = max(existing) + 38.1 if existing else 25.4
+    existing_bottom = [info["y"] for info in already.values()]
+    top = max(existing_bottom) + 38.1 if existing_bottom else 25.4
     blocks: list[Box] = []
-    if groups:
-        refs = [str(spec.get("reference") or "") for spec, _ in definitions]
-        clean, _ = normalize_groups(groups, refs)
-        size_by_ref = {ref: (size["width"], size["height"]) for ref, size in zip(refs, sizes)}
-        paper, centers, blocks = grouped_layout_on_paper(size_by_ref, clean, top)
-        layout = [
-            (snap_mm(centers[ref][0] - dx), snap_mm(centers[ref][1] - dy))
-            for ref, (dx, dy) in zip(refs, offsets)
-        ]
-    else:
-        paper, layout = layout_on_paper(sizes, top)
-    document.ensure_paper(paper)
-    for block in blocks:
-        document.add_group_frame(block)
+    layout: list[tuple[float, float]] = []
+    if fresh:
+        if groups:
+            refs = [str(spec.get("reference") or "") for spec, _, _, _ in fresh]
+            clean, _ = normalize_groups(groups, refs)
+            size_by_ref = {ref: (size["width"], size["height"]) for ref, size in zip(refs, sizes)}
+            paper, centers, blocks = grouped_layout_on_paper(size_by_ref, clean, top)
+            layout = [
+                (snap_mm(centers[ref][0] - dx), snap_mm(centers[ref][1] - dy))
+                for ref, (dx, dy) in zip(refs, offsets)
+            ]
+        else:
+            paper, layout = layout_on_paper(sizes, top)
+        document.ensure_paper(paper)
+        for block in blocks:
+            document.add_group_frame(block)
 
     placed: dict[str, PlacedPart] = {}
-    for (spec, definition), auto in zip(definitions, layout):
+    reused: list[str] = []
+    added: list[str] = []
+    dirty = False
+    auto_at = {id(spec): point for (spec, _, _, _), point in zip(fresh, layout)}
+    for spec, definition, footprint, current in definitions:
         props = {str(prop[1]): str(prop[2]) for prop in children(definition, "property") if len(prop) > 2}
         reference = str(spec.get("reference") or "")
+        if current is not None:
+            if not current["footprint"] and footprint:
+                _set_property(current["node"], "Footprint", footprint)
+                dirty = True
+            part = _part_from_definition(
+                reference, str(spec["lib_id"]), str(spec.get("value") or current["value"]), footprint, current["x"], current["y"], definition
+            )
+            placed[reference] = part
+            reused.append(reference)
+            taken.add(reference)
+            continue
         if not reference or reference in taken:
-            if reference in taken:
-                errors.append(f"{reference} ya existía; se usa otra referencia.")
             reference = document.next_reference(props.get("Reference", "U"), taken)
         taken.add(reference)
         if spec.get("x_mm") is not None and spec.get("y_mm") is not None:
             x, y = snap_mm(spec["x_mm"]), snap_mm(spec["y_mm"])
         else:
-            x, y = auto
+            x, y = auto_at[id(spec)]
+        symbol_uuid = str((board_parts.get(reference) or {}).get("symbol_uuid") or "") or None
         part = document.add_symbol(
             str(spec["lib_id"]),
             definition,
             reference,
             str(spec.get("value") or ""),
-            str(spec.get("footprint") or ""),
+            footprint,
             x,
             y,
+            symbol_uuid=symbol_uuid,
         )
-        placed[spec.get("reference") or reference] = part
+        placed[str(spec.get("reference") or reference)] = part
         placed[reference] = part
+        added.append(reference)
+        dirty = True
 
     stubs = []
     used: set[tuple[str, str]] = set()
     pin_types: dict[str, set[str]] = {}
+    reused_set = set(reused)
+    # Una etiqueta local une por nombre. Si el símbolo ya estaba y la red ya
+    # tiene etiqueta, no se añade otra: duplicarla no cambia el circuito.
+    labels_now = {str(node[1]) for node in children(document.tree, "label") if len(node) > 1}
     for net in nets:
         name = str(net.get("name") or "").strip()
         if not name:
@@ -464,24 +609,37 @@ def write_circuit(
             if pin is None:
                 errors.append(f"Red {name}: {reference} no tiene el pin {pin_id}.")
                 continue
+            if part.reference in reused_set and name in labels_now:
+                used.add((part.reference, pin["number"]))
+                continue
             stubs.append(document.add_net_stub(pin, name))
+            dirty = True
             used.add((part.reference, pin["number"]))
             pin_types.setdefault(name, set()).add(pin["type"])
 
     unique = {part.reference: part for part in placed.values()}
     below = max((block.y + block.height for block in blocks), default=0.0)
     flags = _add_power_flags(document, index, pin_types, list(unique.values()), taken, below)
+    if flags:
+        dirty = True
     unconnected = {
         part.reference: [pin["name"] if pin["name"] != "~" else pin["number"] for pin in part.pins if not pin["hidden"] and (part.reference, pin["number"]) not in used]
         for part in unique.values()
+        if part.reference not in reused_set
     }
-    backup = document.save()
+    backup = document.save() if dirty else None
+    if reused and not added:
+        notes.insert(0, "Estas referencias ya estaban y se conservan con su id: " + ", ".join(reused) + ".")
     return {
         "ok": not errors,
-        "written": True,
+        "written": dirty,
+        "kept": bool(reused) and not dirty,
         "file": str(path),
-        "backup": str(backup),
+        "backup": str(backup) if backup else "",
         "placed": [part.as_dict() for part in unique.values()],
+        "reused": reused,
+        "added": added,
+        "notes": notes,
         "net_stubs": len(stubs),
         "power_flags": flags,
         "unconnected_pins": {ref: pins for ref, pins in unconnected.items() if pins},

@@ -204,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--repo",
-        default="krisskira/kicad-ia-pluging",
+        default="krisskira/kicad-ia-chat",
         help="owner/repo de GitHub",
     )
     parser.add_argument(

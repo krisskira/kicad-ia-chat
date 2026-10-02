@@ -38,23 +38,10 @@
           <div class="chips" id="selection"><span class="muted">Selecciona huellas en el editor de PCB.</span></div>
         </section>
 
-        <section class="card">
-          <h2>Acciones rápidas</h2>
-          <div class="actions">
-            <button type="button" data-prompt="Enséñame una imagen del esquemático.">🖼️ Imagen del esquemático</button>
-            <button type="button" data-prompt="Enséñame la placa en 3D.">🧊 Placa en 3D</button>
-            <button type="button" data-prompt="Enséñame la placa vista desde arriba con las capas de cobre.">🟩 Capas de la placa</button>
-            <button type="button" data-prompt="Organiza el circuito agrupado por funciones, en el esquemático y en la placa. Antes explícame los grupos que vas a usar.">🧩 Organizar por funciones</button>
-            <button type="button" data-prompt="Coloca los componentes en la PCB siguiendo normas IPC Clase 2. Primero muéstrame la propuesta sin aplicar.">📐 Colocar IPC</button>
-            <button type="button" id="btn-autoroute" data-prompt="Autorutea la placa con FreeRouting, valida con DRC e IPC y enséñame el antes y el después sin aplicar todavía.">🛤️ Autorutear</button>
-            <button type="button" data-prompt="Valida la PCB con DRC e IPC Clase 2 y corrige solo lo seguro. Explica qué no puedes corregir solo.">🔍 Validar IPC</button>
-            <button type="button" data-prompt="Valida el esquemático con ERC y dime qué hay que corregir.">✅ Revisar ERC</button>
-            <button type="button" data-local="/estado">ℹ️ Estado de KiCad</button>
-          </div>
-        </section>
-
-        <section class="card subtle">
-          <button class="link-button" id="new-chat" type="button">Empezar una conversación nueva</button>
+        <section class="card sessions-card">
+          <h2>Conversaciones <button class="icon-button" id="new-chat" type="button" title="Conversación nueva" aria-label="Conversación nueva">＋</button></h2>
+          <p class="muted" id="sessions-empty">Aquí aparecen las conversaciones guardadas.</p>
+          <ul class="sessions" id="sessions"></ul>
         </section>
       </aside>
 
@@ -72,8 +59,22 @@
         </div>
 
         <form class="composer" id="composer">
-          <textarea id="input" rows="1" placeholder="Escribe aquí. Enter envía, Shift+Enter hace un salto de línea." maxlength="8000"></textarea>
-          <button type="submit" id="send" class="send" aria-label="Enviar">➤</button>
+          <div class="composer-box">
+            <button type="button" class="composer-plus" id="quick-actions" aria-label="Acciones rápidas" title="Acciones rápidas" aria-expanded="false">＋</button>
+            <textarea id="input" rows="1" placeholder="Escribe aquí. Enter envía, Shift+Enter hace un salto de línea." maxlength="8000"></textarea>
+            <button type="submit" id="send" class="send" aria-label="Enviar">➤</button>
+            <div class="quick-menu" id="quick-menu" hidden>
+              <button type="button" data-prompt="Enséñame una imagen del esquemático.">🖼️ Imagen del esquemático</button>
+              <button type="button" data-prompt="Enséñame la placa en 3D.">🧊 Placa en 3D</button>
+              <button type="button" data-prompt="Enséñame la placa vista desde arriba con las capas de cobre.">🟩 Capas de la placa</button>
+              <button type="button" data-prompt="Organiza el circuito agrupado por funciones, en el esquemático y en la placa. Antes explícame los grupos que vas a usar.">🧩 Organizar por funciones</button>
+              <button type="button" data-prompt="Coloca los componentes en la PCB siguiendo normas IPC Clase 2. Primero muéstrame la propuesta sin aplicar.">📐 Colocar IPC</button>
+              <button type="button" id="btn-autoroute" data-prompt="Autorutea la placa con FreeRouting, valida con DRC e IPC y enséñame el antes y el después sin aplicar todavía.">🛤️ Autorutear</button>
+              <button type="button" data-prompt="Valida la PCB con DRC e IPC Clase 2 y corrige solo lo seguro. Explica qué no puedes corregir solo.">🔍 Validar IPC</button>
+              <button type="button" data-prompt="Valida el esquemático con ERC y dime qué hay que corregir.">✅ Revisar ERC</button>
+              <button type="button" data-local="/estado">ℹ️ Estado de KiCad</button>
+            </div>
+          </div>
         </form>
         <div class="composer-hint" id="hint"></div>
       </main>

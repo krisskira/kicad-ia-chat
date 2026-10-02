@@ -19,10 +19,25 @@ from kicad_ia.tools.registry import ToolRegistry
 @dataclass
 class ChatBook:
     sessions: dict[str, Session] = field(default_factory=dict)
+    store: object = None
+
+    def find(self, session_id: str | None) -> Session | None:
+        if not session_id:
+            return None
+        if session_id in self.sessions:
+            return self.sessions[session_id]
+        if self.store is None:
+            return None
+        loaded = self.store.load(session_id)
+        if loaded is None:
+            return None
+        self.sessions[loaded.id] = loaded
+        return loaded
 
     def session(self, session_id: str | None) -> Session:
-        if session_id and session_id in self.sessions:
-            return self.sessions[session_id]
+        found = self.find(session_id)
+        if found is not None:
+            return found
         created = Session(id=uuid.uuid4().hex)
         self.sessions[created.id] = created
         return created
@@ -42,14 +57,15 @@ def dispatch(
         return _payload(session, "Escribe qué quieres hacer en el esquemático o en la placa.", [])
     if cleaned in {"/estado", "/seleccion"}:
         result = registry.call("inspect_context", {}, gateway)
-        return _payload(session, _format_inspect(result), [{"tool": "inspect_context", "arguments": {}, "result": result}])
+        return _spoken(session, cleaned, _format_inspect(result), [{"tool": "inspect_context", "arguments": {}, "result": result}])
     if cleaned == "/herramientas":
         exclude = {"autoroute_board"} if not settings.autoroute_enabled else set()
         names = registry.names(exclude=exclude)
-        return _payload(session, "Herramientas: " + ", ".join(names) + ".", [{"tool": "list", "arguments": {}, "result": names}])
+        return _spoken(session, cleaned, "Herramientas: " + ", ".join(names) + ".", [{"tool": "list", "arguments": {}, "result": names}])
     if not settings.llm_ready or client is None:
-        return _payload(
+        return _spoken(
             session,
+            cleaned,
             "El chat de herramientas está listo, pero falta el modelo. Ábrelo en Ajustes (API key, URL y modelo) "
             "o define LLM_BASE_URL y LLM_MODEL en app/.env. Mientras tanto puedes usar /estado, /seleccion y /herramientas.",
             [],
@@ -73,6 +89,13 @@ def dispatch(
         settings,
     )
     return _payload(session, turn.reply, turn.steps)
+
+
+def _spoken(session: Session, user_text: str, reply: str, steps: list) -> dict:
+    """Atajos que no pasan por el modelo: igual quedan en la conversación guardada."""
+    session.messages.append({"role": "user", "content": user_text})
+    session.messages.append({"role": "assistant", "content": reply})
+    return _payload(session, reply, steps)
 
 
 def _payload(session: Session, reply: str, steps: list) -> dict:

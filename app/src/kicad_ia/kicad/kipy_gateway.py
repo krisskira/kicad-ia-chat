@@ -208,7 +208,9 @@ class KipyGateway(Gateway):
             return {"ok": False, "error": "No encuentro el .kicad_sch del proyecto abierto en KiCad."}
         all_nets = list(nets) + nets_from_connections(connections)
         try:
-            result = write_circuit(schematic, self._library_index(), symbols, all_nets, replace)
+            result = write_circuit(
+                schematic, self._library_index(), symbols, all_nets, replace, board_parts=self._board_parts()
+            )
         except SchematicLocked as exc:
             return {"ok": False, "error": str(exc)}
         cli = find_kicad_cli(self._settings.kicad_cli)
@@ -265,6 +267,22 @@ class KipyGateway(Gateway):
             "zones": len(list(_call(board, "get_zones") or [])),
             "board_area": self._board_area_payload(),
         }
+
+    def _board_parts(self) -> dict:
+        """Referencias que ya están en la placa, para no regenerar su símbolo."""
+        board = _try(self._board)
+        if board is None:
+            return {}
+        parts = {}
+        for footprint in list(_call(board, "get_footprints") or []):
+            reference = _footprint_reference(footprint)
+            if not reference:
+                continue
+            parts[reference] = {
+                "footprint": lib_id_text(getattr(getattr(footprint, "definition", None), "id", "")),
+                "symbol_uuid": _linked_symbol_uuid(footprint),
+            }
+        return parts
 
     def _board_area_payload(self) -> dict:
         board = _try(self._board)
@@ -1014,6 +1032,15 @@ def _board_outline(board) -> tuple[float, float, float, float] | None:
     x, y = _vec_mm(total.pos)
     w, h = _vec_mm(total.size)
     return x, y, w, h
+
+
+def _linked_symbol_uuid(footprint) -> str:
+    """Uuid del símbolo en el path de la huella (/hoja/simbolo), si la API lo trae."""
+    raw = getattr(footprint, "path", None)
+    if raw is None:
+        raw = getattr(getattr(footprint, "proto", None), "path", "")
+    parts = [part for part in str(raw or "").split("/") if part]
+    return parts[-1] if len(parts) >= 2 else ""
 
 
 def _footprint_reference(footprint) -> str:

@@ -231,6 +231,7 @@ def create_app(
             "tools": registry.names(exclude=_excluded_tools(settings)),
             "busy": chat.busy(session_id),
             "history": chat.history(session_id),
+            "sessions": chat.summaries(),
         }
 
     async def _handle(message: dict, client) -> dict | None:
@@ -244,6 +245,29 @@ def create_app(
             fresh = chat.session_id(None)
             hub.move(client, fresh)
             return await _hello(fresh)
+        if kind == "session.open":
+            if chat.busy(client.session_id):
+                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
+            wanted = str(message.get("session_id") or "")
+            found = chat.book.find(wanted)
+            if found is None:
+                return {"type": "error", "error": "No encuentro esa conversación."}
+            hub.move(client, found.id)
+            opened = await _hello(found.id)
+            opened["type"] = "session.opened"
+            return opened
+        if kind == "session.delete":
+            if chat.busy(client.session_id):
+                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
+            wanted = str(message.get("session_id") or "")
+            chat.forget(wanted)
+            if client.session_id == wanted:
+                fresh = chat.session_id(None)
+                hub.move(client, fresh)
+                return await _hello(fresh)
+            listing = await _hello(client.session_id)
+            listing["type"] = "sessions"
+            return listing
         if kind == "chat.send":
             text = str(message.get("text") or "").strip()[:MAX_MESSAGE]
             if not text:

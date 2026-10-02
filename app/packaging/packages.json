@@ -21,8 +21,8 @@
       },
       "license": "MIT",
       "resources": {
-        "homepage": "https://github.com/krisskira/kicad-ia-pluging",
-        "repository": "https://github.com/krisskira/kicad-ia-pluging"
+        "homepage": "https://github.com/krisskira/kicad-ia-chat",
+        "repository": "https://github.com/krisskira/kicad-ia-chat"
       },
       "tags": [
         "ai",
@@ -41,7 +41,7 @@
             "macos",
             "linux"
           ],
-          "download_url": "https://github.com/krisskira/kicad-ia-pluging/releases/download/v0.1.0/kicad-ia-0.1.0-pcm.zip",
+          "download_url": "https://github.com/krisskira/kicad-ia-chat/releases/download/v0.1.0/kicad-ia-0.1.0-pcm.zip",
           "download_sha256": "659c0bb6da389a26876d49a143a3ea84bc1de125715037120349d3ae5472bc59",
           "download_size": 115147,
           "install_size": 337239

@@ -8,7 +8,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Repo = if ($env:KICAD_IA_REPO) { $env:KICAD_IA_REPO } else { "krisskira/kicad-ia-pluging" }
+$Repo = if ($env:KICAD_IA_REPO) { $env:KICAD_IA_REPO } else { "krisskira/kicad-ia-chat" }
 $Api = "https://api.github.com/repos/$Repo"
 
 function Show-Usage {
@@ -21,7 +21,7 @@ Uso: install.ps1 [-Version X.Y.Z] [-KicadVersion V] [-Uninstall] [-Help]
   -Help                Esta ayuda
 
 Ejemplos:
-  irm https://raw.githubusercontent.com/krisskira/kicad-ia-pluging/main/install/install.ps1 | iex
+  irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex
   .\install.ps1 -Version 0.1.0 -KicadVersion 10.0
 "@
 }

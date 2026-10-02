@@ -19,8 +19,8 @@
   },
   "license": "MIT",
   "resources": {
-    "homepage": "https://github.com/krisskira/kicad-ia-pluging",
-    "repository": "https://github.com/krisskira/kicad-ia-pluging"
+    "homepage": "https://github.com/krisskira/kicad-ia-chat",
+    "repository": "https://github.com/krisskira/kicad-ia-chat"
   },
   "tags": [
     "ai",

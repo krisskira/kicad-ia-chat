@@ -75,11 +75,22 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .notes li.alert { color: var(--warn); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { padding: 3px 9px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; }
+.sessions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 320px; overflow: auto; }
+.sessions:empty { display: none; }
+.session-row { display: flex; align-items: center; gap: 2px; border-radius: 8px; }
+.session-row.active { background: var(--accent-soft); }
+.session-row .open {
+  flex: 1; text-align: left; background: none; border: 0; padding: 7px 8px; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text);
+}
+.session-row .drop { background: none; border: 0; color: var(--muted); padding: 4px 8px; }
+.session-row .drop:hover { color: var(--bad); }
+.sessions-card h2 .icon-button { font-size: 16px; padding: 0 4px; }
 .actions { display: grid; gap: 6px; }
-.actions button, .examples button {
+.actions button, .examples button, .quick-menu button {
   text-align: left; padding: 8px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel-2);
 }
-.actions button:hover:not(:disabled), .examples button:hover:not(:disabled) { border-color: var(--accent); }
+.actions button:hover:not(:disabled), .examples button:hover:not(:disabled), .quick-menu button:hover:not(:disabled) { border-color: var(--accent); }
 .link-button { background: none; border: 0; color: var(--accent); padding: 0; }
 .icon-button { background: none; border: 0; font-size: 18px; padding: 4px 8px; border-radius: 8px; }
 .only-narrow { display: none; }
@@ -124,12 +135,29 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .typing span:nth-child(3) { animation-delay: 0.3s; }
 
 .composer { display: flex; gap: 8px; padding: 12px max(16px, calc((100% - 860px) / 2)) 4px; }
+.composer-box { position: relative; display: flex; flex: 1; gap: 8px; align-items: flex-end; }
+.composer-plus {
+  position: absolute; left: 6px; bottom: 6px; z-index: 2; width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--text); font-size: 18px; line-height: 1;
+}
+.composer-plus[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); }
+.quick-menu {
+  position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 5; width: min(320px, 86vw);
+  display: grid; gap: 4px; padding: 8px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; box-shadow: var(--shadow);
+}
+.quick-menu[hidden] { display: none; }
+.quick-menu button { text-align: left; }
 .composer textarea {
-  flex: 1; resize: none; max-height: 180px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--line);
+  flex: 1; resize: none; max-height: 180px; padding: 11px 14px 11px 44px; border-radius: 12px; border: 1px solid var(--line);
   background: var(--panel); color: var(--text); font: inherit; line-height: 1.4; box-shadow: var(--shadow);
 }
 .composer textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
-.send { width: 46px; border-radius: 12px; border: 0; background: var(--accent); color: #fff; font-size: 17px; }
+.send {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0 0 0 2px;
+  border-radius: 50%; border: 0; background: var(--accent); color: #fff; font-size: 17px; line-height: 1;
+  box-shadow: var(--shadow);
+}
 .composer-hint { min-height: 20px; padding: 0 max(16px, calc((100% - 860px) / 2)) 8px; font-size: 12.5px; color: var(--muted); }
 
 .lightbox { position: fixed; inset: 0; background: rgb(0 0 0 / 80%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 20; padding: 24px; }

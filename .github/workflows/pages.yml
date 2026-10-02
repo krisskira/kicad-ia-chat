@@ -34,7 +34,7 @@ jobs:
       - run: npm run lint
       - run: npm run build
         env:
-          VITE_SITE_URL: https://krisskira.github.io/kicad-ia-pluging
+          VITE_SITE_URL: https://krisskira.github.io/kicad-ia-chat
       - uses: actions/upload-pages-artifact@v5
         with:
           path: landing-page/dist

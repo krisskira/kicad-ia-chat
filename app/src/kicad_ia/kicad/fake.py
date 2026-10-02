@@ -158,14 +158,23 @@ class FakeGateway(Gateway):
                 errors.append(f"Símbolo desconocido: {lib_id}.")
                 continue
             reference = str(spec.get("reference") or self._next_reference(part.reference_prefix))
-            if reference in self.symbols or any(item.reference == reference for item in placed):
-                errors.append(f"La referencia {reference} ya existe.")
+            footprint = str(spec.get("footprint") or part.default_footprint or "")
+            current = self.symbols.get(reference)
+            if current is not None and current.lib_id == lib_id:
+                if footprint and not current.footprint:
+                    current.footprint = footprint
+                continue
+            if current is not None or any(item.reference == reference for item in placed):
+                errors.append(f"{reference} ya está. No lo regenero.")
+                continue
+            if not footprint and not lib_id.startswith("power:") and not part.reference_prefix.startswith("#"):
+                errors.append(f"{reference}: no tiene huella. Elige una con select_component antes de colocarlo.")
                 continue
             item = snapped_symbol(
                 {
                     **spec,
                     "reference": reference,
-                    "footprint": spec.get("footprint") or part.default_footprint,
+                    "footprint": footprint,
                     "x_mm": spec.get("x_mm", 50.8 + 50.8 * position),
                     "y_mm": spec.get("y_mm", 76.2),
                 },

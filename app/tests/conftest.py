@@ -56,6 +56,27 @@ SYMBOLS = """(kicad_symbol_lib
 \t\t)
 \t\t(embedded_fonts no)
 \t)
+\t(symbol "Bare"
+\t\t(property "Reference" "U"
+\t\t\t(at 0 2.54 0)
+\t\t\t(effects (font (size 1.27 1.27)))
+\t\t)
+\t\t(property "Value" "Bare"
+\t\t\t(at 0 -2.54 0)
+\t\t\t(effects (font (size 1.27 1.27)))
+\t\t)
+\t\t(property "Footprint" ""
+\t\t\t(at 0 0 0)
+\t\t\t(effects (font (size 1.27 1.27)) (hide yes))
+\t\t)
+\t\t(symbol "Bare_1_1"
+\t\t\t(pin passive line (at -5.08 0 0) (length 2.54)
+\t\t\t\t(name "A" (effects (font (size 1.27 1.27))))
+\t\t\t\t(number "1" (effects (font (size 1.27 1.27))))
+\t\t\t)
+\t\t)
+\t\t(embedded_fonts no)
+\t)
 )
 """
 
@@ -96,6 +117,7 @@ SCHEMATIC = """(kicad_sch
 @pytest.fixture(autouse=True)
 def isolated_cache(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("KICAD_IA_CACHE", str(tmp_path / "cache"))
+    monkeypatch.setenv("KICAD_IA_CONFIG", str(tmp_path / "config"))
 
 
 @pytest.fixture

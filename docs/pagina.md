@@ -9,10 +9,11 @@ No van en la página el roadmap, LCSC ni la tabla de herramientas. Eso sigue en 
 | Qué | Dónde |
 |-----|--------|
 | Textos | `landing-page/content/` |
-| Portada | `landing-page/public/media/og-cover.svg` |
-| Diagrama y capturas | `landing-page/public/media/flujo.svg`, `chat-inicio.png`, `chat-ajustes.png` |
-| Repetir capturas | `landing-page/resources/capturar-chat.py` (chat en marcha y KiCad abierto) |
+| Portada | `landing-page/public/media/og-cover.svg`; las redes usan `og-cover.png` |
+| Diagrama y capturas | `landing-page/public/media/flujo.svg`, `chat-inicio.png`, `chat-acciones.png`, `chat-ajustes.png` |
+| Repetir capturas | `landing-page/resources/capturar-chat.py` (chat en marcha y KiCad abierto; `--seed` crea conversaciones de ejemplo) |
+| SEO y analítica | `site.json`: metas, JSON-LD (`SoftwareApplication`) y `gtm` (Google Tag Manager) |
 | Publicación | `.github/workflows/pages.yml` |
 | Template | `git@github.com:krisskira/kriver-template-projects.git` |
 
-URL: <https://krisskira.github.io/kicad-ia-pluging/>. En el repositorio, Pages → Source: GitHub Actions.
+URL: <https://krisskira.github.io/kicad-ia-chat/>. En el repositorio, Pages → Source: GitHub Actions.

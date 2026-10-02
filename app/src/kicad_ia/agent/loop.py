@@ -47,7 +47,7 @@ Las piezas salen de las bibliotecas que el usuario tiene configuradas en KiCad. 
 1. search_parts kind=symbol con el nombre del fabricante o la familia (ESP32-S3-WROOM-1, AP2112K, Battery_Cell). Prueba dos o tres consultas antes de rendirte.
 2. describe_part de cada símbolo elegido. Usa sus números o nombres de pin; no los inventes.
 3. place_circuit con symbols (lib_id, reference, value, footprint) y nets. Cada red lleva nombre (+3V3, GND, SPI_SCK) y la lista de pines. No pases coordenadas salvo que el usuario las pida.
-4. place_circuit. No pases coordenadas salvo que el usuario las pida.
+4. place_circuit. No pases coordenadas salvo que el usuario las pida. Si la referencia ya está en el esquemático (y más si también está en la placa), no la vuelvas a crear ni uses replace: la herramienta conserva el símbolo y su id. replace solo si el usuario pide rehacer la hoja y la placa todavía no tiene esas huellas.
 
 Antes de place_circuit revisa el diseño como lo haría un ingeniero:
 - Cada señal conecta los dos extremos: el pin del microcontrolador y el del periférico.
@@ -55,7 +55,7 @@ Antes de place_circuit revisa el diseño como lo haría un ingeniero:
 - Reguladores con condensador de entrada y de salida según su datasheet.
 - En ESP32-S3 con PSRAM octal (sufijo R8) no uses IO35, IO36 ni IO37. Para SPI usa IO10 a IO13.
 - Las huellas deben salir de search_parts kind=footprint; para una celda 18650 busca "18650".
-place_circuit pasa por un revisor eléctrico antes de escribir. Si devuelve review rejected, corrige cada problems y vuelve a llamarla. Si review es exhausted, para y explícale los problemas al usuario. Si written es false por otro motivo, corrige y reintenta. Si ya escribiste y quieres rehacer, usa replace true. Lee erc.verdict y erc.problems y repítelos tal cual.
+place_circuit pasa por un revisor eléctrico antes de escribir. Si devuelve review rejected, corrige cada problems y vuelve a llamarla. Si review es exhausted, para y explícale los problemas al usuario. Si written es false y reused trae referencias, no reintentes: ya estaban y se conservó su id. Si written es false por otro motivo, corrige y reintenta. replace solo cuando el usuario pida rehacer la hoja y esas referencias no estén ya en la placa. Lee erc.verdict y erc.problems y repítelos tal cual.
 
 Si search_parts no encuentra la pieza, llama a search_lcsc. Enseña código, fabricante y encapsulado, y espera a que el usuario elija. Solo entonces import_lcsc. El lib_id queda en la biblioteca kicad-ia; descríbelo antes de usarlo. Si LCSC tampoco la tiene, ofrece un conector genérico (Connector_Generic:Conn_01xNN) o crearla desde el datasheet. No sustituyas una pieza por otra en silencio.
 
@@ -93,6 +93,8 @@ class Session:
     id: str
     messages: list[dict] = field(default_factory=list)
     memory: object = None
+    title: str = ""
+    updated: str = ""
 
     def __post_init__(self) -> None:
         if self.memory is None:
