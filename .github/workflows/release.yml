@@ -34,7 +34,6 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - uses: actions/setup-python@v5
         with:
@@ -152,6 +151,8 @@ jobs:
 
       - name: Publicar índice en main
         if: steps.meta.outputs.latest == 'true'
+        env:
+          TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -161,11 +162,15 @@ jobs:
             exit 0
           fi
           git commit -m "chore(release): $TAG [skip ci]"
-          for attempt in 1 2 3; do
-            if git push origin main; then
-              exit 0
-            fi
-            git pull --rebase origin main
-          done
-          echo "No se pudo publicar el índice en main"
+          git remote set-url origin "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git push origin main; then
+            exit 0
+          fi
+          git pull --rebase origin main
+          if git push origin main; then
+            exit 0
+          fi
+          echo "No se pudo publicar el índice en main."
+          echo "Settings → Actions → General → Workflow permissions: Read and write permissions."
+          echo "Si main tiene una ruleset, en Bypass list añade GitHub Actions."
           exit 1

@@ -74,7 +74,9 @@ El tag dispara `.github/workflows/release.yml`: construye los ZIP, crea el relea
 
 `packages.json` y `repository.json` los genera CI: no se editan a mano. Lo que describe el paquete va en `packaging/metadata.json`.
 
-Para que el push del tag dispare el release directamente, crea el secreto `RELEASE_TOKEN` (PAT con Contents y Actions en escritura; si `main` está protegida, con permiso para saltar la protección). Sin él, `version.yml` lanza el release por `workflow_dispatch`.
+El índice se publica en `main` con el token de Actions. En el repositorio, Settings → Actions → General → Workflow permissions tiene que estar en **Read and write permissions**. Si `main` tiene una ruleset, añade **GitHub Actions** a su Bypass list.
+
+`RELEASE_TOKEN` es opcional. Si existe y puede crear tags, el tag dispara el release; si no, `version.yml` crea el tag y lanza el release.
 
 ## Arranque
 

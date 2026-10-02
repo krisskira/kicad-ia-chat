@@ -3,9 +3,9 @@ name: Versión
 # Cada push o merge a main calcula la versión siguiente y crea el tag vX.Y.Z.
 # El tag es lo que dispara release.yml.
 #
-# Un tag creado con GITHUB_TOKEN no dispara otros workflows. Con el secreto
-# RELEASE_TOKEN (PAT con contents y actions en escritura) el push del tag
-# dispara el release; sin él, este workflow lanza release.yml para ese tag.
+# Un tag creado con el token de Actions no dispara otros workflows: este
+# workflow lanza release.yml después de crearlo. RELEASE_TOKEN es opcional y
+# solo sirve para que el propio tag dispare el release.
 
 on:
   push:
@@ -30,13 +30,10 @@ jobs:
   tag:
     if: ${{ !startsWith(github.event.head_commit.message, 'chore(release):') }}
     runs-on: ubuntu-latest
-    env:
-      HAS_RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       - uses: actions/setup-python@v5
         with:
@@ -54,10 +51,13 @@ jobs:
           fi
 
       - name: Crear tag
+        id: tag
         if: steps.next.outputs.tag != ''
         env:
           TAG: ${{ steps.next.outputs.tag }}
           PREVIOUS: ${{ steps.next.outputs.previous }}
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          ACTIONS_TOKEN: ${{ github.token }}
         run: |
           if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "El tag $TAG ya existe"
@@ -66,10 +66,28 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" -m "KiCad IA $TAG" -m "Anterior: ${PREVIOUS:-ninguno}"
-          git push origin "refs/tags/$TAG"
+          push_tag() {
+            git push "https://x-access-token:${1}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/$TAG"
+          }
+          triggered=false
+          if [ -n "$RELEASE_TOKEN" ]; then
+            set +e
+            push_tag "$RELEASE_TOKEN"
+            status=$?
+            set -e
+            if [ "$status" -eq 0 ]; then
+              triggered=true
+            else
+              echo "RELEASE_TOKEN no pudo publicar el tag. Se usa el token de Actions."
+            fi
+          fi
+          if [ "$triggered" != true ]; then
+            push_tag "$ACTIONS_TOKEN"
+          fi
+          echo "triggered=$triggered" >> "$GITHUB_OUTPUT"
 
-      - name: Lanzar release sin RELEASE_TOKEN
-        if: steps.next.outputs.tag != '' && env.HAS_RELEASE_TOKEN != 'true'
+      - name: Lanzar release
+        if: steps.tag.outputs.triggered == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.next.outputs.tag }}
