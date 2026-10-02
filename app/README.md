@@ -8,7 +8,7 @@ Guía para agentes: [AGENTS.md](AGENTS.md) · Arquitectura: [doc/architecture.md
 
 Requisitos: **KiCad 10**, red la primera vez (KiCad instala `requirements.txt` en su entorno) y, solo si activas el autoruteo, **Java 17+**. Abre KiCad una vez antes de instalar para que exista `Documentos/KiCad/<versión>/`.
 
-Las tres vías dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia` (no en `scripting/plugins`). Después: reinicia KiCad, abre el editor de PCB, pulsa **KiCad IA** y configura el modelo en Ajustes.
+Los scripts y la copia manual dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia` (no en `scripting/plugins`); el Gestor lo guarda en su propia carpeta de complementos. Usa una sola vía. Después: reinicia KiCad, abre el editor de PCB, pulsa **KiCad IA** y configura el modelo en Ajustes.
 
 ### Gestor de complementos
 

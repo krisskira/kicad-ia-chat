@@ -2,12 +2,12 @@
   "sections": [
     {
       "type": "hero",
-      "badge": "KiCad 10",
-      "title": "El esquemático se pide en un chat,",
-      "highlight": "con las piezas que ya tienes",
-      "lead": "Plugin para KiCad. Describes el circuito, el chat busca en las bibliotecas configuradas y escribe el esquemático del proyecto abierto. A la placa se pasa con F8.",
+      "badge": "Plugin con IA para KiCad 10",
+      "title": "De la idea a la PCB,",
+      "highlight": "con la IA dentro de KiCad",
+      "lead": "KiCad IA lleva la inteligencia artificial a tu mesa de diseño. Cuentas el circuito en un chat y arma el esquemático con tus propias bibliotecas, cada pieza con su huella. Luego lo organiza en la placa, propone la colocación y la autorutea con revisión DRC. Tú confirmas cada paso: menos horas dibujando y más tiempo para afinar el prototipo hasta dejarlo listo para fabricar.",
       "actions": [
-        { "label": "Cómo se instala", "href": "#instalar" },
+        { "label": "Instalar gratis", "href": "#instalar" },
         { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-chat", "icon": "github", "variant": "secondary" }
       ],
       "media": {
@@ -125,62 +125,59 @@
       ]
     },
     {
-      "type": "specs",
+      "type": "code",
       "id": "instalar",
       "nav": "Instalar",
       "kicker": "Instalación",
-      "title": "Cuatro formas, la misma carpeta",
-      "lead": "Hace falta KiCad 10. La primera vez, red para que KiCad instale las dependencias. Java 17 o posterior, solo si vas a autorutear.",
-      "groups": [
+      "title": "Elige cómo instalar KiCad IA",
+      "body": [
+        "Las cuatro opciones instalan el mismo plugin. El **Gestor de complementos** es la vía más sencilla; los scripts permiten automatizar o fijar una versión; el ZIP sirve para una instalación manual.",
+        "Necesitas **KiCad 10**. Ábrelo una vez antes de instalar. La primera vez KiCad requiere conexión para descargar las dependencias. Java 17 o posterior solo hace falta si activas el autoruteo."
+      ],
+      "items": [
         {
-          "title": "Dónde queda",
-          "rows": [
-            ["Carpeta", "`Documentos/KiCad/<versión>/plugins/kicad-ia`"],
-            ["Después", "Reinicia KiCad, abre el editor de PCB y pulsa KiCad IA"]
-          ]
+          "kicker": "Recomendado",
+          "title": "Desde el Gestor de complementos",
+          "body": [
+            "Abre KiCad y entra en **Preferencias → Gestor de complementos → repositorios**. Añade la URL que aparece a la derecha y busca **KiCad IA** en el gestor.",
+            "Instálalo desde KiCad y reinicia la aplicación. El gestor administra su propia carpeta de complementos y también las actualizaciones."
+          ],
+          "commandLabel": "URL del repositorio",
+          "code": "https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/repository.json",
+          "note": "Esta opción no usa `Documentos/KiCad/<versión>/plugins/kicad-ia`; KiCad decide dónde guarda el complemento."
         },
         {
-          "title": "Vías",
-          "rows": [
-            ["Gestor de complementos", "Preferencias → Gestor de complementos, y el índice del repositorio"],
-            ["macOS y Linux", "`install/install.sh`"],
-            ["Windows", "`install/install.ps1` en PowerShell"],
-            ["Zip", "Release `kicad-ia-<versión>.zip`, con `plugin.json` en la raíz"]
-          ]
+          "kicker": "Script",
+          "title": "macOS y Linux",
+          "body": [
+            "Ejecuta el instalador desde una terminal. Necesita `curl` y `unzip`; descarga el último release, verifica su SHA256 e instala en `~/Documents/KiCad/<versión>/plugins/kicad-ia`.",
+            "Si ya existe una instalación, conserva la anterior como `kicad-ia.bak`. También puedes fijar la versión del plugin, elegir la carpeta de KiCad o desinstalarlo."
+          ],
+          "commandLabel": "Terminal",
+          "code": "curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh\n\n# Una versión o una carpeta de KiCad concretas\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --version 0.1.0 --kicad-version 10.0\n\n# Desinstalar\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --uninstall",
+          "note": "Si prefieres revisarlo antes, descarga `install.sh`, léelo y ejecútalo con `sh install.sh`."
         },
         {
-          "title": "Ajustes",
-          "rows": [
-            ["Modelo", "Gemini, Ollama, OpenAI o una URL compatible con OpenAI"],
-            ["Revisor", "Opcional. Vacío: el chat escribe sin esa segunda lectura"],
-            ["macOS", "`~/Library/Application Support/kicad-ia/user-settings.json`"],
-            ["Linux y Windows", "`~/.config/kicad-ia/user-settings.json`"],
-            ["Conversaciones", "En la carpeta `sessions/`, junto a los ajustes"],
-            ["Autoruteo", "Apagado hasta activarlo. FreeRouting 2.0.1 y Java 17 o posterior"],
-            ["Placa", "Prechequeo IPC Clase 2. No es una certificación"]
-          ]
-        }
-      ]
-    },
-    {
-      "type": "code",
-      "id": "comandos",
-      "tone": "alt",
-      "kicker": "Comandos",
-      "title": "Instalar desde la terminal",
-      "body": "El gestor de complementos usa la URL del índice. Los scripts aceptan versión y desinstalación.",
-      "tabs": [
-        {
-          "label": "macOS y Linux",
-          "code": "curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh\n# sh install.sh --version 0.1.0 --kicad-version 10.0\n# sh install.sh --uninstall"
+          "kicker": "Script",
+          "title": "Windows",
+          "body": [
+            "Abre PowerShell y ejecuta el instalador. Descarga el release, comprueba su SHA256 y lo deja en `Documentos\\KiCad\\<versión>\\plugins\\kicad-ia`.",
+            "La primera orden instala la versión más reciente. Las siguientes muestran cómo elegir versiones concretas o desinstalar."
+          ],
+          "commandLabel": "PowerShell",
+          "code": "irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex\n\n# Una versión o una carpeta de KiCad concretas\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Version 0.1.0 -KicadVersion 10.0\n\n# Desinstalar\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Uninstall",
+          "note": "También puedes descargar `install.ps1`, revisarlo y ejecutar `.\\install.ps1` con los mismos parámetros."
         },
         {
-          "label": "Windows",
-          "code": "irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex\n# .\\install.ps1 -Version 0.1.0 -KicadVersion 10.0\n# .\\install.ps1 -Uninstall"
-        },
-        {
-          "label": "Gestor",
-          "code": "https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/repository.json"
+          "kicker": "Manual",
+          "title": "Con el ZIP de una versión",
+          "body": [
+            "Descarga de Releases el archivo `kicad-ia-<versión>.zip`. No uses el archivo terminado en `-pcm.zip`: ese paquete pertenece al Gestor de complementos.",
+            "Descomprime el contenido en la carpeta del plugin. Al terminar, `plugin.json` e `ipc_entry.py` deben quedar directamente dentro de `kicad-ia`, no en otra subcarpeta."
+          ],
+          "commandLabel": "Rutas de instalación",
+          "code": "# 1. Descarga kicad-ia-<versión>.zip (no el -pcm.zip) de\n#    https://github.com/krisskira/kicad-ia-chat/releases\n\n# 2. macOS y Linux\nmkdir -p ~/Documents/KiCad/10.0/plugins/kicad-ia\nunzip kicad-ia-0.1.0.zip -d ~/Documents/KiCad/10.0/plugins/kicad-ia\n\n# 2. Windows (PowerShell)\nExpand-Archive kicad-ia-0.1.0.zip (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'KiCad\\10.0\\plugins\\kicad-ia')",
+          "note": "Sustituye `10.0` y `0.1.0` por las versiones de KiCad y KiCad IA que vayas a usar."
         }
       ]
     },

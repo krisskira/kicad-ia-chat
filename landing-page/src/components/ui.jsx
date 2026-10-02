@@ -20,7 +20,7 @@ export function Rich({ text }) {
       }
       if (part.startsWith('`') && part.endsWith('`')) {
         return (
-          <code key={index} className="rounded bg-soft px-1.5 py-0.5 font-mono text-[0.88em] text-fg">
+          <code key={index} className="rounded bg-soft px-1.5 py-0.5 font-mono text-[0.88em] text-fg [overflow-wrap:anywhere]">
             {part.slice(1, -1)}
           </code>
         );

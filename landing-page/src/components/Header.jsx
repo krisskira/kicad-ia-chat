@@ -4,7 +4,7 @@ import { useI18n } from '../i18n/useI18n';
 import { asset, isExternal } from '../lib/content';
 import { usePage } from '../lib/usePage';
 import { useTheme } from '../theme/context';
-import { GitHubIcon, WhatsAppIcon } from './Icon';
+import { GitHubIcon, Icon, WhatsAppIcon } from './Icon';
 import { focusRing, wrap } from '../lib/styles';
 
 function Logo({ overlay, site }) {
@@ -12,7 +12,7 @@ function Logo({ overlay, site }) {
   return (
     <a href="#top" className={`flex items-center gap-3 rounded-md ${focusRing}`} aria-label={t('home.link', { name: site.name })}>
       {site.logo ? <img src={asset(site.logo)} alt="" aria-hidden="true" className="h-9 w-9" /> : null}
-      <span className={`font-display text-xl font-semibold tracking-tight ${overlay ? 'text-hero-fg' : 'text-fg'}`}>{site.name}</span>
+      <span className={`whitespace-nowrap font-display text-xl font-semibold tracking-tight ${overlay ? 'text-hero-fg' : 'text-fg'}`}>{site.name}</span>
       {site.badge ? (
         <span className="hidden rounded-full border border-accent/40 px-2 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-accent sm:inline">
           {site.badge}
@@ -102,10 +102,34 @@ export function Header() {
               <WhatsAppIcon size={20} />
             </a>
           ) : null}
+          {site.coffee?.href ? (
+            <a
+              href={site.coffee.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${iconButton} max-sm:hidden xl:hidden`}
+              aria-label={`${site.coffee.label}${t('external')}`}
+            >
+              <Icon name="coffee" size={20} />
+            </a>
+          ) : null}
           <LocaleSwitch overlay={overlay} />
           <button type="button" onClick={toggle} className={iconButton} aria-label={theme === 'dark' ? t('theme.light') : t('theme.dark')}>
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          {site.coffee?.href ? (
+            <a
+              href={site.coffee.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`ml-2 hidden h-10 items-center gap-2 rounded-full border px-4 font-display text-sm font-semibold transition hover:border-accent hover:text-accent xl:inline-flex ${
+                overlay ? 'border-hero-fg/25 text-hero-fg' : 'border-line text-fg'
+              } ${focusRing}`}
+            >
+              <Icon name="coffee" size={16} />
+              {site.coffee.label}
+            </a>
+          ) : null}
           {site.cta ? (
             <a
               href={site.cta.href}
@@ -144,11 +168,23 @@ export function Header() {
                 </li>
               ))}
             </ul>
+            {site.coffee?.href ? (
+              <a
+                href={site.coffee.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                className={`mt-6 flex h-12 items-center justify-center gap-2 rounded-full border border-line font-display font-semibold text-fg ${focusRing}`}
+              >
+                <Icon name="coffee" size={18} />
+                {site.coffee.label}
+              </a>
+            ) : null}
             {site.cta ? (
               <a
                 href={site.cta.href}
                 onClick={() => setOpen(false)}
-                className={`mt-6 flex h-12 items-center justify-center rounded-full bg-accent font-display font-semibold text-on-accent ${focusRing}`}
+                className={`${site.coffee?.href ? 'mt-3' : 'mt-6'} flex h-12 items-center justify-center rounded-full bg-accent font-display font-semibold text-on-accent ${focusRing}`}
               >
                 {site.cta.label}
               </a>

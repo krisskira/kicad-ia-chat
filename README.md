@@ -4,7 +4,7 @@
 
 # KiCad IA
 
-Plugin para KiCad 10. Describes el circuito en un chat y las piezas salen de las bibliotecas que ya tienes configuradas. El resultado es el esquemático del proyecto abierto; a la placa se pasa con F8.
+Plugin con IA para KiCad 10, de la idea a la PCB. Cuentas el circuito en un chat y arma el esquemático con tus propias bibliotecas, cada pieza con su huella. Luego lo organiza en la placa, propone la colocación y la autorutea con revisión DRC. Tú confirmas cada paso.
 
 [Página](https://krisskira.github.io/kicad-ia-chat/) · [Código](https://github.com/krisskira/kicad-ia-chat)
 
@@ -36,7 +36,7 @@ El arranque para quien desarrolla el plugin está en [`app/README.md`](app/READM
 
 Hace falta **KiCad 10**. La primera vez KiCad necesita red para instalar las dependencias del plugin. Java 17 o posterior solo hace falta si vas a autorutear. Abre KiCad una vez antes de instalar, para que exista `Documentos/KiCad/<versión>/`.
 
-Las cuatro vías dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia`. Después reinicia KiCad, abre el editor de PCB, pulsa **KiCad IA** y configura el modelo.
+Usa una sola vía. Los scripts y el zip dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia`; el Gestor de complementos lo guarda en su propia carpeta de complementos. Después reinicia KiCad, abre el editor de PCB, pulsa **KiCad IA** y configura el modelo.
 
 ### Gestor de complementos
 
@@ -51,32 +51,53 @@ https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/rep
 
 ### Script en macOS o Linux
 
+Necesita `curl` y `unzip`. Baja el último release, comprueba su SHA256 y, si ya había una copia, la deja en `kicad-ia.bak`.
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh
 ```
 
-Opciones: `--version 0.1.0`, `--kicad-version 10.0`, `--uninstall`.
+Una versión o una carpeta de KiCad concretas, o desinstalar:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --version 0.1.0 --kicad-version 10.0
+curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --uninstall
+```
+
+Si prefieres leerlo antes: descárgalo con `curl -fsSL … -o install.sh` y ejecuta `sh install.sh` con las mismas opciones.
 
 ### Script en Windows
 
-En PowerShell:
+En PowerShell. Hace lo mismo que el de macOS y Linux:
 
 ```powershell
 irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex
 ```
 
-Parámetros: `-Version 0.1.0`, `-KicadVersion 10.0`, `-Uninstall`.
+Una versión o una carpeta de KiCad concretas, o desinstalar:
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Version 0.1.0 -KicadVersion 10.0
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Uninstall
+```
+
+Si lo descargas, ejecuta `.\install.ps1` con los mismos parámetros.
 
 ### Copia del zip
 
-1. En [Releases](https://github.com/krisskira/kicad-ia-chat/releases) descarga `kicad-ia-<versión>.zip`.
-2. Descomprímelo de modo que `plugin.json` e `ipc_entry.py` queden en la raíz de:
+1. En [Releases](https://github.com/krisskira/kicad-ia-chat/releases) descarga `kicad-ia-<versión>.zip` (no el `-pcm.zip`, que es para el Gestor).
+2. Descomprímelo de modo que `plugin.json` e `ipc_entry.py` queden en la raíz de `plugins/kicad-ia`. Cambia `10.0` y `0.1.0` por tus versiones:
 
-```text
-~/Documents/KiCad/<versión>/plugins/kicad-ia
+```bash
+# macOS y Linux
+mkdir -p ~/Documents/KiCad/10.0/plugins/kicad-ia
+unzip kicad-ia-0.1.0.zip -d ~/Documents/KiCad/10.0/plugins/kicad-ia
 ```
 
-En Windows: `Documentos\KiCad\<versión>\plugins\kicad-ia`.
+```powershell
+# Windows
+Expand-Archive kicad-ia-0.1.0.zip (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'KiCad\10.0\plugins\kicad-ia')
+```
 
 ## Ajustes
 

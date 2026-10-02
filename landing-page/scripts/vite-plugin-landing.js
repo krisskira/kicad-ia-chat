@@ -84,7 +84,7 @@ function slugify(value) {
 function structuredData(site, landing, base) {
   const url = base ? `${base}/` : undefined;
   const author = site.author && { '@type': 'Person', ...resolveIds(site.author, base), '@id': `${base}/#author` };
-  const maker = site.maker && { '@type': 'Organization', '@id': `${base}/#maker`, name: site.maker.name, url: site.maker.url };
+  const maker = site.maker && { '@type': 'Organization', ...resolveIds(site.maker, base), '@id': `${base}/#maker` };
   const graph = [
     {
       '@type': 'WebSite',
@@ -116,7 +116,8 @@ function structuredData(site, landing, base) {
         ...(absolute(base, site.ogImage)
           ? { primaryImageOfPage: { '@type': 'ImageObject', url: absolute(base, site.ogImage) } }
           : {}),
-        ...(author ? { author: { '@id': author['@id'] } } : {}),
+        ...(author ? { author: { '@id': author['@id'] }, creator: { '@id': author['@id'] } } : {}),
+        ...(maker ? { publisher: { '@id': maker['@id'] } } : {}),
       });
     }
     graph.push({
@@ -125,7 +126,7 @@ function structuredData(site, landing, base) {
       url,
       image: absolute(base, site.ogImage),
       ...(page ? { isPartOf: { '@id': `${base}/#website` }, inLanguage: site.lang } : {}),
-      ...(author ? { author: { '@id': author['@id'] } } : {}),
+      ...(author ? { author: { '@id': author['@id'] }, creator: { '@id': author['@id'] } } : {}),
       ...(maker && !page ? { publisher: { '@id': maker['@id'] } } : {}),
       ...(page ? {} : { mainEntityOfPage: { '@id': `${base}/#webpage` } }),
       ...schema,
@@ -208,6 +209,24 @@ function gtmBody(site) {
     <!-- End Google Tag Manager (noscript) -->`;
 }
 
+// Solo un id de proyecto válido llega al HTML: el valor va dentro de un <script>.
+function clarityId(site) {
+  const id = String(site.clarity ?? '').trim();
+  return /^[a-z0-9]+$/.test(id) ? id : '';
+}
+
+function clarityHead(site) {
+  const id = clarityId(site);
+  if (!id) return '';
+  return `<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "${id}");
+</script>`;
+}
+
 function headTags(site, landing, base) {
   const title = site.title || site.name;
   const canonical = base ? `${base}/` : undefined;
@@ -215,6 +234,7 @@ function headTags(site, landing, base) {
   const color = site.themeColor ?? {};
   const tags = [
     gtmHead(site),
+    clarityHead(site),
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(site.description)}" />`,
     site.keywords?.length ? `<meta name="keywords" content="${esc(site.keywords.join(', '))}" />` : '',
@@ -274,6 +294,7 @@ function noscript(site, landing) {
     site.repo && `<li><a href="${esc(site.repo)}">Código fuente</a></li>`,
     site.author?.email && `<li><a href="mailto:${esc(site.author.email)}">${esc(site.author.email)}</a></li>`,
     site.whatsapp && `<li><a href="${esc(site.whatsapp)}">WhatsApp</a></li>`,
+    site.coffee?.href && `<li><a href="${esc(site.coffee.href)}">${esc(site.coffee.label || 'Invítame un café')}</a></li>`,
   ]
     .filter(Boolean)
     .join('\n          ');
@@ -325,9 +346,12 @@ function llms(site, landing, base) {
     .join('\n');
   const links = [
     site.repo && `- Código fuente: ${site.repo}`,
-    site.author?.name && `- Autor: ${site.author.name}${site.author.url ? ` (${site.author.url})` : ''}`,
+    site.author?.name && `- Desarrollado por: ${site.author.name}${site.author.url ? ` (${site.author.url})` : ''}`,
     site.author?.email && `- Contacto: ${site.author.email}`,
+    site.author?.telephone && `- Teléfono: ${site.author.telephone}`,
+    ...(site.author?.sameAs ?? []).map((link) => `- Perfil: ${link}`),
     site.whatsapp && `- WhatsApp: ${site.whatsapp}`,
+    site.coffee?.href && `- ${site.coffee.label || 'Invítame un café'}: ${site.coffee.href}`,
     site.maker?.name && `- Estudio: ${site.maker.name}${site.maker.url ? ` (${site.maker.url})` : ''}`,
   ]
     .filter(Boolean)

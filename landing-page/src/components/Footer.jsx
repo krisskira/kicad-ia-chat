@@ -4,7 +4,7 @@ import { asset, isExternal } from '../lib/content';
 import { usePage } from '../lib/usePage';
 import { BrandBar, Rich } from './ui';
 import { focusRing, wrap } from '../lib/styles';
-import { GitHubIcon, WhatsAppIcon } from './Icon';
+import { GitHubIcon, Icon, WhatsAppIcon } from './Icon';
 
 const linkClass = `rounded-sm text-hero-fg/70 transition hover:text-accent ${focusRing}`;
 
@@ -17,10 +17,20 @@ function FooterLink({ link }) {
   );
 }
 
+const GRID_COLUMNS = {
+  0: '',
+  1: 'lg:grid-cols-[1.6fr_1fr]',
+  2: 'lg:grid-cols-[1.6fr_1fr_1fr]',
+  3: 'lg:grid-cols-[1.4fr_1fr_1fr_1fr]',
+};
+
 export function Footer() {
   const { t } = useI18n();
   const { site } = usePage();
   const footer = site.footer ?? {};
+  const columns = footer.columns ?? [];
+  const logo = footer.logo || site.logo;
+  const developer = site.author?.name && site.author.name !== footer.rights ? site.author : null;
   const year = new Date().getFullYear();
 
   return (
@@ -29,10 +39,19 @@ export function Footer() {
         aria-hidden="true"
         className="pointer-events-none absolute -left-40 -top-40 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,var(--glow-1),transparent_65%)]"
       />
-      <div className={`${wrap} relative grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr] lg:py-20`}>
+      <div className={`${wrap} relative grid gap-12 py-16 md:grid-cols-2 ${GRID_COLUMNS[Math.min(columns.length, 3)]} lg:py-20`}>
         <div className="max-w-[420px]">
-          <a href="#top" className={`inline-flex items-center gap-3 rounded-md ${focusRing}`}>
-            {site.logo ? <img src={asset(site.logo)} alt="" aria-hidden="true" className="h-10 w-10" /> : null}
+          <a href="https://kriverdevice.krisskira.com" target="_blank" rel="noopener noreferrer" title="Kriver Device" className={`inline-flex items-center gap-3 rounded-md ${focusRing}`}>
+            {logo ? (
+              <img
+                src={asset(logo)}
+                alt={footer.logoAlt || ''}
+                aria-hidden={footer.logoAlt ? undefined : 'true'}
+                width="48"
+                height="48"
+                className="h-12 w-12 object-contain"
+              />
+            ) : null}
             <span className="font-display text-2xl font-semibold">{site.name}</span>
           </a>
           {footer.text ? (
@@ -72,10 +91,21 @@ export function Footer() {
                 WhatsApp
               </a>
             ) : null}
+            {site.coffee?.href ? (
+              <a
+                href={site.coffee.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex h-11 items-center gap-2 rounded-full border border-hero-fg/20 px-4 text-sm font-semibold transition hover:border-accent hover:text-accent ${focusRing}`}
+              >
+                <Icon name="coffee" size={18} />
+                {site.coffee.label}
+              </a>
+            ) : null}
           </div>
         </div>
 
-        {(footer.columns ?? []).map((column) => (
+        {columns.map((column) => (
           <nav key={column.title} aria-label={column.title}>
             <h2 className="font-display text-base font-semibold">
               {column.title}
@@ -96,6 +126,18 @@ export function Footer() {
         <div className={`${wrap} flex flex-col items-center gap-4 py-6 text-center text-sm text-hero-fg/60 md:flex-row md:justify-between md:text-left`}>
           <p>
             © {year} {footer.rights || site.name}
+            {developer ? (
+              <>
+                {` · ${t('footer.developer')} `}
+                {developer.url ? (
+                  <a href={developer.url} target="_blank" rel="noopener noreferrer" className={`font-semibold text-hero-fg/80 ${linkClass}`}>
+                    {developer.name}
+                  </a>
+                ) : (
+                  <span className="font-semibold text-hero-fg/80">{developer.name}</span>
+                )}
+              </>
+            ) : null}
             {site.maker ? (
               <>
                 {` · ${t('footer.by')} `}

@@ -3,8 +3,8 @@
   "name": "KiCad IA",
   "shortName": "KiCad IA",
   "badge": "KiCad 10",
-  "title": "KiCad IA | El esquemático sale de un chat",
-  "description": "Plugin de KiCad 10. Describes el circuito en un chat y las piezas salen de las bibliotecas que ya tienes configuradas. Instalación, ajustes y paso a la placa.",
+  "title": "KiCad IA | Inteligencia artificial para diseñar PCBs en KiCad",
+  "description": "Plugin de KiCad 10 que lleva la IA a tu flujo de diseño: de la idea en un chat al esquemático con tus bibliotecas, y de ahí a una placa colocada, autoruteada y revisada. Tú confirmas cada paso.",
   "keywords": [
     "KiCad",
     "KiCad 10",
@@ -32,17 +32,42 @@
   "themeColor": { "light": "#ffffff", "dark": "#141414" },
   "repo": "https://github.com/krisskira/kicad-ia-chat",
   "cta": { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-chat" },
+  "whatsapp": "https://wa.me/573183919187",
+  "coffee": { "label": "Invítame un café", "href": "https://paypal.me/KRIVERDEVICE?locale.x=es_XC&country.x=CO" },
   "nav": [],
   "author": {
     "name": "Crhistian David Vergara Gómez",
-    "url": "https://krisskira.github.io/krisskira/",
+    "givenName": "Crhistian David",
+    "familyName": "Vergara Gómez",
+    "jobTitle": "Ingeniero de software",
+    "url": "https://krisskira.com/",
     "email": "krisskira@gmail.com",
+    "telephone": "+573183919187",
+    "worksFor": { "@id": "#maker" },
+    "address": { "@type": "PostalAddress", "addressLocality": "Palmira", "addressCountry": "CO" },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Contacto",
+      "email": "krisskira@gmail.com",
+      "telephone": "+573183919187",
+      "url": "https://wa.me/573183919187",
+      "availableLanguage": ["es", "en"]
+    },
     "sameAs": [
-      "https://github.com/krisskira",
-      "https://www.linkedin.com/in/cristian-david-vergara-gomez/"
+      "https://krisskira.github.io/krisskira/",
+      "https://www.linkedin.com/in/cristian-david-vergara-gomez/",
+      "https://www.facebook.com/krisskira",
+      "https://orcid.org/0009-0005-0802-7042",
+      "https://kriverdevice.krisskira.com/sobre-mi"
     ]
   },
-  "maker": { "name": "Kriver Devices", "url": "https://krisskira.github.io/krisskira/" },
+  "maker": {
+    "name": "Kriver Devices",
+    "url": "https://kriverdevice.krisskira.com/",
+    "logo": "https://krisskira.github.io/kicad-ia-chat/media/kriver-devices.png",
+    "email": "krisskira@gmail.com",
+    "founder": { "@id": "#author" }
+  },
   "schema": {
     "@type": "SoftwareApplication",
     "applicationCategory": "DeveloperApplication",
@@ -53,6 +78,9 @@
     "isAccessibleForFree": true,
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "installUrl": "https://krisskira.github.io/kicad-ia-chat/#instalar",
+    "downloadUrl": "https://github.com/krisskira/kicad-ia-chat/releases",
+    "license": "https://opensource.org/licenses/MIT",
+    "inLanguage": "es",
     "sameAs": ["https://github.com/krisskira/kicad-ia-chat"],
     "screenshot": [
       "https://krisskira.github.io/kicad-ia-chat/media/chat-inicio.png",
@@ -65,11 +93,15 @@
       "No coloca un componente sin huella verificada",
       "Conserva los componentes que ya están en el esquemático y en la placa",
       "Guarda las sesiones de cada proyecto como memoria de solo lectura",
-      "Propone colocación y autoruteo, y los aplica cuando confirmas"
+      "Propone colocación y autoruteo, y los aplica cuando confirmas",
+      "Organiza el circuito por funciones en el esquemático y en la placa",
+      "Prechequeo IPC Clase 2 y DRC antes de aplicar el autoruteo"
     ]
   },
   "footer": {
-    "text": "Un chat para armar el esquemático con las piezas que ya están en KiCad, y pasar el circuito a la placa cuando confirmas.",
+    "logo": "media/kriver-devices.png",
+    "logoAlt": "Kriver Devices",
+    "text": "La IA dentro de KiCad: de la idea al esquemático con tus bibliotecas, y del esquemático a una placa colocada y ruteada. Un proyecto de Kriver Devices.",
     "rights": "KiCad IA",
     "columns": [
       {
@@ -77,15 +109,28 @@
         "links": [
           { "label": "Flujo", "href": "#flujo" },
           { "label": "Instalar", "href": "#instalar" },
-          { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-chat" }
+          { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-chat" },
+          { "label": "Tutorial en el blog", "href": "https://kriverdevice.krisskira.com/tutoriales/kicad-conectado-a-un-llm" }
         ]
       },
       {
-        "title": "Autor",
+        "title": "Contacto",
         "links": [
-          { "label": "Kriver Devices", "href": "https://krisskira.github.io/krisskira/" },
-          { "label": "Blog", "href": "https://krisskira.github.io/personal-landing-page/tutoriales/kicad-conectado-a-un-llm" },
-          { "label": "LinkedIn", "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/" }
+          { "label": "krisskira@gmail.com", "href": "mailto:krisskira@gmail.com" },
+          { "label": "+57 318 391 9187", "href": "tel:+573183919187" },
+          { "label": "WhatsApp", "href": "https://wa.me/573183919187" },
+          { "label": "Invítame un café", "href": "https://paypal.me/KRIVERDEVICE?locale.x=es_XC&country.x=CO" }
+        ]
+      },
+      {
+        "title": "Autor y redes",
+        "links": [
+          { "label": "Portafolio", "href": "https://krisskira.com/" },
+          { "label": "Kriver Devices", "href": "https://kriverdevice.krisskira.com/" },
+          { "label": "GitHub", "href": "https://krisskira.github.io/krisskira/" },
+          { "label": "LinkedIn", "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/" },
+          { "label": "Facebook", "href": "https://www.facebook.com/krisskira" },
+          { "label": "ORCID", "href": "https://orcid.org/0009-0005-0802-7042" }
         ]
       }
     ]

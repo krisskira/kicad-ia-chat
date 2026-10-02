@@ -48,8 +48,13 @@ function ProjectCard({ item, index }) {
       ) : null}
       <div className="flex flex-1 flex-col p-6 lg:p-8">
         {item.meta ? <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted">{item.meta}</p> : null}
-        <h3 className="mt-2 font-display text-2xl font-semibold leading-snug text-fg">
+        <h3 className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 font-display text-2xl font-semibold leading-snug text-fg">
           <Rich text={item.title} />
+          {item.badge ? (
+            <span className="rounded-full border border-accent/40 px-2 py-0.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-accent">
+              {item.badge}
+            </span>
+          ) : null}
         </h3>
         {item.summary ? (
           <p className="mt-3 text-[17px] leading-relaxed text-fg/90">
