@@ -9,8 +9,8 @@
   },
   "packages": {
     "url": "https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/packages.json",
-    "sha256": "4f3d3c1d65175d51d7d5800b22bb8477204777caefb1de37a9838783e4ae3769",
-    "update_timestamp": 1790909809,
-    "update_time_utc": "2026-10-02 02:56:49"
+    "sha256": "a3ed0b7e13ad3ad14cce50355603470922df445b7bfaec8efbc61d185851acef",
+    "update_timestamp": 1790983939,
+    "update_time_utc": "2026-10-02 23:32:19"
   }
 }
