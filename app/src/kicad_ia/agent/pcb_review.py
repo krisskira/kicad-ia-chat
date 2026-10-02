@@ -14,7 +14,8 @@ Recibes un informe determinista (DRC de KiCad + pre-chequeo IPC Clase 2) y métr
 Responde solo con la herramienta verdict, en español.
 
 RECHAZA siempre si:
-- Hay errores DRC duros (error_count > 0).
+- Hay errores DRC duros nuevos (drc.error_count mayor que baseline_drc_errors).
+  Los errores que ya estaban antes (preexisting_drc) no bloquean: menciónalos como aviso.
 - Quedan redes sin rutear (unconnected > 0) cuando la operación era autoruteo.
 - El candidato empeora el score respecto al baseline (better_than false).
 - Componentes se solapan o salen del contorno.
@@ -100,7 +101,8 @@ class PcbReviewer:
 def _hard_block(report: dict) -> list[str] | None:
     problems = []
     drc = report.get("drc") or {}
-    if int(drc.get("error_count") or 0) > 0:
+    errors = int(drc.get("error_count") or 0)
+    if errors > int(report.get("baseline_drc_errors") or 0):
         problems.extend((drc.get("problems") or [])[:5] or ["Hay errores DRC."])
     if report.get("operation") == "autoroute" and int(drc.get("unconnected") or report.get("unconnected") or 0) > 0:
         problems.append(f"Quedan {drc.get('unconnected') or report.get('unconnected')} redes sin rutear.")

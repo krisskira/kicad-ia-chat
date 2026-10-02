@@ -3,7 +3,9 @@ from pathlib import Path
 
 from kicad_ia.config import Settings
 from kicad_ia.kicad.candidates import STORE
-from kicad_ia.kicad.copper_apply import parse_copper
+from kicad_ia.agent.pcb_review import _hard_block
+from kicad_ia.kicad.cli import run_drc
+from kicad_ia.kicad.copper_apply import apply_copper_to_board, parse_copper
 from kicad_ia.kicad.fake import FakeGateway
 from kicad_ia.kicad.freerouting import ensure_jar, run_freerouting
 from kicad_ia.kicad.pcbnew_bridge import find_pcbnew_python
@@ -66,6 +68,84 @@ def test_parse_copper_from_minimal_board(tmp_path):
     assert copper["segments"][0]["net_name"] == "+5V"
     assert len(copper["vias"]) == 1
     assert copper["vias"][0]["net_name"] == "GND"
+
+
+def test_parse_copper_kicad10_names_nets_inline(tmp_path):
+    board = tmp_path / "x.kicad_pcb"
+    board.write_text(
+        """(kicad_pcb
+  (segment (start 1 2) (end 3 4) (width 0.2) (layer "B.Cu") (net "/NET2"))
+  (via (at 5 6) (size 0.6) (drill 0.3) (layers "F.Cu" "B.Cu") (net "/GND"))
+)
+""",
+        encoding="utf-8",
+    )
+    copper = parse_copper(board)
+    assert copper["segments"][0]["net_name"] == "/NET2"
+    assert copper["vias"][0]["net_name"] == "/GND"
+
+
+class _Net:
+    def __init__(self, name):
+        self.name = name
+
+
+class _RecordingBoard:
+    def __init__(self, nets, tracks=()):
+        self._nets = [_Net(name) for name in nets]
+        self._tracks = list(tracks)
+        self.removed = []
+        self.created = []
+
+    def get_nets(self):
+        return self._nets
+
+    def get_tracks(self):
+        return self._tracks
+
+    def get_vias(self):
+        return []
+
+    def remove_items(self, items):
+        self.removed.extend(items)
+
+    def create_items(self, items):
+        self.created.extend(items)
+
+
+def test_apply_copper_keeps_board_when_a_net_is_missing(tmp_path):
+    board = tmp_path / "x.kicad_pcb"
+    board.write_text(
+        '(kicad_pcb (segment (start 1 2) (end 3 4) (width 0.2) (layer "F.Cu") (net "/OTRA")))',
+        encoding="utf-8",
+    )
+    live = _RecordingBoard(["/GND"], tracks=["pista vieja"])
+    result = apply_copper_to_board(live, board)
+    assert result["ok"] is False
+    assert result["missing_nets"] == ["/OTRA"]
+    assert live.removed == [] and live.created == []
+
+
+def test_drc_counts_kicad10_unconnected_items(tmp_path, monkeypatch):
+    report = {
+        "violations": [{"type": "invalid_outline", "severity": "error", "items": []}],
+        "unconnected_items": [{"items": [{"description": "Pad 1 [/GND]"}]}, {"items": []}],
+    }
+
+    def fake_run(args, **_kwargs):
+        Path(args[args.index("-o") + 1]).write_text(json.dumps(report), encoding="utf-8")
+
+    monkeypatch.setattr("kicad_ia.kicad.cli.subprocess.run", fake_run)
+    drc = run_drc("kicad-cli", tmp_path / "x.kicad_pcb")
+    assert drc["error_count"] == 1
+    assert drc["unconnected"] == 2
+
+
+def test_pcb_review_ignores_drc_errors_already_in_baseline():
+    drc = {"error_count": 1, "unconnected": 0, "problems": ["error: invalid_outline"]}
+    report = {"operation": "autoroute", "drc": drc, "better_than": True, "baseline_drc_errors": 1}
+    assert _hard_block(report) is None
+    assert _hard_block({**report, "baseline_drc_errors": 0})
 
 
 def test_fake_gateway_ipc_and_autoroute_flow():

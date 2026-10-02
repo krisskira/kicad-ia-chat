@@ -150,6 +150,14 @@ def run_drc(cli: str, board: Path, schematic_parity: bool = True) -> dict:
         items = [str(item.get("description") or item.get("message") or "") for item in violation.get("items") or []]
         desc = str(violation.get("description") or violation.get("type") or kind)
         problems.append(f"{severity}: {desc}" + (f" — {'; '.join(i for i in items if i)}" if items else ""))
+    # kicad-cli 10 deja las conexiones pendientes fuera de "violations".
+    pending = data.get("unconnected_items") or []
+    if pending:
+        unconnected += len(pending)
+        kinds["unconnected_items"] = kinds.get("unconnected_items", 0) + len(pending)
+        for item in pending[:10]:
+            parts = [str(i.get("description") or "") for i in item.get("items") or []]
+            problems.append("sin rutear: " + "; ".join(p for p in parts if p))
     if errors or unconnected:
         verdict = f"DRC con {errors} errores, {warnings} avisos y {unconnected} sin rutear."
     elif warnings:

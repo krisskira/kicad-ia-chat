@@ -41,20 +41,25 @@ def apply_fab_rules(board_file: Path, fab: dict, python_bin: str | None = None) 
         board = pcbnew.LoadBoard({str(board_file)!r})
         settings = board.GetDesignSettings()
         iu = pcbnew.FromMM
-        settings.SetCustomTrackWidth(True)
-        settings.SetTrackWidth(iu({track}))
-        settings.SetMinTrackWidth(iu({track}))
+        settings.m_TrackMinWidth = iu({track})
         settings.m_MinClearance = iu({clearance})
-        settings.m_TrackClearance = iu({clearance})
-        settings.SetMinThroughDrill(iu({min(via_drill, hole)}))
-        settings.SetViasMinSize(iu({via_dia}))
-        settings.SetCustomViaSize(True)
-        settings.SetViaSize(iu({via_dia}))
-        settings.SetViaDrill(iu({via_drill}))
+        settings.m_ViasMinSize = iu({via_dia})
+        settings.m_MinThroughDrill = iu({min(via_drill, hole)})
+        # FreeRouting toma anchos y clearance de las clases de red del DSN.
+        # Solo se suben hasta el mínimo: nunca se achica lo que puso el usuario.
+        net_settings = settings.m_NetSettings
+        classes = [net_settings.GetDefaultNetclass()]
         try:
-            settings.m_MinHole = iu({hole})
+            classes += [nc for _, nc in net_settings.GetNetclasses().items()]
         except Exception:
             pass
+        for nc in classes:
+            if nc is None:
+                continue
+            nc.SetTrackWidth(max(nc.GetTrackWidth(), iu({track})))
+            nc.SetClearance(max(nc.GetClearance(), iu({clearance})))
+            nc.SetViaDiameter(max(nc.GetViaDiameter(), iu({via_dia})))
+            nc.SetViaDrill(max(nc.GetViaDrill(), iu({via_drill})))
         pcbnew.SaveBoard({str(board_file)!r}, board)
         sys.exit(0)
         """
@@ -123,8 +128,8 @@ def board_stats(board_file: Path, python_bin: str | None = None) -> dict:
         import json, sys, pcbnew
         board = pcbnew.LoadBoard({str(board_file)!r})
         tracks = list(board.GetTracks())
-        vias = [t for t in tracks if t.GetClass() == 'VIA']
-        segs = [t for t in tracks if t.GetClass() != 'VIA']
+        vias = [t for t in tracks if t.GetClass() in ('VIA', 'PCB_VIA')]
+        segs = [t for t in tracks if t.GetClass() not in ('VIA', 'PCB_VIA')]
         length = 0.0
         for t in segs:
             try:
@@ -133,7 +138,7 @@ def board_stats(board_file: Path, python_bin: str | None = None) -> dict:
                 pass
         print(json.dumps({{
             "ok": True,
-            "footprints": board.GetFootprintCount(),
+            "footprints": len(board.GetFootprints()),
             "tracks": len(segs),
             "vias": len(vias),
             "track_length_mm": round(length, 2),

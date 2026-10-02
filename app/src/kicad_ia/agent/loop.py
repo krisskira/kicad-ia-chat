@@ -111,6 +111,8 @@ def _call_tool(call, registry: ToolRegistry, gateway: Gateway, reviewer, pcb_rev
             "better_than": result.get("better_than", True),
             "ipc_findings": result.get("ipc_findings") or [],
             "unconnected": (result.get("drc") or {}).get("unconnected"),
+            "baseline_drc_errors": (result.get("baseline_drc") or {}).get("error_count") or 0,
+            "preexisting_drc": result.get("preexisting_drc") or [],
         }
         blocked = pcb_reviewer.gate(report)
         if blocked is not None:

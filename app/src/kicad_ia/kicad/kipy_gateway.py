@@ -6,6 +6,7 @@ tablas que usa KiCad y el esquemático se escribe en el .kicad_sch del proyecto.
 
 from __future__ import annotations
 
+import os
 import shutil
 import tempfile
 import time
@@ -37,11 +38,7 @@ class KipyGateway(Gateway):
             from kipy import KiCad
         except ImportError as exc:
             raise GatewayError("Falta kicad-python. Instálalo con pip install -e '.[kicad]'.") from exc
-        try:
-            self._kicad = KiCad(client_name="kicad-ia", timeout_ms=3000)
-            self._kicad.ping()
-        except Exception as exc:
-            raise GatewayError(f"No hay un KiCad escuchando la API: {exc}") from exc
+        self._kicad = _connect_kicad(KiCad)
         self._settings = settings
         self._version = _version_text(self._kicad)
         self._major = _major(self._version)
@@ -596,6 +593,12 @@ class KipyGateway(Gateway):
         )
         cand_score = score_routing(after_drc if after_drc.get("ok") else {}, after_snap)
         improved = better_than(cand_score, baseline)
+        baseline_errors = int(before_drc.get("error_count") or 0) if before_drc.get("ok") else 0
+        new_errors = int(after_drc.get("error_count") or 0) - baseline_errors
+        preexisting = [
+            kind for kind in (before_drc.get("by_type") or {})
+            if kind != "unconnected_items" and kind in (after_drc.get("by_type") or {})
+        ]
         before_img = render_board(cli, source, "pcb") if cli else {"ok": False}
         after_img = render_board(cli, candidate, "pcb") if cli else {"ok": False}
         report = {
@@ -614,7 +617,12 @@ class KipyGateway(Gateway):
             project["name"],
             files={"candidate": str(candidate), "source": str(source), "ses": routed.get("ses", ""), "work_dir": str(work)},
             report=report,
-            approved=improved and after_drc.get("ok") and int(after_drc.get("error_count") or 0) == 0,
+            approved=bool(
+                improved
+                and after_drc.get("ok")
+                and new_errors <= 0
+                and int(after_drc.get("unconnected") or 0) == 0
+            ),
         )
         result = {
             "ok": True,
@@ -638,6 +646,13 @@ class KipyGateway(Gateway):
                 f"Si el usuario confirma, autoroute_board apply=true candidate_id={job.id}."
             ),
         }
+        if preexisting:
+            result["preexisting_drc"] = preexisting
+            result["preexisting_note"] = (
+                "Estos errores DRC ya estaban antes de rutear y no los causa el autoruteo: "
+                + ", ".join(preexisting)
+                + (". Falta el contorno de la placa (Edge.Cuts)." if "invalid_outline" in preexisting else ".")
+            )
         if not improved:
             result["warning"] = "El autoruteo no mejora el baseline; no recomiendo aplicarlo."
         return result
@@ -727,8 +742,11 @@ class KipyGateway(Gateway):
             "delta": compare_snapshots(before, after),
             "disclaimer": profile(self._settings.ipc_class)["disclaimer"],
         }
-        if applied.get("missing_nets"):
-            result["warning"] = f"Redes no encontradas en la placa viva: {', '.join(applied['missing_nets'])}."
+        if not applied.get("ok"):
+            result["error"] = applied.get("error") or "No pude aplicar el cobre."
+            if applied.get("missing_nets"):
+                result["warning"] = f"Redes no encontradas en la placa viva: {', '.join(applied['missing_nets'])}."
+            return result
         STORE.drop(candidate_id)
         return result
 
@@ -889,6 +907,21 @@ def _call(target, name: str, *args):
         return method(*args)
     except Exception:
         return None
+
+
+def _connect_kicad(kicad_cls):
+    # KICAD_API_TOKEN es de la instancia que lanzó el plugin. Si KiCad se
+    # reinicia, la nueva rechaza ese token: hay que reintentar sin él.
+    tokens = [None, ""] if os.environ.get("KICAD_API_TOKEN") else [None]
+    error: Exception | None = None
+    for token in tokens:
+        try:
+            kicad = kicad_cls(client_name="kicad-ia", kicad_token=token, timeout_ms=3000)
+            kicad.ping()
+            return kicad
+        except Exception as exc:
+            error = exc
+    raise GatewayError(f"No hay un KiCad escuchando la API: {error}") from error
 
 
 def _version_text(kicad) -> str:
