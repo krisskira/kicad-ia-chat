@@ -22,7 +22,7 @@ Hoy hay dos modelos. `LLM_MODEL` diseña con las herramientas. `LLM_REVIEW_MODEL
 
 Además, `python -m kicad_ia.mcp` publica las mismas herramientas por MCP stdio (Cursor y otros clientes). Ver [mcp.md](mcp.md) y [mcp.cursor.example.json](mcp.cursor.example.json).
 
-Arquitectura del plugin: [architecture.md](architecture.md).
+Arquitectura del plugin: [architecture.md](architecture.md). Intención, selección de componentes (con huella obligatoria) y área de placa ya están en código: [agents.md](agents.md), con la lista de lo que falta al final.
 
 Falta separar la investigación del resto:
 

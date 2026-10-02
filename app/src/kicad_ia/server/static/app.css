@@ -58,6 +58,7 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .pill.ok i { background: var(--ok); }
 .pill.warn i { background: var(--warn); }
 .pill.bad i { background: var(--bad); }
+.pill.tokens { font-variant-numeric: tabular-nums; }
 .pill.busy i { background: var(--accent); animation: pulse 1s infinite ease-in-out; }
 
 .layout { flex: 1; display: grid; grid-template-columns: 300px 1fr; min-height: 0; }
@@ -188,4 +189,5 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   .side.open { transform: none; box-shadow: 4px 0 20px rgb(0 0 0 / 25%); }
   .only-narrow { display: inline-block; }
   .indicators .pill span { display: none; }
+  .indicators .pill.tokens span { display: inline; }
 }

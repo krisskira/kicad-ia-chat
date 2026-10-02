@@ -117,7 +117,11 @@ class FakeGateway(Gateway):
     def describe_footprint(self, lib_id: str) -> dict:
         for row in footprints():
             if row["lib_id"] == lib_id:
-                return {"ok": True, "footprint": {"lib_id": lib_id, "models": [{"path": row["model"], "exists": False}]}}
+                pads = next((len(part.pins) for part in CATALOG.values() if part.default_footprint == lib_id), 0)
+                return {
+                    "ok": True,
+                    "footprint": {"lib_id": lib_id, "pad_count": pads, "models": [{"path": row["model"], "exists": False}]},
+                }
         return {"ok": False, "error": f"No está en la galería de desarrollo: {lib_id}."}
 
     def place_circuit(self, symbols: list[dict], nets: list[dict], connections: list[dict], replace: bool = False) -> dict:

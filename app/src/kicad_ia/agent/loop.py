@@ -7,8 +7,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 
 from kicad_ia.agent.intent import activate, reset
-from kicad_ia.agent.llm import LlmReply
-from kicad_ia.events import LLM_ROUND, LLM_TEXT, TOOL_FINISHED, TOOL_STARTED
+from kicad_ia.agent.llm import USAGE, LlmReply
+from kicad_ia.events import LLM_ROUND, LLM_TEXT, LLM_USAGE, TOOL_FINISHED, TOOL_STARTED
 from kicad_ia.kicad.gateway import Gateway
 from kicad_ia.tools.registry import ToolRegistry
 
@@ -41,7 +41,7 @@ Antes de crear o cambiar nada, llama a inspect_context. Si hay componentes selec
 
 La primera vez llama a commit_intent: qué pidió el usuario, required_components (solo lo que nombró como obligatorio), unknowns (lo que no dijo). No rellenes unknowns. Una versión nueva solo si el usuario cambia el pedido; no quites un required sin confirm_removed.
 
-Cada símbolo nuevo pasa por select_component antes de place_circuit. Si decision es decision_required o request_user, para y pregunta. No elijas entre varias alternativas ni inventes un lib_id. allow_substitution solo después de que el usuario acepte ese sustituto. Un cambio de arquitectura no se aplica solo.
+Cada símbolo nuevo pasa por select_component antes de place_circuit. Solo se acepta con una huella verificada en las bibliotecas. Si decision es footprint_required, elige de footprint_candidates el encapsulado que dijo el usuario y vuelve a llamar con footprint; si no lo dijo, pregúntale. En place_circuit usa la huella que devolvió select_component. Si decision es decision_required o request_user, para y pregunta. No elijas entre varias alternativas ni inventes un lib_id. allow_substitution solo después de que el usuario acepte ese sustituto. Un cambio de arquitectura no se aplica solo.
 
 Las piezas salen de las bibliotecas que el usuario tiene configuradas en KiCad. Para un circuito:
 1. search_parts kind=symbol con el nombre del fabricante o la familia (ESP32-S3-WROOM-1, AP2112K, Battery_Cell). Prueba dos o tres consultas antes de rendirte.
@@ -159,6 +159,7 @@ def _run_turn(
             text = f"El modelo no respondió: {exc}"
             session.messages.append({"role": "assistant", "content": text})
             return Turn(reply=text, steps=steps)
+        notify(LLM_USAGE, {"tokens": USAGE.snapshot()})
         session.messages.append(reply.as_message())
         if not reply.tool_calls:
             return Turn(reply=reply.content or "Listo.", steps=steps)
@@ -171,6 +172,9 @@ def _run_turn(
             step = {"tool": call.name, "arguments": call.arguments, "result": result}
             steps.append(step)
             notify(TOOL_FINISHED, {"index": index, **step})
+            if call.name in {"place_circuit", "autoroute_board", "ipc_place_components"}:
+                # Los revisores llaman al modelo dentro de la herramienta.
+                notify(LLM_USAGE, {"tokens": USAGE.snapshot()})
             session.messages.append(
                 {
                     "role": "tool",

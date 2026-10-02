@@ -518,6 +518,9 @@ def symbol_summary(lib_id: str, node: list) -> dict:
         "reference_prefix": props.get("Reference", "U"),
         "value": props.get("Value", ""),
         "footprint": props.get("Footprint", ""),
+        # Patrones del símbolo (R_*, SOT?23*). Sirven para buscar huellas
+        # cuando la biblioteca no trae una por defecto, como Device:R.
+        "footprint_filters": props.get("ki_fp_filters", "").split(),
         "datasheet": props.get("Datasheet", ""),
         "description": props.get("Description", props.get("ki_description", "")),
         "units": units,

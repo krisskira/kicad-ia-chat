@@ -15,7 +15,8 @@ Leer primero [app/AGENTS.md](../../../app/AGENTS.md) y [app/doc/architecture.md]
 - `tools/registry.py` — contrato del modelo / MCP
 - `kicad/kipy_gateway.py`, `fake.py`, `session.py`, `serialized.py`
 - `kicad/sch_writer.py`, `libraries.py`, `lcsc.py`, `layout.py`, `render.py`, `cli.py`
-- `agent/` (loop, dispatch, llm, review de circuito)
+- `agent/` (loop, dispatch, llm + `TokenMeter`, review de circuito)
+- `agent/intent.py` (contrato, `guard_place`) y `agent/components.py` (selección + huella obligatoria). Flujos en [app/doc/agents.md](../../../app/doc/agents.md); actualízalo si cambias una decisión.
 - `server/` (FastAPI, `/ws`, static UI, `/api/settings`)
 - `config.py`, `user_prefs.py`, `services/`
 

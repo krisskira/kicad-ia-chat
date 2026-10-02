@@ -1,7 +1,15 @@
-"""Contrato de intención del usuario. No diseña: registra, compara y bloquea.
+"""Guardián de la intención del usuario. No diseña: registra, compara y bloquea.
 
-La versión anterior no se reescribe. Quitar un componente obligatorio exige
-que el usuario lo haya autorizado en confirm_removed.
+El modelo llama a `commit_intent` con lo que pidió el usuario. Ese contrato
+vive en la sesión (`Session.memory`) y lo consulta `guard_place` antes de cada
+escritura del esquemático. Flujo completo en `app/doc/agents.md`.
+
+- Cada `commit_intent` crea una versión nueva; la anterior no se edita.
+- Quitar un componente obligatorio exige que el usuario lo autorice
+  (`confirm_removed`). Si no, la respuesta es CONTRADICTS_REQUIREMENT.
+- `guard_place` no deja escribir sin contrato, con símbolos que no pasaron por
+  `select_component`, con una huella distinta de la verificada, sin un
+  componente obligatorio o con uno prohibido.
 """
 
 from __future__ import annotations
@@ -9,6 +17,8 @@ from __future__ import annotations
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 
+# La memoria activa del turno. run_turn la fija para que las herramientas del
+# registro (que solo reciben gateway y args) lean la de la sesión correcta.
 _active: ContextVar[DesignMemory | None] = ContextVar("kicad_ia_design_memory", default=None)
 
 
@@ -21,6 +31,7 @@ def reset(token: Token) -> None:
 
 
 def current_memory(gateway) -> DesignMemory:
+    """Memoria del turno; fuera de un turno (MCP), una por gateway."""
     memory = _active.get()
     if memory is not None:
         return memory
@@ -67,8 +78,18 @@ def _strings(value) -> list[str]:
 
 @dataclass
 class DesignMemory:
+    """Estado de diseño de una sesión de chat.
+
+    contract: última versión del contrato (None hasta el primer commit).
+    history: versiones anteriores, sin tocar.
+    accepted: lib_id → huella verificada por select_component ("" = símbolo
+              de alimentación, no lleva huella).
+    substitutions: número pedido → lib_id que el usuario aceptó en su lugar.
+    """
+
     contract: IntentContract | None = None
-    accepted: set[str] = field(default_factory=set)
+    history: list[IntentContract] = field(default_factory=list)
+    accepted: dict[str, str] = field(default_factory=dict)
     substitutions: dict[str, str] = field(default_factory=dict)
 
     def commit(self, payload: dict) -> dict:
@@ -78,11 +99,11 @@ class DesignMemory:
         required = _strings(payload.get("required_components"))
         if self.contract is not None:
             confirmed = {item.casefold() for item in _strings(payload.get("confirm_removed"))}
+            kept = {row.casefold() for row in required}
             dropped = [
                 item
                 for item in self.contract.required_components
-                if item.casefold() not in {row.casefold() for row in required}
-                and item.casefold() not in confirmed
+                if item.casefold() not in kept and item.casefold() not in confirmed
             ]
             if dropped:
                 return {
@@ -94,6 +115,7 @@ class DesignMemory:
                         + ". Si el usuario lo autorizó, repítelo en confirm_removed."
                     ),
                 }
+            self.history.append(self.contract)
         version = 1 if self.contract is None else self.contract.version + 1
         self.contract = IntentContract(
             version=version,
@@ -110,57 +132,61 @@ class DesignMemory:
         return {"ok": True, "intent": "committed", "contract": self.contract.as_dict()}
 
 
+def _blocked(intent: str, error: str, **extra) -> dict:
+    return {"ok": False, "written": False, "intent": intent, "error": error, **extra}
+
+
 def guard_place(memory: DesignMemory, symbols: list[dict]) -> dict | None:
+    """None si se puede escribir. Si no, la respuesta que verá el modelo.
+
+    Si un símbolo llega sin huella, se rellena con la verificada: así el
+    esquemático nunca queda con la huella vacía de la biblioteca.
+    """
     if memory.contract is None:
-        return {
-            "ok": False,
-            "written": False,
-            "intent": "missing",
-            "error": "Falta el contrato de intención. Llama a commit_intent antes de escribir el circuito.",
-        }
-    missing = []
+        return _blocked("missing", "Falta el contrato de intención. Llama a commit_intent antes de escribir el circuito.")
+
+    # 1. Cada símbolo pasó por select_component.
+    missing = sorted({str(s.get("lib_id") or "") for s in symbols if str(s.get("lib_id") or "") not in memory.accepted})
+    if missing:
+        return _blocked(
+            "needs_selection",
+            "Estas piezas no pasaron por select_component: " + ", ".join(missing) + ".",
+            needs_selection=missing,
+        )
+
+    # 2. La huella escrita es la verificada.
+    mismatched = []
     for symbol in symbols:
         lib_id = str(symbol.get("lib_id") or "")
-        if lib_id and lib_id not in memory.accepted:
-            missing.append(lib_id)
-    if missing:
-        return {
-            "ok": False,
-            "written": False,
-            "intent": "needs_selection",
-            "needs_selection": missing,
-            "error": "Estas piezas no pasaron por select_component: " + ", ".join(missing) + ".",
-        }
-    blob = " ".join(
-        f"{symbol.get('lib_id') or ''} {symbol.get('value') or ''}" for symbol in symbols
-    ).casefold()
-    contradicted = []
-    for required in memory.contract.required_components:
-        token = required.casefold()
-        if token in blob or token in {key.casefold() for key in memory.substitutions}:
+        verified = memory.accepted[lib_id]
+        written = str(symbol.get("footprint") or "")
+        if not verified:
             continue
-        contradicted.append(required)
-    if contradicted:
-        return {
-            "ok": False,
-            "written": False,
-            "intent": "CONTRADICTS_REQUIREMENT",
-            "error": (
-                "El circuito no incluye lo que el usuario pidió: "
-                + ", ".join(contradicted)
-                + ". No lo sustituyas en silencio."
-            ),
-        }
-    forbidden = [
+        if not written:
+            symbol["footprint"] = verified
+        elif written != verified:
+            mismatched.append(f"{symbol.get('reference')}: {written} (verificada {verified})")
+    if mismatched:
+        return _blocked(
+            "footprint_unverified",
+            "Huella distinta de la verificada: " + "; ".join(mismatched)
+            + ". Pásala por select_component con footprint antes de escribir.",
+        )
+
+    # 3. Ningún componente obligatorio falta y ninguno prohibido entra.
+    blob = " ".join(f"{s.get('lib_id') or ''} {s.get('value') or ''}" for s in symbols).casefold()
+    substituted = {key.casefold() for key in memory.substitutions}
+    contradicted = [
         item
-        for item in memory.contract.forbidden_components
-        if item.casefold() in blob
+        for item in memory.contract.required_components
+        if item.casefold() not in blob and item.casefold() not in substituted
     ]
+    if contradicted:
+        return _blocked(
+            "CONTRADICTS_REQUIREMENT",
+            "El circuito no incluye lo que el usuario pidió: " + ", ".join(contradicted) + ". No lo sustituyas en silencio.",
+        )
+    forbidden = [item for item in memory.contract.forbidden_components if item.casefold() in blob]
     if forbidden:
-        return {
-            "ok": False,
-            "written": False,
-            "intent": "CONTRADICTS_REQUIREMENT",
-            "error": "El circuito incluye algo que el usuario prohibió: " + ", ".join(forbidden) + ".",
-        }
+        return _blocked("CONTRADICTS_REQUIREMENT", "El circuito incluye algo que el usuario prohibió: " + ", ".join(forbidden) + ".")
     return None

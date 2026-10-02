@@ -45,6 +45,7 @@ const els = {
   ws: $("ind-ws"),
   kicad: $("ind-kicad"),
   model: $("ind-model"),
+  tokens: $("ind-tokens"),
   side: $("side"),
   toasts: $("toasts"),
   lightbox: $("lightbox"),
@@ -133,6 +134,9 @@ function handle(message) {
     case "llm.round":
       showTyping();
       break;
+    case "llm.usage":
+      renderTokens(message.tokens);
+      break;
     case "llm.text":
       hideTyping();
       addAssistant(message.text, message.turn_id);
@@ -182,6 +186,7 @@ function renderStatus(status) {
   } else {
     setPill(els.model, "bad", "Sin modelo");
   }
+  renderTokens(status.tokens);
 
   els.project.textContent = caps.project ? `· ${caps.project}` : "";
   const rows = [
@@ -206,6 +211,24 @@ function renderStatus(status) {
   const autoBtn = $("btn-autoroute");
   if (autoBtn) autoBtn.hidden = !state.autorouteEnabled;
   refreshComposer();
+}
+
+// Suma del proceso (modelo principal + revisores). Solo lo que el proveedor
+// devuelve en `usage`; si no lo manda, se dice en vez de enseñar 0.
+function renderTokens(tokens) {
+  if (!els.tokens || !tokens) return;
+  const label = els.tokens.querySelector("span");
+  const number = new Intl.NumberFormat("es").format(tokens.total || 0);
+  if (!tokens.reported && tokens.calls) {
+    label.textContent = "tokens: sin dato";
+    els.tokens.title = `El proveedor no devolvió consumo en ${tokens.calls} llamadas.`;
+    return;
+  }
+  label.textContent = `${number} tokens`;
+  els.tokens.title =
+    `Entrada ${new Intl.NumberFormat("es").format(tokens.prompt || 0)} · ` +
+    `salida ${new Intl.NumberFormat("es").format(tokens.completion || 0)} · ` +
+    `${tokens.calls || 0} llamadas al modelo desde que se abrió el chat`;
 }
 
 function renderSelection(selection) {

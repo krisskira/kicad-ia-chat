@@ -19,6 +19,7 @@ Trabaja en `app/`. El README público y la landing están en la raíz (`AGENTS.m
 |-----|-----------|
 | [README.md](README.md) | Arranque, Ajustes, MCP, mapa de código |
 | [doc/architecture.md](doc/architecture.md) | Capas, gateways, eventos, flujo seguro PCB |
+| [doc/agents.md](doc/agents.md) | Orquestador, intención, selección de componentes, huellas, área de placa, tokens |
 | [doc/mcp.md](doc/mcp.md) | Servidor MCP y config Cursor |
 | [doc/roadmap.md](doc/roadmap.md) | Pendientes (bibliotecas, agentes, KiCad 11) |
 | [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) | Plantilla `.cursor/mcp.json` |
@@ -45,6 +46,9 @@ Agentes en `.cursor/agents/` delegan al skill homónimo.
 - ALWAYS `autoroute_board` oculto si Ajustes no activó autoruteo + reglas fab.
 - ALWAYS informes IPC = pre-chequeo Clase 2, no certificación.
 - ALWAYS MCP reutiliza el mismo `registry`/gateway; no duplicar herramientas.
+- ALWAYS `place_circuit` pasa por `guard_place`: contrato de intención, símbolos de `select_component` y huella verificada.
+- ALWAYS al pasar a la placa, repetir `board_area.must_tell_user` (rectángulo de Edge.Cuts o la orden de medir).
+- NEVER aceptar un componente sin huella verificada (salvo `power:*`) ni marcar como PASS un dato que no se leyó.
 - NEVER secretos en el repo; API keys en Ajustes o `.env`.
 - NEVER afirmar cambios en KiCad si `ok: false` o backend `fake`.
 - NEVER `run_action` del router sin petición explícita y nombre de acción.

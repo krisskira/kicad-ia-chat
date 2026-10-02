@@ -287,10 +287,14 @@ def build_registry() -> ToolRegistry:
             ),
             Tool(
                 "select_component",
-                "Elige un símbolo que exista en las bibliotecas. Si el pedido no está, no inventes un sustituto: devuelve decision_required o request_user. allow_substitution solo si el usuario ya aceptó ese lib_id.",
+                "Elige símbolo y huella que existan en las bibliotecas. Sin huella verificada no acepta la pieza (footprint_required con candidatas). Si el pedido no está, no inventes un sustituto: devuelve decision_required o request_user. allow_substitution solo si el usuario ya aceptó ese lib_id.",
                 _object(
                     {
                         "requested_part": {"type": "string"},
+                        "footprint": {
+                            "type": "string",
+                            "description": "Huella que quieres usar (lib_id de search_parts kind=footprint). Vacío = la del símbolo.",
+                        },
                         "function": {"type": "string", "description": "Función pedida, por ejemplo regulador lineal 5V. No la deduzcas de un número de parte que no está."},
                         "stage": {"type": "string"},
                         "queries": {"type": "array", "items": {"type": "string"}},

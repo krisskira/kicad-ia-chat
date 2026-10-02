@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 
@@ -18,6 +19,48 @@ RETRY_STATUS = {429, 500, 502, 503, 504}
 
 class LlmError(RuntimeError):
     pass
+
+
+class TokenMeter:
+    """Tokens que el proveedor dice haber cobrado desde que arrancó el chat.
+
+    Suma el modelo principal y los revisores. Solo cuenta lo que llega en
+    `usage`; si el proveedor no lo manda, `reported` queda en False.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._prompt = 0
+        self._completion = 0
+        self._calls = 0
+        self._reported = False
+
+    def add(self, usage) -> None:
+        with self._lock:
+            self._calls += 1
+            if not isinstance(usage, dict):
+                return
+            prompt = int(usage.get("prompt_tokens") or 0)
+            completion = int(usage.get("completion_tokens") or 0)
+            total = int(usage.get("total_tokens") or 0)
+            if not prompt and not completion and total:
+                prompt = total
+            self._prompt += prompt
+            self._completion += completion
+            self._reported = self._reported or bool(prompt or completion)
+
+    def snapshot(self) -> dict:
+        with self._lock:
+            return {
+                "prompt": self._prompt,
+                "completion": self._completion,
+                "total": self._prompt + self._completion,
+                "calls": self._calls,
+                "reported": self._reported,
+            }
+
+
+USAGE = TokenMeter()
 
 
 def retry_delay(response: httpx.Response) -> float | None:
@@ -104,7 +147,9 @@ class OpenAiCompatibleClient:
         if response.status_code >= 400:
             raise LlmError(f"El modelo respondió {response.status_code}: {response.text[:300]}")
 
-        message = response.json()["choices"][0]["message"]
+        body = response.json()
+        USAGE.add(body.get("usage"))
+        message = body["choices"][0]["message"]
         calls = []
         for call in message.get("tool_calls") or []:
             raw = call.get("function", {}).get("arguments") or "{}"

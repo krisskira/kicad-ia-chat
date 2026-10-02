@@ -2,7 +2,7 @@
 
 Chat para construir el esquemático, pasarlo a la placa y consultar lo que está seleccionado. Las piezas salen de las bibliotecas que tienes configuradas en KiCad, no de una lista del plugin.
 
-Guía para agentes: [AGENTS.md](AGENTS.md) · Arquitectura: [doc/architecture.md](doc/architecture.md) · MCP: [doc/mcp.md](doc/mcp.md) · Roadmap: [doc/roadmap.md](doc/roadmap.md)
+Guía para agentes: [AGENTS.md](AGENTS.md) · Arquitectura: [doc/architecture.md](doc/architecture.md) · Agentes y flujos: [doc/agents.md](doc/agents.md) · MCP: [doc/mcp.md](doc/mcp.md) · Roadmap: [doc/roadmap.md](doc/roadmap.md)
 
 ## Instalación
 
@@ -131,7 +131,10 @@ Copia [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) a `.cursor/mcp.
 | Colocación IPC | `ipc_place_components`: preview → confirmación. Pre-chequeo Clase 2, no certificación. |
 | Autoruteo | Off por defecto. FreeRouting **2.0.1** + Java 17+; DSN/SES vía `pcbnew`; candidato + DRC antes de aplicar. |
 | Validar IPC | `ipc_validate_correct`; `apply=true` solo correcciones seguras. |
-| Esquemático → PCB | F8 en el editor. `kipy` 0.8 no importa netlists. |
+| Esquemático → PCB | F8 en el editor. `kipy` 0.8 no importa netlists. `sync_board` devuelve el área de la placa (Edge.Cuts o rectángulo propuesto en mm). |
+| Intención | `commit_intent` guarda lo que pidió el usuario; `place_circuit` no lo contradice. |
+| Selección | `select_component`: símbolo de la biblioteca con huella verificada (existe y tiene pads para cada pin). Si falta, propone huellas reales y pregunta el encapsulado. |
+| Tokens | Cabecera del chat, a la derecha del modelo: suma del modelo y del revisor desde que se abrió. |
 
 ## Qué puede pedir
 
@@ -157,7 +160,10 @@ No necesitan KiCad (`FakeGateway` + biblioteca de ejemplo en `tests/conftest.py`
 | Ruta | Rol |
 |---|---|
 | `packaging/` | Índice PCM (`repository.json`, `packages.json`, `metadata.json`) |
-| `src/kicad_ia/agent/` | Bucle LLM, revisores, cliente HTTP |
+| `src/kicad_ia/agent/` | Bucle LLM, revisores, cliente HTTP y contador de tokens |
+| `src/kicad_ia/agent/intent.py` | Contrato de intención y guardia de `place_circuit` |
+| `src/kicad_ia/agent/components.py` | Selección de componentes y validación de huellas |
+| `src/kicad_ia/kicad/board_area.py` | Área de placa para el paso a PCB |
 | `src/kicad_ia/tools/registry.py` | Contrato de herramientas (chat + MCP) |
 | `src/kicad_ia/kicad/kipy_gateway.py` | KiCad real |
 | `src/kicad_ia/kicad/fake.py`, `catalog.py` | Backend de prueba |
@@ -176,4 +182,4 @@ No necesitan KiCad (`FakeGateway` + biblioteca de ejemplo en `tests/conftest.py`
 | `src/kicad_ia/events.py` | Bus de eventos |
 | `src/kicad_ia/services/` | Chat + vigilante |
 | `src/kicad_ia/server/` | FastAPI, `/ws`, UI estática |
-| `doc/` | Arquitectura, MCP, roadmap |
+| `doc/` | Arquitectura, agentes y flujos, MCP, roadmap |

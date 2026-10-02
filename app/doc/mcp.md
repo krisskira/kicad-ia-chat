@@ -51,6 +51,7 @@ Ejemplo:
 | Resultados | JSON en `TextContent`; respuestas muy grandes se truncan |
 | Concurrencia | `SerializedGateway` igual que el chat |
 | Prefs | Se refrescan en cada `list_tools` / `call_tool` |
+| Escribir circuito | `place_circuit` exige antes `commit_intent` y `select_component` por cada lib_id (con huella verificada). La memoria es una por proceso MCP. Ver [agents.md](agents.md) |
 
 ## Código
 

@@ -8,6 +8,7 @@ import threading
 import time
 from collections.abc import Callable
 
+from kicad_ia.agent.llm import USAGE
 from kicad_ia.config import Settings
 from kicad_ia.events import SELECTION, STATUS, Event, EventBus
 from kicad_ia.kicad.serialized import SerializedGateway
@@ -29,6 +30,7 @@ def status_payload(settings: Settings, gateway) -> dict:
         "llm_ready": settings.llm_ready,
         "model": settings.llm_model if settings.llm_ready else "",
         "review_model": settings.llm_review_model,
+        "tokens": USAGE.snapshot(),
         "autoroute_enabled": settings.autoroute_enabled,
         "fab": settings.fab_summary(),
         "java": java,

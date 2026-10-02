@@ -25,7 +25,7 @@ def test_verdict_reads_tool_call():
 def _ready(name: str) -> Session:
     session = Session(name)
     session.memory.commit({"goal": "divisor", "unknowns": ["tensiones"]})
-    session.memory.accepted.add("Device:R")
+    session.memory.accepted["Device:R"] = "Resistor_SMD:R_0603_1608Metric"
     return session
 
 
