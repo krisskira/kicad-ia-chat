@@ -51,7 +51,7 @@
   },
   "maker": {
     "name": "Kriver Device",
-    "description": "Proyectos, tutoriales y herramientas de electrónica e inteligencia artificial.",
+    "description": "Proyectos y herramientas de electrónica e inteligencia artificial.",
     "url": "https://kriverdevice.krisskira.com/",
     "logo": "https://krisskira.github.io/kicad-ia-chat/media/kriver-devices.png",
     "email": "krisskira@gmail.com",
@@ -80,7 +80,10 @@
     "license": "https://opensource.org/licenses/MIT",
     "inLanguage": ["es", "en"],
     "keywords": "KiCad, plugin de KiCad, diseño de PCB, esquemático, inteligencia artificial, autoruteo, FreeRouting, código abierto",
-    "sameAs": ["https://github.com/krisskira/kicad-ia-chat"],
+    "sameAs": [
+      "https://github.com/krisskira/kicad-ia-chat",
+      "https://kriverdevice.krisskira.com/proyectos/kicad-ia"
+    ],
     "screenshot": [
       "https://krisskira.github.io/kicad-ia-chat/media/es/chat-inicio.png",
       "https://krisskira.github.io/kicad-ia-chat/media/es/chat-acciones.png",
@@ -131,7 +134,7 @@
           { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-chat" },
           { "label": "Reportar un problema", "href": "https://github.com/krisskira/kicad-ia-chat/issues" },
           { "label": "Licencia MIT", "href": "https://github.com/krisskira/kicad-ia-chat/blob/main/LICENSE" },
-          { "label": "Tutorial en el blog", "href": "https://kriverdevice.krisskira.com/tutoriales/kicad-conectado-a-un-llm" }
+          { "label": "Ficha en Kriver Devices", "href": "https://kriverdevice.krisskira.com/proyectos/kicad-ia" }
         ]
       },
       {

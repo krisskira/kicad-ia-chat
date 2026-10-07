@@ -35,13 +35,19 @@
         }
       ],
       "media": {
+        "type": "video",
+        "autoplay": true,
         "src": {
-          "es": "media/es/chat-inicio.png",
-          "en": "media/en/chat-inicio.png"
+          "es": "media/promo/promo-es.mp4",
+          "en": "media/promo/promo-en.mp4"
         },
-        "alt": "Chat de KiCad IA con KiCad 10 conectado, el proyecto abierto y las conversaciones guardadas a la izquierda",
+        "poster": {
+          "es": "media/promo/promo-es.jpg",
+          "en": "media/promo/promo-en.jpg"
+        },
+        "alt": "Video de KiCad IA: instalar el plugin, elegir el modelo y armar el esquemático desde el chat",
         "width": 1280,
-        "height": 1120,
+        "height": 720,
         "frame": "plain"
       },
       "next": {
@@ -286,6 +292,7 @@
         }
       ],
       "video": {
+        "autoplay": true,
         "src": {
           "es": "media/recorridos/de-la-orden-a-la-pcb/es/de-la-orden-a-la-pcb.mp4",
           "en": "media/recorridos/de-la-orden-a-la-pcb/en/de-la-orden-a-la-pcb.mp4"
@@ -435,6 +442,7 @@
         }
       ],
       "video": {
+        "autoplay": true,
         "src": {
           "es": "media/recorridos/configuracion-inicial/es/configuracion-inicial.mp4",
           "en": "media/recorridos/configuracion-inicial/en/configuracion-inicial.mp4"

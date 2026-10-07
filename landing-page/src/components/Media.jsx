@@ -13,7 +13,7 @@ function Visual({ media, priority }) {
         key={media.src}
         className="block h-auto w-full bg-black"
         poster={asset(media.poster)}
-        controls={!autoplay}
+        controls
         autoPlay={autoplay}
         muted={autoplay || media.muted}
         loop={autoplay}
