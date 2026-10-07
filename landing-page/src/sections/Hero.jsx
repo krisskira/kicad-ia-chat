@@ -42,6 +42,7 @@ export function Hero({ section }) {
           ) : null}
 
           <Actions actions={section.actions} tone="hero" className="mt-9" />
+          <Actions actions={section.more} tone="hero" className="mt-4" />
 
           {section.stats?.length ? (
             <dl className="mt-10 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-hero-fg/10 pt-6 sm:grid-cols-4">

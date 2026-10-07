@@ -178,6 +178,19 @@ def test_fake_gateway_ipc_and_autoroute_flow():
     assert "disclaimer" in report
 
 
+def test_kipy_gateway_imports_auto_groups_for_ipc_fallback():
+    """Place (IPC) sin groups llama auto_groups; el import no debe faltar."""
+    import kicad_ia.kicad.kipy_gateway as kipy
+
+    assert callable(kipy.auto_groups)
+    groups = kipy.auto_groups(
+        [{"reference": "U1", "value": "NE555"}, {"reference": "C1", "value": "100n"}],
+        [{"name": "NET1", "nodes": [{"ref": "U1", "pin": "1"}, {"ref": "C1", "pin": "1"}]}],
+    )
+    assert groups
+    assert all("references" in group for group in groups)
+
+
 def test_pcbnew_python_detection():
     # En este Mac de desarrollo debería existir; si no, None es aceptable.
     found = find_pcbnew_python()

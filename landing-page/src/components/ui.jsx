@@ -125,11 +125,12 @@ export function SectionHeader({ section, align = 'left', className = '' }) {
 
 const buttonBase = `group inline-flex items-center justify-center gap-2 rounded-full font-display text-base font-semibold transition ${focusRing}`;
 const buttonBox = 'h-12 px-6 max-sm:w-full';
+const iconBox = 'h-12 w-12 shrink-0';
 
-const buttonVariants = {
-  primary: `${buttonBox} bg-accent text-on-accent shadow-[0_10px_30px_-12px_var(--accent)] hover:brightness-110`,
-  secondary: `${buttonBox} border border-line text-fg hover:border-accent hover:text-accent`,
-  hero: `${buttonBox} border border-hero-fg/30 text-hero-fg hover:border-hero-fg hover:bg-hero-fg/10`,
+const buttonSkin = {
+  primary: 'bg-accent text-on-accent shadow-[0_10px_30px_-12px_var(--accent)] hover:brightness-110',
+  secondary: 'border border-line text-fg hover:border-accent hover:text-accent',
+  hero: 'border border-hero-fg/30 text-hero-fg hover:border-hero-fg hover:bg-hero-fg/10',
   link: 'text-accent underline-offset-4 hover:underline',
 };
 
@@ -137,18 +138,21 @@ export function ActionLink({ action, tone }) {
   const { t } = useI18n();
   const external = isExternal(action.href);
   const variant = action.variant === 'secondary' && tone === 'hero' ? 'hero' : action.variant || 'primary';
+  const iconOnly = Boolean(action.iconOnly && action.icon);
+  const box = iconOnly ? iconBox : variant === 'link' ? '' : buttonBox;
   const TrailingIcon = external ? ArrowUpRight : ArrowRight;
   return (
     <a
       href={action.href}
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
-      className={`${buttonBase} ${buttonVariants[variant]}`}
+      aria-label={iconOnly ? `${action.label}${external ? t('external') : ''}` : undefined}
+      className={`${buttonBase} ${box} ${buttonSkin[variant]}`}
     >
-      {action.icon ? <Icon name={action.icon} size={18} /> : null}
-      {action.label}
-      {external ? <span className="sr-only">{t('external')}</span> : null}
-      {action.icon ? null : (
+      {action.icon ? <Icon name={action.icon} size={iconOnly ? 20 : 18} /> : null}
+      {iconOnly ? null : action.label}
+      {iconOnly || !external ? null : <span className="sr-only">{t('external')}</span>}
+      {action.icon || iconOnly ? null : (
         <TrailingIcon size={18} aria-hidden="true" className="transition group-hover:translate-x-0.5" />
       )}
     </a>

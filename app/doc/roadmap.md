@@ -18,7 +18,7 @@ Lo descargado o generado va a una biblioteca del proyecto (`<proyecto>/kicad-ia.
 
 ## Agentes
 
-Hoy hay dos modelos. `LLM_MODEL` diseña con las herramientas. `LLM_REVIEW_MODEL` revisa la propuesta de `place_circuit` contra los pines reales y puede rechazarla dos veces por mensaje; a la tercera no se escribe. Si el revisor no responde, se escribe y el resultado lo indica.
+Hoy hay dos modelos. `LLM_MODEL` diseña con las herramientas. `LLM_REVIEW_MODEL` (opcional) revisa la propuesta de `place_circuit` después de las reglas duras en código y puede rechazarla dos veces por mensaje; a la tercera no se escribe. Sin modelo revisor, bastan las reglas duras. Si el revisor LLM no responde, se escribe tras las reglas duras y el resultado lo indica.
 
 Además, `python -m kicad_ia.mcp` publica las mismas herramientas por MCP stdio (Cursor y otros clientes). Ver [mcp.md](mcp.md) y [mcp.cursor.example.json](mcp.cursor.example.json).
 
@@ -43,10 +43,10 @@ El agente de diseño delega cuando falta una pieza y espera la confirmación del
 
 - KiCad 11: API de esquemático y de bibliotecas en vivo. Cuando salga estable, escribir por API y no por archivo.
 - Marcar con no-connect los pines que el usuario decida no usar.
-- Botón en el chat para restaurar la última copia de `.kicad-ia-backup/`.
-- `organize_layout` en el esquemático rehace la hoja con etiquetas. Falta conservar los cables dibujados a mano y la rotación de cada símbolo.
+- Botón en el chat para restaurar la última copia de `<proyecto>-backups/kicad-ia/`.
+- `organize_layout` en el esquemático rehace la hoja con etiquetas y, si es elegible, recuadros por etapa (`plan_stages`). Falta conservar los cables dibujados a mano y la rotación de cada símbolo.
 - En la placa, `organize_layout` no tiene en cuenta los conectores en el borde ni las zonas prohibidas. Falta borrar las pistas que quedan huérfanas.
-- Sin grupos dados por el modelo, un condensador de un riel va con el regulador que lo alimenta, aunque sea de desacoplo de otro integrado.
+- Con buses compartidos o empates, `plan_stages` marca `ambiguous` y no dibuja marcos; el modelo debe pasar `groups` explícitos.
 - El pre-chequeo IPC Clase 2 no cubre IPC-A-610 ni IPC-6012; no afirma certificación.
 - FreeRouting no respeta planos de masa/alimentación a menos que marques clases a ignorar (`ignore_net_classes`).
 - Fijamos FreeRouting **2.0.1** (Java 17+): 2.1.x ignora max_passes en headless; 2.2+ exige Java 25.

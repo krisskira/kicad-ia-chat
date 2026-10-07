@@ -51,6 +51,7 @@ def session_to_dict(session: Session) -> dict:
         "project": session.project,
         "messages": session.messages,
         "memory": memory.to_dict(),
+        "usage_log": list(getattr(session, "usage_log", None) or []),
     }
 
 
@@ -61,6 +62,7 @@ def session_from_dict(data: dict) -> Session:
         title=str(data.get("title") or ""),
         updated=str(data.get("updated") or ""),
         project=str(data.get("project") or ""),
+        usage_log=[row for row in (data.get("usage_log") or []) if isinstance(row, dict)],
     )
     session.memory = DesignMemory.from_dict(data.get("memory") or {})
     return session

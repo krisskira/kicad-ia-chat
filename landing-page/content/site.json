@@ -2,36 +2,22 @@
   "slug": "kicad-ia-chat",
   "name": "KiCad IA",
   "shortName": "KiCad IA",
-  "badge": "KiCad 10",
-  "title": "KiCad IA | Inteligencia artificial para diseñar PCBs en KiCad",
-  "description": "Plugin de KiCad 10 que lleva la IA a tu flujo de diseño: de la idea en un chat al esquemático con tus bibliotecas, y de ahí a una placa colocada, autoruteada y revisada. Tú confirmas cada paso.",
-  "keywords": [
-    "KiCad",
-    "KiCad 10",
-    "plugin de KiCad",
-    "esquemático",
-    "chat",
-    "IA para electrónica",
-    "bibliotecas de KiCad",
-    "huellas",
-    "PCB",
-    "FreeRouting"
-  ],
+  "title": "KiCad IA: diseña esquemáticos y PCB con inteligencia artificial",
+  "description": "Plugin gratis y de código abierto para KiCad 10. Describe tu circuito y obtén el esquemático con tus bibliotecas, la colocación y el ruteo de la PCB, listos para revisar.",
   "lang": "es-CO",
   "locale": "es_CO",
   "url": "https://krisskira.github.io/kicad-ia-chat",
   "gtm": "GTM-TWN288N",
   "logo": "media/logo.svg",
   "favicon": "media/logo.svg",
-  "ogImage": "media/og-cover.png",
-  "ogImageAlt": "KiCad IA: el esquemático sale de un chat, con las bibliotecas de KiCad",
+  "ogImage": "media/es/og-cover.png",
+  "ogImageAlt": "KiCad IA: diseña tu PCB en KiCad con inteligencia artificial. Gratis y de código abierto.",
   "ogImageWidth": 1200,
   "ogImageHeight": 630,
   "icons": [],
   "defaultTheme": "system",
   "themeColor": { "light": "#ffffff", "dark": "#141414" },
   "repo": "https://github.com/krisskira/kicad-ia-chat",
-  "cta": { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-chat" },
   "whatsapp": "https://wa.me/573183919187",
   "coffee": { "label": "Invítame un café", "href": "https://paypal.me/KRIVERDEVICE?locale.x=es_XC&country.x=CO" },
   "nav": [],
@@ -45,6 +31,7 @@
     "telephone": "+573183919187",
     "worksFor": { "@id": "#maker" },
     "address": { "@type": "PostalAddress", "addressLocality": "Palmira", "addressCountry": "CO" },
+    "knowsAbout": ["KiCad", "Diseño de PCB", "Electrónica", "Inteligencia artificial", "Desarrollo de software"],
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "Contacto",
@@ -54,6 +41,7 @@
       "availableLanguage": ["es", "en"]
     },
     "sameAs": [
+      "https://github.com/krisskira",
       "https://krisskira.github.io/krisskira/",
       "https://www.linkedin.com/in/cristian-david-vergara-gomez/",
       "https://www.facebook.com/krisskira",
@@ -62,14 +50,24 @@
     ]
   },
   "maker": {
-    "name": "Kriver Devices",
+    "name": "Kriver Device",
+    "description": "Proyectos, tutoriales y herramientas de electrónica e inteligencia artificial.",
     "url": "https://kriverdevice.krisskira.com/",
     "logo": "https://krisskira.github.io/kicad-ia-chat/media/kriver-devices.png",
     "email": "krisskira@gmail.com",
-    "founder": { "@id": "#author" }
+    "address": { "@type": "PostalAddress", "addressLocality": "Palmira", "addressCountry": "CO" },
+    "founder": { "@id": "#author" },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Contacto",
+      "email": "krisskira@gmail.com",
+      "url": "https://wa.me/573183919187",
+      "availableLanguage": ["es", "en"]
+    }
   },
   "schema": {
     "@type": "SoftwareApplication",
+    "name": "KiCad IA",
     "applicationCategory": "DeveloperApplication",
     "applicationSubCategory": "Diseño electrónico (EDA)",
     "operatingSystem": "macOS, Linux, Windows",
@@ -80,36 +78,59 @@
     "installUrl": "https://krisskira.github.io/kicad-ia-chat/#instalar",
     "downloadUrl": "https://github.com/krisskira/kicad-ia-chat/releases",
     "license": "https://opensource.org/licenses/MIT",
-    "inLanguage": "es",
+    "inLanguage": ["es", "en"],
+    "keywords": "KiCad, plugin de KiCad, diseño de PCB, esquemático, inteligencia artificial, autoruteo, FreeRouting, código abierto",
     "sameAs": ["https://github.com/krisskira/kicad-ia-chat"],
     "screenshot": [
-      "https://krisskira.github.io/kicad-ia-chat/media/chat-inicio.png",
-      "https://krisskira.github.io/kicad-ia-chat/media/chat-acciones.png",
-      "https://krisskira.github.io/kicad-ia-chat/media/chat-ajustes.png"
+      "https://krisskira.github.io/kicad-ia-chat/media/es/chat-inicio.png",
+      "https://krisskira.github.io/kicad-ia-chat/media/es/chat-acciones.png",
+      "https://krisskira.github.io/kicad-ia-chat/media/es/chat-ajustes.png"
     ],
     "featureList": [
-      "Busca símbolos y huellas en las bibliotecas configuradas en KiCad",
-      "Escribe el esquemático del proyecto con copia de seguridad",
-      "No coloca un componente sin huella verificada",
+      "Crea el esquemático a partir de una descripción del circuito",
+      "Usa los símbolos y huellas de las bibliotecas configuradas en KiCad",
+      "No agrega componentes sin una huella verificada",
+      "Guarda una copia del esquemático antes de modificarlo",
       "Conserva los componentes que ya están en el esquemático y en la placa",
-      "Guarda las sesiones de cada proyecto como memoria de solo lectura",
-      "Propone colocación y autoruteo, y los aplica cuando confirmas",
       "Organiza el circuito por funciones en el esquemático y en la placa",
-      "Prechequeo IPC Clase 2 y DRC antes de aplicar el autoruteo"
-    ]
+      "Propone la colocación y el autoruteo, y los aplica cuando confirmas",
+      "Revisión previa IPC Clase 2 y DRC antes de aplicar el autoruteo",
+      "Funciona con Gemini, OpenAI, Ollama o servicios compatibles con OpenAI",
+      "Servidor MCP para usar las mismas herramientas desde Cursor u otros clientes"
+    ],
+    "isBasedOn": {
+      "@type": "SoftwareSourceCode",
+      "@id": "#source",
+      "name": "KiCad IA: código fuente",
+      "description": "Código fuente del plugin KiCad IA y de su servidor MCP.",
+      "codeRepository": "https://github.com/krisskira/kicad-ia-chat",
+      "url": "https://github.com/krisskira/kicad-ia-chat",
+      "programmingLanguage": ["Python", "JavaScript"],
+      "runtimePlatform": "KiCad 10 (Python 3.9 o posterior)",
+      "license": "https://opensource.org/licenses/MIT",
+      "author": { "@id": "#author" },
+      "publisher": { "@id": "#maker" },
+      "targetProduct": { "@id": "#product" }
+    }
   },
   "footer": {
     "logo": "media/kriver-devices.png",
-    "logoAlt": "Kriver Devices",
-    "text": "La IA dentro de KiCad: de la idea al esquemático con tus bibliotecas, y del esquemático a una placa colocada y ruteada. Un proyecto de Kriver Devices.",
+    "logoAlt": "Kriver Device",
+    "logoHref": "https://kriverdevice.krisskira.com",
+    "logoTitle": "Kriver Device",
+    "text": "Diseña tu PCB en KiCad más rápido con inteligencia artificial. Gratis, de código abierto y hecho en Colombia por Kriver Device.",
     "rights": "KiCad IA",
     "columns": [
       {
         "title": "Proyecto",
         "links": [
-          { "label": "Flujo", "href": "#flujo" },
+          { "label": "Cómo funciona", "href": "#flujo" },
           { "label": "Instalar", "href": "#instalar" },
+          { "label": "MCP", "href": "#mcp" },
+          { "label": "Colabora", "href": "#colabora" },
           { "label": "Repositorio", "href": "https://github.com/krisskira/kicad-ia-chat" },
+          { "label": "Reportar un problema", "href": "https://github.com/krisskira/kicad-ia-chat/issues" },
+          { "label": "Licencia MIT", "href": "https://github.com/krisskira/kicad-ia-chat/blob/main/LICENSE" },
           { "label": "Tutorial en el blog", "href": "https://kriverdevice.krisskira.com/tutoriales/kicad-conectado-a-un-llm" }
         ]
       },
@@ -126,8 +147,8 @@
         "title": "Autor y redes",
         "links": [
           { "label": "Portafolio", "href": "https://krisskira.com/" },
-          { "label": "Kriver Devices", "href": "https://kriverdevice.krisskira.com/" },
-          { "label": "GitHub", "href": "https://krisskira.github.io/krisskira/" },
+          { "label": "Kriver Device", "href": "https://kriverdevice.krisskira.com/" },
+          { "label": "GitHub", "href": "https://github.com/krisskira" },
           { "label": "LinkedIn", "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/" },
           { "label": "Facebook", "href": "https://www.facebook.com/krisskira" },
           { "label": "ORCID", "href": "https://orcid.org/0009-0005-0802-7042" }

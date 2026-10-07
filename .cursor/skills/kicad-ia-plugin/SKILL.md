@@ -15,8 +15,9 @@ Leer primero [app/AGENTS.md](../../../app/AGENTS.md) y [app/doc/architecture.md]
 - `tools/registry.py` — contrato del modelo / MCP
 - `kicad/kipy_gateway.py`, `fake.py`, `session.py`, `serialized.py`
 - `kicad/sch_writer.py`, `libraries.py`, `lcsc.py`, `layout.py`, `render.py`, `cli.py`
-- `agent/` (loop, dispatch, llm + `TokenMeter`, review de circuito)
-- `agent/intent.py` (contrato, `guard_place`) y `agent/components.py` (selección + huella obligatoria). Flujos en [app/doc/agents.md](../../../app/doc/agents.md); actualízalo si cambias una decisión.
+- `agent/` (loop, history, dispatch, llm + `TokenMeter`/`usage_log`, review de circuito)
+- `agent/intent.py` (contrato, `guard_place`) y `agent/components.py` (selección + huella obligatoria). Flujos en [app/doc/agents.md](../../../app/doc/agents.md); la placa, en [app/doc/placa.md](../../../app/doc/placa.md); el coste del bucle, en [app/doc/agente-coste.md](../../../app/doc/agente-coste.md). Actualízalos si cambias una decisión.
+- `kicad/layout.py` (`plan_stages`, marcos elegibles) al tocar `organize_layout`
 - `server/` (FastAPI, `/ws`, static UI, `/api/settings`)
 - `config.py`, `user_prefs.py`, `services/`
 
@@ -28,7 +29,7 @@ PCB IPC/autoruteo → skill **kicad-ia-pcb**. MCP → **kicad-ia-mcp**. Landing 
 2. Método en `Gateway`, implementación en `KipyGateway` y `FakeGateway`.
 3. `capabilities()` si aplica.
 4. Prueba con `FakeGateway` (sin KiCad).
-5. Texto de UI / label en `server/static/app.js` si el usuario la ve en pasos.
+5. Texto de UI en `server/static/i18n.js` (inglés y español) si el usuario la ve en pasos.
 
 ## Ajustes
 

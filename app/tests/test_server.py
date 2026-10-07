@@ -18,10 +18,26 @@ def test_status_and_prompt_flow():
     assert page.status_code == 200
     assert "KiCad IA" in page.text
 
-    chat = client.post("/api/chat", json={"message": "/estado"})
+    page_text = page.text
+    assert 'id="lang-switch"' in page_text
+    assert 'data-set-lang="en"' in page_text
+    assert 'data-set-lang="es"' in page_text
+    assert "What should we design?" in page_text
+
+    chat = client.post("/api/chat", json={"message": "/status"})
     assert chat.status_code == 200
     body = chat.json()
     assert "Backend: fake" in body["reply"]
+    assert "Schematic:" in body["reply"]
+
+    spanish = client.post("/api/chat", json={"message": "/estado", "lang": "es"})
+    assert "Esquemático:" in spanish.json()["reply"]
 
     missing = client.post("/api/chat", json={"message": "crea un divisor", "session_id": body["session_id"]})
-    assert "Ajustes" in missing.json()["reply"] or "LLM_BASE_URL" in missing.json()["reply"]
+    assert "Settings" in missing.json()["reply"]
+    assert "LLM_BASE_URL" in missing.json()["reply"]
+
+    missing_es = client.post(
+        "/api/chat", json={"message": "crea un divisor", "session_id": spanish.json()["session_id"], "lang": "es"}
+    )
+    assert "Ajustes" in missing_es.json()["reply"]

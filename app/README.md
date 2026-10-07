@@ -1,25 +1,27 @@
+**English** · [Español](README.es.md)
+
 # KiCad IA
 
-Chat para construir el esquemático, pasarlo a la placa y consultar lo que está seleccionado. Las piezas salen de las bibliotecas que tienes configuradas en KiCad, no de una lista del plugin.
+A chat that builds the schematic, moves it to the board, and inspects what is selected. Parts come from the libraries configured in KiCad, not from a list inside the plugin.
 
-Guía para agentes: [AGENTS.md](AGENTS.md) · Arquitectura: [doc/architecture.md](doc/architecture.md) · Agentes y flujos: [doc/agents.md](doc/agents.md) · MCP: [doc/mcp.md](doc/mcp.md) · Roadmap: [doc/roadmap.md](doc/roadmap.md)
+Agent guide: [AGENTS.md](AGENTS.md) · Architecture: [doc/architecture.md](doc/architecture.md) · The board: [doc/placa.md](doc/placa.md) · Agents and flows: [doc/agents.md](doc/agents.md) · MCP: [doc/mcp.md](doc/mcp.md) · Roadmap: [doc/roadmap.md](doc/roadmap.md)
 
-## Instalación
+## Installation
 
-Requisitos: **KiCad 10**, red la primera vez (KiCad instala `requirements.txt` en su entorno) y, solo si activas el autoruteo, **Java 17+**. Abre KiCad una vez antes de instalar para que exista `Documentos/KiCad/<versión>/`.
+Requirements: **KiCad 10**, a network connection the first time (KiCad installs `requirements.txt` into its environment) and, only if you turn autorouting on, **Java 17+**. Open KiCad once before installing so that `Documents/KiCad/<version>/` exists.
 
-Los scripts y la copia manual dejan el plugin en `Documentos/KiCad/<versión>/plugins/kicad-ia` (no en `scripting/plugins`); el Gestor lo guarda en su propia carpeta de complementos. Usa una sola vía. Después: reinicia KiCad, abre el editor de PCB, pulsa **KiCad IA** y configura el modelo en Ajustes.
+The scripts and the manual copy put the plugin in `Documents/KiCad/<version>/plugins/kicad-ia` (not in `scripting/plugins`); the Plugin Manager stores it in its own plugins folder. Use only one method. Then restart KiCad, open the PCB editor, click **KiCad IA**, and set the model in Settings.
 
-### Gestor de complementos
+### Plugin and Content Manager
 
-1. En KiCad: Preferencias → Gestor de complementos → repositorios.
-2. Añade:
+1. In KiCad: Preferences → Plugin and Content Manager → repositories.
+2. Add:
 
 ```text
 https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/repository.json
 ```
 
-3. Instala **KiCad IA**, reinicia y abre el editor de PCB.
+3. Install **KiCad IA**, restart, and open the PCB editor.
 
 ### Script (macOS / Linux)
 
@@ -27,7 +29,7 @@ https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/app/packaging/rep
 curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh
 ```
 
-O bájalo, léelo y ejecútalo:
+Or download it, read it, and run it:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh -o install.sh
@@ -35,77 +37,77 @@ less install.sh
 sh install.sh
 ```
 
-Opciones: `--version 0.1.0`, `--kicad-version 10.0`, `--uninstall`.
+Options: `--version 0.1.0`, `--kicad-version 10.0`, `--uninstall`.
 
 ### Script (Windows)
 
-En PowerShell:
+In PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex
 ```
 
-O descarga `install/install.ps1`, revísalo y ejecuta `.\install.ps1`. Parámetros: `-Version 0.1.0`, `-KicadVersion 10.0`, `-Uninstall`.
+Or download `install/install.ps1`, review it, and run `.\install.ps1`. Parameters: `-Version 0.1.0`, `-KicadVersion 10.0`, `-Uninstall`.
 
-### Copia manual
+### Manual copy
 
-1. En [Releases](https://github.com/krisskira/kicad-ia-chat/releases) descarga `kicad-ia-<versión>.zip` (no el `-pcm.zip`).
-2. Descomprímelo en:
+1. From [Releases](https://github.com/krisskira/kicad-ia-chat/releases) download `kicad-ia-<version>.zip` (not the `-pcm.zip`).
+2. Unzip it into:
 
 ```text
-~/Documents/KiCad/<versión>/plugins/kicad-ia
+~/Documents/KiCad/<version>/plugins/kicad-ia
 ```
 
-En Windows: `Documentos\KiCad\<versión>\plugins\kicad-ia`. La carpeta debe contener `plugin.json` e `ipc_entry.py` en la raíz.
+On Windows: `Documents\KiCad\<version>\plugins\kicad-ia`. The folder must contain `plugin.json` and `ipc_entry.py` at its root.
 
-### Desde el código (desarrollo)
+### From the source (development)
 
 ```bash
 python app/scripts/link_plugin.py
 ```
 
-Enlaza esta carpeta en `~/Documents/KiCad/<versión>/plugins/kicad-ia`. Iconos: `python3 app/scripts/make_icons.py`. Empaquetado local: `python app/scripts/package_release.py --validate`. En macOS KiCad usa Python 3.9 (`eval_type_backport` en `requirements.txt`).
+Links this folder into `~/Documents/KiCad/<version>/plugins/kicad-ia`. Icons: `python3 app/scripts/make_icons.py`. Local packaging: `python app/scripts/package_release.py --validate`. On macOS KiCad uses Python 3.9 (`eval_type_backport` in `requirements.txt`).
 
 ### Releases
 
-Cada push o merge a `main` que toque lo que va en el ZIP (`app/src`, `app/icons`, `plugin.json`, `ipc_entry.py`, `requirements.txt`, `packaging/metadata.json`) crea el tag siguiente (`.github/workflows/version.yml`). El nivel sale de Conventional Commits: `feat!:` o `BREAKING CHANGE` → major (minor en 0.x), `feat:` → minor, el resto → patch. Desde Actions se puede forzar el nivel.
+Each push or merge to `main` that touches what goes into the ZIP (`app/src`, `app/icons`, `plugin.json`, `ipc_entry.py`, `requirements.txt`, `packaging/metadata.json`) creates the next tag (`.github/workflows/version.yml`). The level comes from Conventional Commits: `feat!:` or `BREAKING CHANGE` → major (minor on 0.x), `feat:` → minor, anything else → patch. The level can be forced from Actions.
 
-El tag dispara `.github/workflows/release.yml`: construye los ZIP, crea el release (nunca reemplaza los ZIP de un tag existente) y escribe en `main` el índice PCM calculado desde el ZIP publicado, junto con la versión de `pyproject.toml`. Relanzarlo a mano con un tag existente repara el índice.
+The tag starts `.github/workflows/release.yml`: it builds the ZIPs, creates the release (it never replaces the ZIPs of an existing tag), and writes to `main` the PCM index computed from the published ZIP, together with the version in `pyproject.toml`. Running it again by hand with an existing tag repairs the index.
 
-`packages.json` y `repository.json` los genera CI: no se editan a mano. Lo que describe el paquete va en `packaging/metadata.json`.
+CI generates `packages.json` and `repository.json`: do not edit them by hand. What describes the package lives in `packaging/metadata.json`.
 
-El índice se publica en `main` con el token de Actions. En el repositorio, Settings → Actions → General → Workflow permissions tiene que estar en **Read and write permissions**. Si `main` tiene una ruleset, añade **GitHub Actions** a su Bypass list.
+The index is published to `main` with the Actions token. In the repository, Settings → Actions → General → Workflow permissions must be **Read and write permissions**. If `main` has a ruleset, add **GitHub Actions** to its Bypass list.
 
-`RELEASE_TOKEN` es opcional. Si existe y puede crear tags, el tag dispara el release; si no, `version.yml` crea el tag y lanza el release.
+`RELEASE_TOKEN` is optional. If it exists and can create tags, the tag starts the release; otherwise `version.yml` creates the tag and starts the release.
 
-## Arranque
+## Running it
 
 ```bash
 cd app
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev,kicad,mcp]"
-cp .env.example .env   # opcional si usas ⚙ Ajustes
+cp .env.example .env   # optional if you use ⚙ Settings
 python -m kicad_ia
 ```
 
-El chat queda en `http://127.0.0.1:8765`. El navegador abre un WebSocket en `/ws`: el servidor vigila KiCad cada `WATCH_INTERVAL` s (1,5 por defecto) y solo avisa cuando cambian conexión, proyecto o selección. El chat enseña cada herramienta mientras corre. Si se corta, la página se reconecta sola. Si KiCad se cierra o arranca después, el servidor se reconecta sin reiniciar.
+The chat is at `http://127.0.0.1:8765`. The browser opens a WebSocket on `/ws`: the server watches KiCad every `WATCH_INTERVAL` seconds (1.5 by default) and only notifies when connection, project, or selection changes. The chat shows each tool while it runs. If the connection drops, the page reconnects on its own. If KiCad closes or starts later, the server reconnects without a restart.
 
-`KICAD_MODE=auto` usa KiCad si la API responde; si no, modo memoria de prueba. `fake` no intenta conectar. `live` exige KiCad.
+`KICAD_MODE=auto` uses KiCad when the API answers; otherwise it falls back to an in-memory test mode. `fake` does not try to connect. `live` requires KiCad.
 
-## Ajustes (UI)
+## Settings (UI)
 
-En **⚙** del chat puedes configurar, sin editar `.env`:
+In the chat's **⚙** you can configure this without editing `.env`:
 
-| Bloque | Campos |
+| Block | Fields |
 |--------|--------|
-| LLM | Preset (Gemini / Ollama / OpenAI / personalizado), URL, API key, modelo, modelo revisor |
-| Java | Ruta de `java` + botón Detectar (macOS/Homebrew/JVMs) |
-| Autoruteo | Activar/desactivar; si está on: anchos mínimos de pista, clearance, vía, taladro y agujero (mm) |
+| LLM | Preset (Gemini / Ollama / OpenAI / custom), URL, API key, model, reviewer model |
+| Java | Path to `java` + Detect button (macOS/Homebrew/JVMs) |
+| Autoroute | On/off; when on: minimum track width, clearance, via, drill, and hole (mm) |
 
-Se guardan en `~/Library/Application Support/kicad-ia/user-settings.json` (macOS) o `~/.config/kicad-ia/` (Linux) y tienen prioridad sobre `.env`.
+They are stored in `~/Library/Application Support/kicad-ia/user-settings.json` (macOS) or `~/.config/kicad-ia/` (Linux) and take priority over `.env`. The interface language (English by default, Spanish with **ES** in the top bar) is stored in the browser, not in that JSON.
 
-También puedes usar variables:
+You can also use variables:
 
 ```bash
 LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
@@ -116,83 +118,85 @@ LLM_MODEL=gemini-3.5-flash-lite
 # AUTOROUTE_ENABLED=0
 ```
 
-`LLM_REVIEW_MODEL` revisa cada `place_circuit` antes de escribir (hasta dos rechazos por mensaje). Ante un 429 el cliente espera y reintenta. Sin modelo siguen `/estado`, `/seleccion` y `/herramientas`.
+`LLM_REVIEW_MODEL` is optional: same URL and key as the orchestrator, a different model name. It reviews each `place_circuit` after the hard rules (up to two rejections per message). Empty = code only. On a 429 the client waits and retries. Without a main model, `/status`, `/selection`, and `/tools` still work (`/estado`, `/seleccion`, and `/herramientas` too).
 
-## MCP (Cursor y otros LLM)
+## MCP (Cursor and other LLMs)
 
-Las mismas herramientas se publican por **MCP stdio** para que Cursor u otro agente actúen sobre KiCad sin el LLM interno del chat. Detalle: [doc/mcp.md](doc/mcp.md).
+The same tools are published over **MCP stdio** so Cursor or another agent can act on KiCad without the chat's internal LLM. Detail: [doc/mcp.md](doc/mcp.md).
 
 ```bash
 pip install -e ".[mcp,kicad]"
-# KiCad abierto con API IPC
+# KiCad open with the IPC API
 python -m kicad_ia.mcp
 ```
 
-Copia [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) a `.cursor/mcp.json` (rutas absolutas al `.venv` y a `app/`). El autoruteo solo aparece si lo activaste en Ajustes. Chat web y MCP pueden convivir.
+Copy [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) to `.cursor/mcp.json` (absolute paths to the `.venv` and to `app/`). Autoroute appears only if you turned it on in Settings. The web chat and MCP can run together.
 
-## Cómo trabaja con KiCad 10
+## How it works with KiCad 10
 
-| Parte | Cómo |
+| Part | How |
 |---|---|
-| Bibliotecas | `sym-lib-table` / `fp-lib-table` del usuario y del proyecto. |
-| Esquemático | Escritura del `.kicad_sch` con copia en `.kicad-ia-backup/`. Editor de esquemáticos cerrado. |
-| Validación | Pre-escritura + ERC/netlist con `kicad-cli`. |
-| Placa | API IPC (`kipy`): selección, huellas, cobre, 3D. |
-| Imágenes | `render_view` → `kicad-cli`; servidas en `/renders`. |
-| Organizar | `organize_layout` por función (esquemático y/o PCB). |
-| Colocación IPC | `ipc_place_components`: preview → confirmación. Pre-chequeo Clase 2, no certificación. |
-| Autoruteo | Off por defecto. FreeRouting **2.0.1** + Java 17+; DSN/SES vía `pcbnew`; candidato + DRC antes de aplicar. |
-| Validar IPC | `ipc_validate_correct`; `apply=true` solo correcciones seguras. |
-| Esquemático → PCB | F8 en el editor. `kipy` 0.8 no importa netlists. `sync_board` devuelve el área de la placa (Edge.Cuts o rectángulo propuesto en mm). |
-| Intención | `commit_intent` guarda lo que pidió el usuario; `place_circuit` no lo contradice. |
-| Selección | `select_component`: símbolo de la biblioteca con huella verificada (existe y tiene pads para cada pin). Si falta, propone huellas reales y pregunta el encapsulado. |
-| Tokens | Cabecera del chat, a la derecha del modelo. Si el proveedor no informa el consumo, el número es una estimación y lleva `~`. |
-| Conversaciones | Se guardan solas. La barra lateral las lista y permite abrirlas o borrarlas. |
+| Libraries | The user's and the project's `sym-lib-table` / `fp-lib-table`. |
+| Schematic | Writes `.kicad_sch` with a copy in `<project>-backups/kicad-ia/`. Schematic editor closed. |
+| Validation | Pre-write check + ERC/netlist with `kicad-cli`. |
+| Board | IPC API (`kipy`): selection, footprints, copper, 3D. |
+| Images | `render_view` → `kicad-cli`; served under `/renders`. |
+| Arrange | `organize_layout` by function (schematic and/or PCB). |
+| IPC placement | `ipc_place_components`: preview → confirmation. Class 2 pre-check, not a certification. |
+| Autoroute | Off by default. FreeRouting **2.0.1** + Java 17+; DSN/SES through `pcbnew`; candidate + DRC before applying. |
+| IPC validate | `ipc_validate_correct`; `apply=true` only for safe fixes. |
+| Schematic → PCB | F8 in the editor. `kipy` 0.8 does not import netlists. `sync_board` returns the board area (Edge.Cuts or a proposed rectangle in mm). |
+| Intent | `commit_intent` stores what the user asked; `place_circuit` does not contradict it. |
+| Selection | `select_component`: a library symbol with a verified footprint (it exists and has pads for every pin). If it is missing, it proposes real footprints and asks for the package. |
+| Tokens | Chat header, to the right of the model. If the provider does not report usage, the number is an estimate and is marked with `~`. |
+| Conversations | Saved on their own. The sidebar lists them and can open or delete them. |
+| Language | English by default. **ES** in the top bar switches the UI and the assistant's replies. Strings live in `server/static/i18n.js` and `i18n.py`. |
 
-## Qué puede pedir
+## What you can ask
 
-- «Diseña un ESP32-S3 con ILI9341 por SPI y 18650 con regulador a 3,3 V.»
-- «¿Qué huella y modelo 3D tiene lo seleccionado?»
-- «Valida el esquemático y dime qué falta para la placa.»
-- «Enséñame la placa en 3D.» / «Organiza por funciones.»
-- «Coloca con IPC Clase 2; primero la propuesta.»
-- «Autorutea, valida con DRC y no apliques hasta que confirme.»
-- «Valida IPC y corrige solo lo seguro.»
-- «Busca esta pantalla en LCSC.» → confirmas el código C → `import_lcsc`.
+- "Design an ESP32-S3 with an ILI9341 over SPI and a 18650 with a 3.3 V regulator."
+- "What footprint and 3D model does the selection have?"
+- "Validate the schematic and tell me what is missing for the board."
+- "Show me the board in 3D." / "Arrange by function."
+- "Place with IPC Class 2; show the proposal first."
+- "Autoroute, validate with DRC, and do not apply until I confirm."
+- "Validate IPC and fix only what is safe."
+- "Search LCSC for this display." → you confirm the C code → `import_lcsc`.
 
-## Pruebas
+## Tests
 
 ```bash
 cd app && .venv/bin/pytest
 ```
 
-No necesitan KiCad (`FakeGateway` + biblioteca de ejemplo en `tests/conftest.py`).
+They do not need KiCad (`FakeGateway` + the sample library in `tests/conftest.py`).
 
-## Mapa del código
+## Code map
 
-| Ruta | Rol |
+| Path | Role |
 |---|---|
-| `packaging/` | Índice PCM (`repository.json`, `packages.json`, `metadata.json`) |
-| `src/kicad_ia/agent/` | Bucle LLM, revisores, cliente HTTP y contador de tokens |
-| `src/kicad_ia/agent/intent.py` | Contrato de intención y guardia de `place_circuit` |
-| `src/kicad_ia/agent/components.py` | Selección de componentes y validación de huellas |
-| `src/kicad_ia/kicad/board_area.py` | Área de placa para el paso a PCB |
-| `src/kicad_ia/tools/registry.py` | Contrato de herramientas (chat + MCP) |
-| `src/kicad_ia/kicad/kipy_gateway.py` | KiCad real |
-| `src/kicad_ia/kicad/fake.py`, `catalog.py` | Backend de prueba |
-| `src/kicad_ia/kicad/serialized.py` | Un hilo a la vez hacia KiCad |
-| `src/kicad_ia/kicad/sch_writer.py` | Escritura/validación del esquemático |
-| `src/kicad_ia/kicad/libraries.py` | Tablas, búsqueda, pines, 3D |
+| `packaging/` | PCM index (`repository.json`, `packages.json`, `metadata.json`) |
+| `src/kicad_ia/agent/` | LLM loop, reviewers, HTTP client, and token counter |
+| `src/kicad_ia/agent/intent.py` | Intent contract and the `place_circuit` guard |
+| `src/kicad_ia/agent/components.py` | Component selection and footprint checks |
+| `src/kicad_ia/kicad/board_area.py` | Board area for the step to the PCB |
+| `src/kicad_ia/tools/registry.py` | Tool contract (chat + MCP) |
+| `src/kicad_ia/kicad/kipy_gateway.py` | Real KiCad |
+| `src/kicad_ia/kicad/fake.py`, `catalog.py` | Test backend |
+| `src/kicad_ia/kicad/serialized.py` | One thread at a time toward KiCad |
+| `src/kicad_ia/kicad/sch_writer.py` | Schematic write and validation |
+| `src/kicad_ia/kicad/libraries.py` | Tables, search, pins, 3D |
 | `src/kicad_ia/kicad/lcsc.py` | LCSC / EasyEDA |
-| `src/kicad_ia/kicad/layout.py` | Grupos funcionales |
-| `src/kicad_ia/kicad/ipc.py` | Pre-chequeo y colocación IPC |
+| `src/kicad_ia/kicad/layout.py` | Functional groups |
+| `src/kicad_ia/kicad/ipc.py` | IPC pre-check and placement |
 | `src/kicad_ia/kicad/freerouting.py` | JAR + Java + pipeline |
-| `src/kicad_ia/kicad/pcbnew_bridge.py` | DSN/SES / reglas fab |
-| `src/kicad_ia/kicad/copper_apply.py` | Aplicar cobre del candidato |
-| `src/kicad_ia/kicad/candidates.py` | Candidatos preview/apply |
-| `src/kicad_ia/mcp/` | Servidor MCP stdio |
-| `src/kicad_ia/user_prefs.py` | Persistencia de Ajustes |
-| `src/kicad_ia/events.py` | Bus de eventos |
-| `src/kicad_ia/services/` | Chat + vigilante |
-| `src/kicad_ia/server/` | FastAPI, `/ws`, UI estática |
-| `doc/` | Arquitectura, agentes y flujos, MCP, roadmap |
+| `src/kicad_ia/kicad/pcbnew_bridge.py` | DSN/SES / fab rules |
+| `src/kicad_ia/kicad/copper_apply.py` | Apply a candidate's copper |
+| `src/kicad_ia/kicad/candidates.py` | Preview/apply candidates |
+| `src/kicad_ia/mcp/` | MCP stdio server |
+| `src/kicad_ia/i18n.py` | Chat strings the user sees (English and Spanish) |
+| `src/kicad_ia/user_prefs.py` | Settings persistence |
+| `src/kicad_ia/events.py` | Event bus |
+| `src/kicad_ia/services/` | Chat + watcher |
+| `src/kicad_ia/server/` | FastAPI, `/ws`, static UI (`static/i18n.js`, EN/ES switch) |
+| `doc/` | Architecture, agents and flows, MCP, roadmap |

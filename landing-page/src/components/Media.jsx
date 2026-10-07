@@ -7,8 +7,10 @@ function Visual({ media, priority }) {
 
   if (media.type === 'video') {
     const autoplay = Boolean(media.autoplay);
+    // La clave obliga a recargar cuando el idioma cambia la ruta.
     return (
       <video
+        key={media.src}
         className="block h-auto w-full bg-black"
         poster={asset(media.poster)}
         controls={!autoplay}
@@ -23,6 +25,16 @@ function Visual({ media, priority }) {
       >
         {media.webm ? <source src={asset(media.webm)} type="video/webm" /> : null}
         <source src={asset(media.src)} type="video/mp4" />
+        {(media.tracks ?? []).map((track) => (
+          <track
+            key={track.src}
+            src={asset(track.src)}
+            kind={track.kind || 'subtitles'}
+            srcLang={track.srclang}
+            label={track.label}
+            default={track.default}
+          />
+        ))}
       </video>
     );
   }

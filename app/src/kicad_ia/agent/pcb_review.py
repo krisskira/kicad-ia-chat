@@ -51,10 +51,12 @@ class PcbReviewer:
         self._limit = limit
         self.rejections = 0
         self.note: dict = {}
+        self.last_usage = None
 
     def gate(self, report: dict) -> dict | None:
         """None = aprobado. Dict = bloqueo para el modelo."""
         self.note = {}
+        self.last_usage = None
         hard = _hard_block(report)
         if hard is not None:
             self.rejections += 1
@@ -95,6 +97,7 @@ class PcbReviewer:
     def _review(self, report: dict) -> dict:
         payload = json.dumps(report, ensure_ascii=False)[:12000]
         reply = self._client.complete([{"role": "user", "content": payload}], _VERDICT_TOOL, _SYSTEM)
+        self.last_usage = getattr(reply, "usage", None)
         return _verdict(reply)
 
 

@@ -20,6 +20,7 @@ class Client:
     id: int
     session_id: str
     queue: asyncio.Queue = field(default_factory=lambda: asyncio.Queue(QUEUE_LIMIT))
+    lang: str = "en"
 
 
 class Hub:

@@ -1,25 +1,26 @@
 {
   "$schema": "https://go.kicad.org/pcm/schemas/v1",
   "name": "KiCad IA",
-  "description": "Chat para crear el esquemático, pasar a la PCB y trabajar con bibliotecas de KiCad.",
-  "description_full": "Plugin IPC de KiCad: chat en el navegador para diseñar el esquemático con las piezas de tus bibliotecas, consultar la selección, organizar la placa, pre-chequeo IPC Clase 2 e importar desde LCSC. Configura el modelo (Gemini, OpenAI, Ollama u otro compatible con OpenAI) en Ajustes. La primera vez KiCad instala las dependencias de Python del plugin.",
+  "description": "Crea proyectos electrónicos con un asistente inteligente: arma el esquemático con tus bibliotecas, revisa la placa según IPC Clase 2 y genera la PCB con inteligencia artificial.",
+  "description_full": "KiCad IA es un asistente que trabaja dentro de KiCad desde un chat en el navegador.\n\nDescribe el circuito y el asistente lo arma en el esquemático con los símbolos y huellas de tus bibliotecas; si falta una pieza, la busca en LCSC y la importa cuando la confirmas. Después pasa el diseño a la PCB, organiza los componentes, hace un pre-chequeo IPC Clase 2 y puede autorutear la placa con FreeRouting.\n\nFunciona con Google Gemini, OpenAI, Ollama o cualquier modelo compatible con OpenAI; se configura en Ajustes. La primera vez, KiCad instala las dependencias de Python del plugin.",
   "identifier": "dev.krisskira.kicad-ia",
   "type": "plugin",
   "author": {
     "name": "Krisskira",
     "contact": {
-      "github": "https://krisskira.github.io/krisskira/"
+      "perfil": "https://krisskira.github.io/krisskira/",
+      "web": "https://kriverdevice.krisskira.com/"
     }
   },
   "maintainer": {
     "name": "Krisskira",
     "contact": {
-      "github": "https://krisskira.github.io/krisskira/"
+      "perfil": "https://krisskira.github.io/krisskira/"
     }
   },
   "license": "MIT",
   "resources": {
-    "homepage": "https://github.com/krisskira/kicad-ia-chat",
+    "homepage": "https://krisskira.github.io/kicad-ia-chat",
     "repository": "https://github.com/krisskira/kicad-ia-chat"
   },
   "tags": [

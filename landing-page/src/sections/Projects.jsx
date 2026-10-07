@@ -56,6 +56,7 @@ function ProjectCard({ item, index }) {
             </span>
           ) : null}
         </h3>
+        {item.email ? <p className="mt-1 text-muted">{item.email}</p> : null}
         {item.summary ? (
           <p className="mt-3 text-[17px] leading-relaxed text-fg/90">
             <Rich text={item.summary} />

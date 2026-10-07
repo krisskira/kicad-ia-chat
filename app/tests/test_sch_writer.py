@@ -35,7 +35,7 @@ def test_writes_symbols_and_net_labels(project, index):
     assert str(embedded[0][1]) == "Test:LDO-3.3"
     assert not children(embedded[0], "extends")
     assert read_symbols(schematic)[0]["reference"] == "U1"
-    assert (project / ".kicad-ia-backup").is_dir()
+    assert (project / f"{project.name}-backups" / "kicad-ia").is_dir()
 
 
 def test_unknown_pin_is_reported(project, index):

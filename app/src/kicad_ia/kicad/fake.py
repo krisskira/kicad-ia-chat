@@ -8,7 +8,7 @@ from html import escape
 from kicad_ia.kicad.catalog import CATALOG, footprints
 from kicad_ia.kicad.circuit import PlacedFootprint, PlacedSymbol, grid_note, snapped_symbol
 from kicad_ia.kicad.gateway import Gateway
-from kicad_ia.kicad.layout import auto_groups, group_layout, normalize_groups
+from kicad_ia.kicad.layout import group_layout, normalize_groups, plan_stages
 from kicad_ia.kicad.render import VIEWS, renders_dir
 from kicad_ia.kicad.sch_writer import nets_from_connections
 
@@ -337,8 +337,10 @@ class FakeGateway(Gateway):
         for label in self.labels:
             nets.setdefault(label["text"], []).append({"ref": label["reference"], "pin": label["pin"], "pintype": ""})
         components = [{"reference": ref, "value": item.value} for ref, item in self.symbols.items()]
-        plan = groups or auto_groups(components, [{"name": name, "nodes": nodes} for name, nodes in nets.items()])
-        result: dict = {"ok": True, "target": target, "groups": plan}
+        net_rows = [{"name": name, "nodes": nodes} for name, nodes in nets.items()]
+        stage = plan_stages(components, net_rows, groups=groups)
+        plan = stage.groups
+        result: dict = {"ok": True, "target": target, **stage.as_dict()}
         if target in ("pcb", "both") and self.footprints:
             sizes = {ref: (6.0, 4.0) for ref in self.footprints}
             clean, _ = normalize_groups(plan, list(sizes))
@@ -348,7 +350,19 @@ class FakeGateway(Gateway):
                 self.move_footprints(placements)
             result["pcb"] = {"ok": True, "applied": apply, "placements": placements}
         if target in ("schematic", "both"):
-            result["schematic"] = {"ok": True, "applied": False, "note": "El modo de desarrollo no dibuja esquemáticos."}
+            result["schematic"] = {
+                "ok": True,
+                "applied": False,
+                "symbols": len(self.symbols),
+                "nets": len(nets),
+                "groups": plan,
+                "draw_frames": stage.draw_frames,
+                "eligible": stage.eligible,
+                "ambiguous": stage.ambiguous,
+                "reasons": stage.reasons,
+                "note": "El modo de desarrollo no dibuja esquemáticos."
+                + ("" if apply else " Vista previa: no se escribió nada."),
+            }
         return result
 
     def ipc_place_components(

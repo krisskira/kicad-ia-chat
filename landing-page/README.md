@@ -12,7 +12,7 @@ npm run build
 - Textos: `content/landing.json` y `content/site.json`
 - Inglés: `content/en.json` (la clave es el texto en español, exacto)
 - Colores: `content/theme.css`
-- Portada: `public/media/og-cover.svg`
+- Portada: `public/media/es/og-cover.svg` (inglés en `public/media/en/`)
 
 El código (`src/`, el plugin, `index.html`) viene del template. Para traerlo de nuevo, desde esta carpeta:
 

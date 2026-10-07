@@ -447,7 +447,9 @@ def build_registry() -> ToolRegistry:
             ),
             Tool(
                 "organize_layout",
-                "Reordena el circuito en bloques por función (alimentación, microcontrolador, pantalla...). En el esquemático rehace la hoja con un marco por grupo; en la placa mueve las huellas por grupos dentro del contorno. Sin groups agrupa solo cada pasivo con el integrado al que sirve.",
+                "Propone o aplica etapas funcionales del circuito. Primero apply=false: devuelve groups, eligible, draw_frames, ambiguous y reasons sin tocar archivos. "
+                "Solo apply=true tras confirmación. En el esquemático apply rehace la hoja (queda copia); los recuadros solo se dibujan si draw_frames es true (≥2 etapas elegibles). "
+                "Sin groups, el plugin agrupa cada pasivo con el integrado al que sirve; si hay ambiguous, pregunta o pasa groups explícitos.",
                 _object(
                     {
                         "target": {"type": "string", "enum": ["schematic", "pcb", "both"]},
@@ -463,7 +465,10 @@ def build_registry() -> ToolRegistry:
                                 "required": ["name", "references"],
                             },
                         },
-                        "apply": {"type": "boolean", "description": "false calcula el plan sin tocar nada. Por defecto true."},
+                        "apply": {
+                            "type": "boolean",
+                            "description": "false = solo plan (recomendado primero). true = aplicar tras confirmación. Por defecto true por compatibilidad.",
+                        },
                     },
                     ["target"],
                 ),

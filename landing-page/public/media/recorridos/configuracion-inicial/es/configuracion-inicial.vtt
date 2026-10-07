@@ -1,0 +1,93 @@
+WEBVTT
+
+1
+00:00:00.700 --> 00:00:03.438
+La primera vez, el chat no tiene modelo.
+
+2
+00:00:03.438 --> 00:00:07.820
+El indicador lo marca en rojo y solo puedes consultar el estado.
+
+3
+00:00:07.820 --> 00:00:10.147
+Abre los ajustes con el engranaje.
+
+4
+00:00:11.747 --> 00:00:17.494
+En el bloque Modelo, elige el proveedor: Google Gemini, Ollama local, OpenAI,
+
+5
+00:00:17.494 --> 00:00:20.777
+o cualquier dirección compatible con OpenAI.
+
+6
+00:00:20.777 --> 00:00:23.390
+Al elegirlo se rellena la URL base.
+
+7
+00:00:24.990 --> 00:00:26.699
+Pega la clave de la API.
+
+8
+00:00:26.699 --> 00:00:32.611
+Se guarda solo en este equipo, en tu carpeta de ajustes, y nunca en el repositorio.
+
+9
+00:00:32.611 --> 00:00:34.463
+Con Ollama puede ir vacía.
+
+10
+00:00:36.063 --> 00:00:40.150
+Escribe el modelo que lleva la conversación y arma el diseño.
+
+11
+00:00:40.150 --> 00:00:42.160
+El modelo revisor es opcional:
+
+12
+00:00:42.160 --> 00:00:47.721
+lee cada circuito antes de escribirlo y cada propuesta de placa antes de aplicarla.
+
+13
+00:00:47.721 --> 00:00:51.339
+Si lo dejas vacío, se trabaja sin esa segunda lectura.
+
+14
+00:00:52.939 --> 00:00:58.074
+El autoruteo usa FreeRouting, que necesita Java diecisiete o posterior.
+
+15
+00:00:58.074 --> 00:01:01.400
+Pulsa Detectar Java, o escribe la ruta a mano.
+
+16
+00:01:03.000 --> 00:01:07.884
+Activa el autoruteo y define los mínimos de fabricación en milímetros:
+
+17
+00:01:07.884 --> 00:01:13.116
+ancho de pista, separación, diámetro y taladro de la vía, y agujero mínimo.
+
+18
+00:01:13.116 --> 00:01:16.535
+Mientras esté apagado, la herramienta no aparece.
+
+19
+00:01:18.135 --> 00:01:18.643
+Guarda.
+
+20
+00:01:18.643 --> 00:01:24.088
+Los ajustes quedan en tu equipo y mandan sobre cualquier archivo punto env.
+
+21
+00:01:25.688 --> 00:01:30.841
+El indicador del modelo pasa a verde y el proyecto muestra el autoruteo activo.
+
+22
+00:01:30.841 --> 00:01:34.298
+En el menú de acciones rápidas ya aparece Autorutear.
+
+23
+00:01:34.298 --> 00:01:36.842
+Ya puedes describir tu primer circuito.

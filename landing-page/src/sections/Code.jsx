@@ -30,9 +30,9 @@ function CopyButton({ code }) {
   );
 }
 
-function CodeWindow({ entry, labelId }) {
+function CodeWindow({ entry, labelId, className = '' }) {
   return (
-    <Reveal className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1020] shadow-card">
+    <Reveal className={`min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1020] shadow-card ${className}`}>
       <div className="flex min-h-12 items-center justify-between gap-4 border-b border-white/10 px-4">
         <span id={labelId} className="font-mono text-xs font-semibold text-white/70">
           {entry.commandLabel || entry.label}
@@ -51,6 +51,60 @@ function CodeWindow({ entry, labelId }) {
   );
 }
 
+function BlockText({ item }) {
+  return (
+    <Reveal className="max-w-190">
+      {item.kicker ? (
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">{item.kicker}</p>
+      ) : null}
+      <h3 className="mt-3 font-display text-2xl font-semibold leading-tight text-fg sm:text-3xl">{item.title}</h3>
+      {item.body ? (
+        <div className="mt-4 leading-relaxed text-muted">
+          <Paragraphs text={item.body} />
+        </div>
+      ) : null}
+    </Reveal>
+  );
+}
+
+function TabbedBlock({ item }) {
+  const [active, setActive] = useState(0);
+  const baseId = useId();
+  const tab = item.tabs[active];
+
+  return (
+    <>
+      <BlockText item={item} />
+      <div role="tablist" aria-label={item.title} className="mt-6 inline-flex max-w-full overflow-x-auto rounded-xl border border-line p-1">
+        {item.tabs.map((entry, index) => (
+          <button
+            key={entry.label}
+            id={`${baseId}-tab-${index}`}
+            role="tab"
+            type="button"
+            aria-selected={index === active}
+            aria-controls={`${baseId}-panel`}
+            onClick={() => setActive(index)}
+            className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition ${focusRing} ${
+              index === active ? 'bg-accent text-on-accent' : 'text-muted hover:text-fg'
+            }`}
+          >
+            {entry.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id={`${baseId}-panel`} aria-labelledby={`${baseId}-tab-${active}`}>
+        {tab.body ? (
+          <div className="mt-5 max-w-190 leading-relaxed text-muted">
+            <Paragraphs text={tab.body} />
+          </div>
+        ) : null}
+        <CodeWindow entry={tab} labelId={`${baseId}-code`} className="mt-6" />
+      </div>
+    </>
+  );
+}
+
 function CodeBlocks({ section }) {
   const baseId = useId();
 
@@ -63,28 +117,18 @@ function CodeBlocks({ section }) {
         </Reveal>
       ) : null}
       <div className="mt-14 grid gap-16 lg:gap-20">
-        {section.items.map((item, index) => {
-          const labelId = `${baseId}-${index}`;
-          return (
-            <article
-              key={item.title}
-              className="grid grid-cols-1 items-start gap-7 border-t border-line pt-10 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-14"
-            >
-              <Reveal>
-                {item.kicker ? (
-                  <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">{item.kicker}</p>
-                ) : null}
-                <h3 className="mt-3 font-display text-2xl font-semibold leading-tight text-fg sm:text-3xl">{item.title}</h3>
-                {item.body ? (
-                  <div className="mt-4 leading-relaxed text-muted">
-                    <Paragraphs text={item.body} />
-                  </div>
-                ) : null}
-              </Reveal>
-              <CodeWindow entry={item} labelId={labelId} />
-            </article>
-          );
-        })}
+        {section.items.map((item, index) => (
+          <article key={item.title} className="min-w-0 border-t border-line pt-10">
+            {item.tabs?.length ? (
+              <TabbedBlock item={item} />
+            ) : (
+              <>
+                <BlockText item={item} />
+                <CodeWindow entry={item} labelId={`${baseId}-${index}`} className="mt-7" />
+              </>
+            )}
+          </article>
+        ))}
       </div>
       <Actions actions={section.actions} className="mt-12" />
     </Section>

@@ -12,9 +12,9 @@
   <rect x="96" y="96" width="18" height="18" fill="#51a1eb"/>
   <rect x="78" y="114" width="18" height="18" fill="#eb5151"/>
   <text x="132" y="118" fill="#fffdf8" font-family="Poppins, Noto Sans, sans-serif" font-size="28" font-weight="600">KiCad IA</text>
-  <text x="72" y="280" fill="#fffdf8" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">El esquemático</text>
-  <text x="72" y="360" fill="#51a1eb" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">sale de un chat</text>
-  <text x="72" y="460" fill="#fffdf8" fill-opacity="0.75" font-family="Noto Sans, sans-serif" font-size="28">KiCad 10 · con tus bibliotecas</text>
+  <text x="72" y="280" fill="#fffdf8" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">Diseña tu PCB</text>
+  <text x="72" y="360" fill="#51a1eb" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">con inteligencia artificial</text>
+  <text x="72" y="460" fill="#fffdf8" fill-opacity="0.75" font-family="Noto Sans, sans-serif" font-size="28">Gratis y de código abierto &#183; KiCad 10</text>
   <rect y="618" width="400" height="12" fill="#2a74c0"/>
   <rect x="400" y="618" width="400" height="12" fill="#f0df41"/>
   <rect x="800" y="618" width="400" height="12" fill="#eb5151"/>

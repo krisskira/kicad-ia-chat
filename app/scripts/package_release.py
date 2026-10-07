@@ -161,7 +161,7 @@ def update_pcm_index(version: str, pcm_zip: Path, release_tag: str, repo: str) -
         "maintainer": {
             "name": "Krisskira",
             "contact": {
-                "github": "https://krisskira.github.io/krisskira/",
+                "perfil": "https://krisskira.github.io/krisskira/",
             },
         },
         "packages": {

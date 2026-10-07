@@ -1,5 +1,5 @@
 <!-- KiCad IA plugin — keep under ~180 lines -->
-<!-- Last updated: 2026-10-01 -->
+<!-- Last updated: 2026-10-06 -->
 
 # KiCad IA (plugin)
 
@@ -19,7 +19,9 @@ Trabaja en `app/`. El README público y la landing están en la raíz (`AGENTS.m
 |-----|-----------|
 | [README.md](README.md) | Arranque, Ajustes, MCP, mapa de código |
 | [doc/architecture.md](doc/architecture.md) | Capas, gateways, eventos, flujo seguro PCB |
+| [doc/placa.md](doc/placa.md) | Cómo se genera la placa: orquestador, vista previa, revisor, autoruteo |
 | [doc/agents.md](doc/agents.md) | Orquestador, intención, selección de componentes, huellas, área de placa, tokens |
+| [doc/agente-coste.md](doc/agente-coste.md) | Coste del bucle, caché y por qué no migrar a un framework |
 | [doc/mcp.md](doc/mcp.md) | Servidor MCP y config Cursor |
 | [doc/roadmap.md](doc/roadmap.md) | Pendientes (bibliotecas, agentes, KiCad 11) |
 | [doc/mcp.cursor.example.json](doc/mcp.cursor.example.json) | Plantilla `.cursor/mcp.json` |
@@ -37,10 +39,10 @@ Agentes en `.cursor/agents/` delegan al skill homónimo.
 
 ## Critical Rules
 
-- ALWAYS respuestas e UI en español.
+- ALWAYS la UI del chat en inglés por defecto y en español, con el selector EN/ES de la barra superior (`server/static/i18n.js`). Cada texto nuevo de la interfaz va en los dos idiomas. El modelo responde en el idioma elegido.
 - ALWAYS herramientas nuevas en `registry.py` **y** en `KipyGateway` + `FakeGateway`.
 - ALWAYS `capabilities()` refleja lo real; nunca inventar métodos de `kipy`.
-- ALWAYS esquemático: editor cerrado, backup en `.kicad-ia-backup/`, validar antes de escribir.
+- ALWAYS esquemático: editor cerrado, backup en `<proyecto>-backups/kicad-ia/`, validar antes de escribir.
 - ALWAYS KiCad solo vía `SerializedGateway` (kipy no es thread-safe).
 - ALWAYS `ipc_place_components` / `autoroute_board` con `apply=false` primero; aplicar solo con `candidate_id` y confirmación.
 - ALWAYS `autoroute_board` oculto si Ajustes no activó autoruteo + reglas fab.

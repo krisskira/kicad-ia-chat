@@ -13,6 +13,7 @@ import { Split } from './Split';
 import { Stats } from './Stats';
 import { Steps } from './Steps';
 import { Video } from './Video';
+import { Walkthrough } from './Walkthrough';
 
 /** "type" en content/landing.json → componente. */
 export const sections = {
@@ -21,6 +22,7 @@ export const sections = {
   split: Split,
   showcase: Showcase,
   video: Video,
+  walkthrough: Walkthrough,
   steps: Steps,
   stats: Stats,
   specs: Specs,

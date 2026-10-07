@@ -10,33 +10,8 @@ function projectPath(status) {
   const caps = status && status.capabilities;
   return (caps && caps.project_path) || "";
 }
-const TOOL_LABELS = {
-  inspect_context: "Leer el proyecto",
-  search_parts: "Buscar en bibliotecas",
-  search_lcsc: "Buscar en LCSC",
-  import_lcsc: "Importar de LCSC",
-  describe_part: "Leer símbolo",
-  describe_footprint: "Leer huella",
-  place_circuit: "Escribir esquemático",
-  assign_footprint: "Asignar huella",
-  sync_board: "Validar para la PCB",
-  board_state: "Estado de la placa",
-  move_footprints: "Mover huellas",
-  list_models: "Modelos 3D",
-  routing: "Ruteo",
-  render_view: "Generar imagen",
-  organize_layout: "Organizar por funciones",
-  ipc_place_components: "Colocar (IPC)",
-  autoroute_board: "Autorutear",
-  ipc_validate_correct: "Validar IPC",
-};
-const VIEW_LABELS = {
-  schematic: "Esquemático",
-  pcb: "Placa, capas",
-  pcb_3d: "Placa 3D, cara superior",
-  pcb_3d_bottom: "Placa 3D, cara inferior",
-  pcb_3d_iso: "Placa 3D, perspectiva",
-};
+const LANG_KEY = "kicad-ia-lang";
+const ALERT_NOTE = /open|close|did not respond|stopped responding|Java|autoroute|Autoruteo|abierto|cerrarlo|no respond|dejó/i;
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -71,6 +46,7 @@ const state = {
   connected: false,
   retry: 0,
   busy: false,
+  cancelling: false,
   llmReady: false,
   autorouteEnabled: false,
   turns: new Map(),
@@ -79,21 +55,127 @@ const state = {
   settingsLoaded: null,
   sessionId: "",
   projectKey: sessionStorage.getItem(PROJECT_KEY) || "",
+  lang: savedLang(),
+  wsKind: "warn",
+  wsKey: "pill.connecting",
+  lastStatus: null,
+  lastSelection: null,
+  lastSessions: null,
+  lastPreview: null,
 };
+
+function savedLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "es" || saved === "en") return saved;
+  } catch {
+    /* modo privado */
+  }
+  return "en";
+}
+
+function t(key) {
+  const table = I18N[state.lang] || I18N.en;
+  if (Object.prototype.hasOwnProperty.call(table, key)) return table[key];
+  if (Object.prototype.hasOwnProperty.call(I18N.en, key)) return I18N.en[key];
+  return key;
+}
+
+function tf(key, vars) {
+  return t(key).replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? ""));
+}
+
+function localeTag() {
+  return state.lang === "es" ? "es" : "en";
+}
+
+function toolLabel(name) {
+  const key = `tool.${name}`;
+  return t(key) === key ? name : t(key);
+}
+
+function viewLabel(name) {
+  if (!name) return "";
+  const key = `view.${name}`;
+  return t(key) === key ? "" : t(key);
+}
+
+function translateNote(note) {
+  if (state.lang !== "en" || !note) return note;
+  const exact = I18N.en.notes && I18N.en.notes[note];
+  if (exact) return exact;
+  for (const [from, to] of I18N.en.notePrefixes || []) {
+    if (note.startsWith(from)) return to + note.slice(from.length);
+  }
+  return note;
+}
+
+function applyDom() {
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    node.textContent = t(node.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+    node.title = t(node.dataset.i18nTitle);
+  });
+  document.querySelectorAll("[data-i18n-aria]").forEach((node) => {
+    node.setAttribute("aria-label", t(node.dataset.i18nAria));
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    node.placeholder = t(node.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-i18n-alt]").forEach((node) => {
+    node.alt = t(node.dataset.i18nAlt);
+  });
+  document.querySelectorAll("[data-i18n-prompt]").forEach((node) => {
+    node.dataset.prompt = t(node.dataset.i18nPrompt);
+  });
+  document.querySelectorAll("[data-set-lang]").forEach((node) => {
+    node.setAttribute("aria-pressed", node.dataset.setLang === state.lang ? "true" : "false");
+  });
+  const group = $("lang-switch");
+  if (group) group.setAttribute("aria-label", t("lang.group"));
+}
+
+function setLang(lang) {
+  state.lang = lang === "es" ? "es" : "en";
+  try {
+    localStorage.setItem(LANG_KEY, state.lang);
+  } catch {
+    /* modo privado */
+  }
+  applyDom();
+  setPill(els.ws, state.wsKind, t(state.wsKey));
+  document.querySelectorAll(".step").forEach((details) => {
+    const name = details.querySelector(".name");
+    if (name && details.dataset.tool) name.textContent = toolLabel(details.dataset.tool);
+  });
+  if (state.lastStatus) renderStatus(state.lastStatus);
+  if (state.lastSelection) renderSelection(state.lastSelection);
+  if (state.lastSessions) renderSessions(state.lastSessions.rows, state.lastSessions.activeId);
+  if (state.lastPreview && !$("history-modal").hidden) showHistory(state.lastPreview);
+  refreshComposer();
+  if (state.settingsLoaded && !$("settings-modal").hidden) paintSettingsText(state.settingsLoaded);
+  send({ type: "ui.lang", lang: state.lang });
+}
 
 // ---------- WebSocket ----------
 
 function connect() {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
   const session = sessionStorage.getItem(sessionKey()) || "";
-  const socket = new WebSocket(`${scheme}://${location.host}/ws?session=${encodeURIComponent(session)}`);
+  const socket = new WebSocket(`${scheme}://${location.host}/ws?session=${encodeURIComponent(session)}&lang=${state.lang}`);
   state.socket = socket;
-  setPill(els.ws, "warn", "Conectando");
+  state.wsKind = "warn";
+  state.wsKey = "pill.connecting";
+  setPill(els.ws, "warn", t("pill.connecting"));
 
   socket.addEventListener("open", () => {
     state.connected = true;
     state.retry = 0;
-    setPill(els.ws, "ok", "En vivo");
+    state.wsKind = "ok";
+    state.wsKey = "pill.live";
+    setPill(els.ws, "ok", t("pill.live"));
     clearInterval(state.heartbeat);
     state.heartbeat = setInterval(() => send({ type: "ping" }), 25000);
     refreshComposer();
@@ -111,9 +193,11 @@ function connect() {
     const wasConnected = state.connected;
     state.connected = false;
     clearInterval(state.heartbeat);
-    setPill(els.ws, "bad", "Sin conexión");
+    state.wsKind = "bad";
+    state.wsKey = "pill.offline";
+    setPill(els.ws, "bad", t("pill.offline"));
     refreshComposer();
-    if (wasConnected) toast("Se cortó la conexión con el servidor. Reintentando…", "bad");
+    if (wasConnected) toast(t("toast.disconnect"), "bad");
     const delay = Math.min(8000, 500 * 2 ** state.retry++);
     setTimeout(connect, delay);
   });
@@ -187,7 +271,7 @@ function handle(message) {
       break;
     case "turn.failed":
       hideTyping();
-      addError(`El turno falló: ${message.error}`);
+      addError(tf("turn.failed", { error: message.error }));
       setBusy(false);
       break;
     case "error":
@@ -204,43 +288,54 @@ function handle(message) {
 
 function renderStatus(status) {
   if (!status) return;
+  state.lastStatus = status;
   const caps = status.capabilities || {};
   state.llmReady = Boolean(status.llm_ready);
   state.autorouteEnabled = Boolean(status.autoroute_enabled);
   const connected = Boolean(caps.connected);
   const backend = caps.backend || "";
   if (connected) setPill(els.kicad, "ok", `KiCad ${caps.kicad_version || ""}`.trim());
-  else if (backend === "fake") setPill(els.kicad, "warn", "Modo desarrollo");
-  else setPill(els.kicad, "bad", "KiCad sin respuesta");
+  else if (backend === "fake") setPill(els.kicad, "warn", t("pill.dev"));
+  else setPill(els.kicad, "bad", t("pill.kicadDown"));
 
   if (status.llm_ready) {
-    const model = status.review_model ? `${status.model} · revisor ${status.review_model}` : status.model;
+    const model = status.review_model ? `${status.model} · ${t("pill.reviewer")} ${status.review_model}` : status.model;
     setPill(els.model, "ok", status.model);
-    els.model.title = `Modelo: ${model}`;
+    els.model.title = tf("pill.modelDetail", { model });
   } else {
-    setPill(els.model, "bad", "Sin modelo");
+    setPill(els.model, "bad", t("pill.noModel"));
+    els.model.title = t("pill.modelTitle");
   }
   renderTokens(status.tokens);
 
   els.project.textContent = caps.project ? `· ${caps.project}` : "";
   const rows = [
-    ["Proyecto", caps.project || "—"],
-    ["Esquemático", caps.schematic_open_in_editor ? "abierto en el editor" : caps.schematic_write ? "listo para escribir" : "—"],
-    ["Placa", caps.board_open ? "abierta" : "cerrada"],
-    ["Autoruteo", status.autoroute_enabled ? "activo" : "desactivado"],
+    [t("facts.project"), caps.project || "—"],
+    [t("facts.schematic"), caps.schematic_open_in_editor ? t("facts.schematicOpen") : caps.schematic_write ? t("facts.schematicReady") : "—"],
+    [t("facts.board"), caps.board_open ? t("facts.boardOpen") : t("facts.boardClosed")],
+    [t("facts.autoroute"), status.autoroute_enabled ? t("facts.autorouteOn") : t("facts.autorouteOff")],
   ];
   if (status.java) {
-    rows.push(["Java", status.java.ok ? (status.java.label || status.java.java || "listo") : "no encontrado"]);
+    rows.push([t("facts.java"), status.java.ok ? (status.java.label || status.java.java || t("facts.javaReady")) : t("facts.javaMissing")]);
   }
-  if (caps.libraries) rows.push(["Bibliotecas", `${caps.libraries.symbol_libraries ?? "?"} de símbolos, ${caps.libraries.footprint_libraries ?? "?"} de huellas`]);
-  if (caps.erc !== undefined) rows.push(["kicad-cli", caps.erc ? "encontrado" : "no encontrado"]);
+  if (caps.libraries) {
+    rows.push([
+      t("facts.libraries"),
+      tf("facts.libs", {
+        symbols: caps.libraries.symbol_libraries ?? "?",
+        footprints: caps.libraries.footprint_libraries ?? "?",
+      }),
+    ]);
+  }
+  if (caps.erc !== undefined) rows.push([t("facts.cli"), caps.erc ? t("facts.found") : t("facts.notFound")]);
   els.facts.replaceChildren(
     ...rows.flatMap(([key, value]) => [el("dt", {}, key), el("dd", {}, String(value))]),
   );
   els.notes.replaceChildren(
-    ...(caps.notes || []).map((note) =>
-      el("li", { className: /abierto|cerrarlo|no respond|dejó|Java|Autoruteo/i.test(note) ? "alert" : "" }, note),
-    ),
+    ...(caps.notes || []).map((note) => {
+      const text = translateNote(note);
+      return el("li", { className: ALERT_NOTE.test(text) || ALERT_NOTE.test(note) ? "alert" : "" }, text);
+    }),
   );
   const autoBtn = $("btn-autoroute");
   if (autoBtn) autoBtn.hidden = !state.autorouteEnabled;
@@ -252,28 +347,28 @@ function renderStatus(status) {
 function renderTokens(tokens) {
   if (!els.tokens || !tokens) return;
   const label = els.tokens.querySelector("span");
-  const number = new Intl.NumberFormat("es").format(tokens.total || 0);
+  const format = (value) => new Intl.NumberFormat(localeTag()).format(value || 0);
   const prefix = tokens.estimated ? "~" : "";
-  label.textContent = `${prefix}${number} tokens`;
-  const detail =
-    `Entrada ${new Intl.NumberFormat("es").format(tokens.prompt || 0)} · ` +
-    `salida ${new Intl.NumberFormat("es").format(tokens.completion || 0)} · ` +
-    `${tokens.calls || 0} llamadas desde que se abrió el chat`;
-  els.tokens.title = tokens.estimated
-    ? `Estimado, porque el proveedor no informó el consumo. ${detail}`
-    : detail;
+  label.textContent = tf("tokens.label", { prefix, number: format(tokens.total) });
+  const detail = tf("tokens.detail", {
+    prompt: format(tokens.prompt),
+    completion: format(tokens.completion),
+    calls: tokens.calls || 0,
+  });
+  els.tokens.title = tokens.estimated ? tf("tokens.estimated", { detail }) : detail;
 }
 
 function renderSelection(selection) {
+  state.lastSelection = selection;
   const items = (selection && selection.items) || [];
   els.selectionCount.textContent = String(items.length);
   if (!items.length) {
-    els.selection.replaceChildren(el("span", { className: "muted" }, selection && selection.error ? selection.error : "Nada seleccionado en el editor de PCB."));
+    els.selection.replaceChildren(el("span", { className: "muted" }, selection && selection.error ? selection.error : t("side.selectionNone")));
     return;
   }
   els.selection.replaceChildren(
     ...items.slice(0, 40).map((item) => {
-      const label = item.reference || item.kind || "ítem";
+      const label = item.reference || item.kind || t("item.fallback");
       return el("span", { className: "chip", title: [item.value, item.footprint].filter(Boolean).join(" · ") }, label);
     }),
   );
@@ -285,7 +380,7 @@ function submit(text) {
   const clean = text.trim();
   if (!clean || state.busy) return;
   if (!send({ type: "chat.send", text: clean })) {
-    toast("No hay conexión con el servidor todavía.", "bad");
+    toast(t("toast.noSocket"), "bad");
     return;
   }
   els.welcome.hidden = true;
@@ -296,21 +391,39 @@ function submit(text) {
   showTyping();
 }
 
+function cancelTurn() {
+  if (!state.busy) return;
+  if (!send({ type: "chat.cancel" })) {
+    toast(t("toast.noSocket"), "bad");
+    return;
+  }
+  state.cancelling = true;
+  refreshComposer();
+}
+
 function setBusy(busy) {
   state.busy = busy;
-  if (!busy) hideTyping();
+  if (!busy) {
+    state.cancelling = false;
+    hideTyping();
+  }
   refreshComposer();
 }
 
 function refreshComposer() {
-  const blocked = !state.connected || state.busy;
-  els.send.disabled = blocked;
+  const offline = !state.connected;
+  const promptsBlocked = offline || state.busy;
+  els.send.disabled = offline || (state.busy && state.cancelling);
+  els.send.classList.toggle("stop", state.busy);
+  els.send.textContent = state.busy ? "■" : "➤";
+  els.send.setAttribute("aria-label", t(state.busy ? "nav.cancel" : "nav.send"));
   document.querySelectorAll("[data-prompt], [data-local]").forEach((button) => {
-    button.disabled = blocked;
+    button.disabled = promptsBlocked;
   });
-  if (!state.connected) els.hint.textContent = "Sin conexión con el servidor. Reintentando…";
-  else if (state.busy) els.hint.textContent = "Trabajando… puedes ver cada paso abajo.";
-  else if (!state.llmReady) els.hint.textContent = "Configura el modelo en ⚙ Ajustes. Funcionan /estado y /herramientas.";
+  if (!state.connected) els.hint.textContent = t("hint.offline");
+  else if (state.cancelling) els.hint.textContent = t("hint.cancelling");
+  else if (state.busy) els.hint.textContent = t("hint.busy");
+  else if (!state.llmReady) els.hint.textContent = t("hint.noModel");
   else els.hint.textContent = "";
 }
 
@@ -330,9 +443,10 @@ function stepStarted(message) {
   block.hidden = false;
   const details = el("details", { className: "step running" });
   details.dataset.index = String(message.index);
+  details.dataset.tool = message.tool || "";
   const summary = el("summary", {},
     el("span", { className: "state" }),
-    el("span", { className: "name" }, TOOL_LABELS[message.tool] || message.tool),
+    el("span", { className: "name" }, toolLabel(message.tool)),
     el("span", { className: "arg" }, briefArgs(message.tool, message.arguments || {})),
   );
   details.append(summary);
@@ -355,17 +469,17 @@ function stepFinished(message) {
   details.classList.add(failed ? "fail" : "ok");
   if (failed && result.error) details.querySelector(".arg").textContent = result.error;
   details.append(el("pre", {}, JSON.stringify(result, null, 2)));
-  if (result.image) addImage(result.image, VIEW_LABELS[(message.arguments || {}).view] || captionFor(message));
+  if (result.image) addImage(result.image, viewLabel((message.arguments || {}).view) || captionFor(message));
   if (result.before_image && result.before_image !== result.image) {
-    addImage(result.before_image, "Antes");
+    addImage(result.before_image, t("image.before"));
   }
   showTyping();
 }
 
 function captionFor(message) {
-  if (message.tool === "autoroute_board") return "Placa autoruteada (candidato)";
-  if (message.tool === "ipc_place_components") return "Colocación IPC (propuesta)";
-  return "Vista del circuito";
+  if (message.tool === "autoroute_board") return t("image.routed");
+  if (message.tool === "ipc_place_components") return t("image.placed");
+  return t("image.circuit");
 }
 
 function finishTurn(message) {
@@ -403,8 +517,9 @@ function noteProject(path) {
 }
 
 function showHistory(message) {
+  state.lastPreview = message;
   const modal = $("history-modal");
-  $("history-title").textContent = message.title || "Conversación";
+  $("history-title").textContent = message.title || t("history.title");
   const body = $("history-body");
   const lines = message.history || [];
   body.replaceChildren(
@@ -412,16 +527,17 @@ function showHistory(message) {
       ? lines
           .filter((row) => row.role === "user" || row.role === "assistant")
           .map((row) => {
-            const who = el("span", { className: "who" }, row.role === "user" ? "Tú" : "KiCad IA");
+            const who = el("span", { className: "who" }, row.role === "user" ? t("history.you") : "KiCad IA");
             return el("p", {}, who, row.text || "");
           })
-      : [el("p", { className: "muted" }, "Esta conversación no tiene texto.")]),
+      : [el("p", { className: "muted" }, t("history.empty"))]),
   );
   modal.hidden = false;
 }
 
 function renderSessions(rows, activeId) {
   if (!els.sessions) return;
+  state.lastSessions = { rows, activeId };
   const list = rows || [];
   els.sessionsEmpty.hidden = list.length > 0;
   els.sessions.replaceChildren(
@@ -430,7 +546,7 @@ function renderSessions(rows, activeId) {
       open.addEventListener("click", () => {
         send({ type: "session.preview", session_id: row.id });
       });
-      const drop = el("button", { type: "button", className: "drop", title: "Borrar conversación", "aria-label": "Borrar conversación" }, "✕");
+      const drop = el("button", { type: "button", className: "drop", title: t("nav.delete"), "aria-label": t("nav.delete") }, "✕");
       drop.addEventListener("click", (event) => {
         event.stopPropagation();
         if (state.busy) return;
@@ -446,7 +562,7 @@ function renderHistory(rows) {
   for (const row of rows) {
     if (row.role === "user") addUser(row.text);
     else if (row.role === "assistant") addAssistant(row.text);
-    else if (row.role === "image") addImage(row.image, "Vista del circuito");
+    else if (row.role === "image") addImage(row.image, t("image.circuit"));
   }
 }
 
@@ -471,11 +587,11 @@ function addImage(src, caption) {
   img.addEventListener("click", () => openLightbox(src));
   img.addEventListener("load", scrollDown);
   img.addEventListener("error", () => {
-    img.replaceWith(el("span", { className: "muted" }, "No pude cargar la imagen."));
+    img.replaceWith(el("span", { className: "muted" }, t("image.fail")));
   });
   const figure = el("figure", { className: "figure" },
     img,
-    el("figcaption", {}, el("span", {}, caption), el("a", { href: src, target: "_blank", rel: "noopener" }, "Abrir")),
+    el("figcaption", {}, el("span", {}, caption), el("a", { href: src, target: "_blank", rel: "noopener" }, t("image.open"))),
   );
   els.welcome.hidden = true;
   append(figure);
@@ -508,14 +624,16 @@ function briefArgs(tool, args) {
   if (args.query) return `«${args.query}»`;
   if (args.lib_id) return args.lib_id;
   if (args.lcsc_id) return args.lcsc_id;
-  if (args.view) return VIEW_LABELS[args.view] || args.view;
+  if (args.view) return viewLabel(args.view) || args.view;
   if (tool === "organize_layout") {
     const groups = (args.groups || []).map((group) => group.name).join(", ");
     return `${args.target || ""}${groups ? ` · ${groups}` : ""}`;
   }
-  if (tool === "place_circuit") return `${(args.symbols || []).length} símbolos, ${(args.nets || []).length} redes`;
+  if (tool === "place_circuit") {
+    return tf("brief.symbols", { symbols: (args.symbols || []).length, nets: (args.nets || []).length });
+  }
   if (args.reference) return args.reference;
-  if (args.placements) return `${args.placements.length} huellas`;
+  if (args.placements) return tf("brief.footprints", { count: args.placements.length });
   return "";
 }
 
@@ -643,11 +761,19 @@ function autosize() {
 
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
+  if (state.busy) {
+    cancelTurn();
+    return;
+  }
   submit(els.input.value);
 });
 els.input.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
+    if (state.busy) {
+      cancelTurn();
+      return;
+    }
     submit(els.input.value);
   }
 });
@@ -680,7 +806,7 @@ $("history-modal").addEventListener("click", (event) => {
 });
 $("new-chat").addEventListener("click", () => {
   if (state.busy) {
-    toast("Espera a que termine el turno actual.");
+    toast(t("toast.wait"));
     return;
   }
   clearMessages();
@@ -710,23 +836,17 @@ function closeSettings() {
 
 async function loadSettingsForm() {
   const res = await fetch("/api/settings");
-  if (!res.ok) throw new Error("No pude cargar los ajustes.");
+  if (!res.ok) throw new Error(t("toast.settingsLoadFail"));
   const data = await res.json();
   state.settingsLoaded = data;
   const preset = $("set-preset");
   preset.replaceChildren();
   for (const item of data.presets || []) {
-    preset.append(el("option", { value: item.id }, item.label));
+    preset.append(el("option", { value: item.id }, presetLabel(item)));
   }
   preset.value = guessPreset(data);
   $("set-base-url").value = data.llm_base_url || "";
   $("set-api-key").value = "";
-  $("set-api-key").placeholder = data.llm_api_key_set
-    ? `Guardada (${data.llm_api_key_masked || "****"}) — deja vacío para no cambiar`
-    : "Se guarda en este equipo";
-  $("set-api-hint").textContent = data.llm_api_key_set
-    ? "Hay una API key guardada. Escribe otra para sustituirla."
-    : "Gemini y OpenAI necesitan API key. Ollama puede ir vacío.";
   $("set-model").value = data.llm_model || "";
   $("set-review-model").value = data.llm_review_model || "";
   $("set-java").value = data.java_bin || "";
@@ -738,8 +858,48 @@ async function loadSettingsForm() {
   $("fab-via-drill").value = fab.min_via_drill_mm ?? 0.3;
   $("fab-hole").value = fab.min_hole_mm ?? 0.3;
   $("fab-fields").hidden = !$("set-autoroute").checked;
-  $("settings-path").textContent = data.path ? `Se guardan en ${data.path}` : "";
+  paintSettingsText(data);
   showJavaStatus(data.java_probe);
+}
+
+function presetLabel(item) {
+  const key = `preset.${item.id}`;
+  return t(key) === key ? item.label : t(key);
+}
+
+function modelPlaceholder(preset) {
+  const value = (preset && (preset.model_placeholder || preset.llm_model)) || "";
+  if (!value || value === "nombre-del-modelo") return t("settings.modelPlaceholder");
+  return value;
+}
+
+function paintSettingsText(data) {
+  const preset = $("set-preset");
+  const selected = preset.value;
+  for (const option of preset.options) {
+    const key = `preset.${option.value}`;
+    if (t(key) !== key) option.textContent = t(key);
+  }
+  if (selected) preset.value = selected;
+  $("set-api-key").placeholder = data.llm_api_key_set
+    ? tf("settings.keyKept", { masked: data.llm_api_key_masked || "****" })
+    : t("settings.keyPlaceholder");
+  $("set-api-hint").textContent = apiHint(data, preset.value || guessPreset(data));
+  const chosen = currentPreset(data, preset.value);
+  $("set-model").placeholder = modelPlaceholder(chosen);
+  $("settings-path").textContent = data.path ? tf("settings.savedAt", { path: data.path }) : "";
+}
+
+function currentPreset(data, id) {
+  return (data.presets || []).find((item) => item.id === id) || {};
+}
+
+function apiHint(data, presetId) {
+  if (data.llm_api_key_set) return t("api.saved");
+  const hintKey = `presetHint.${presetId}`;
+  if (t(hintKey) !== hintKey) return t(hintKey);
+  const preset = currentPreset(data, presetId);
+  return preset.needs_key === false ? t("api.noKey") : t("api.required");
 }
 
 function guessPreset(data) {
@@ -761,7 +921,7 @@ function showJavaStatus(probe) {
     node.style.color = "var(--ok)";
     if (probe.java && !$("set-java").value) $("set-java").value = probe.java;
   } else {
-    node.textContent = probe.error || "Java no encontrado";
+    node.textContent = translateNote(probe.error) || t("settings.javaMissing");
     node.style.color = "var(--bad)";
   }
 }
@@ -778,10 +938,16 @@ $("set-autoroute").addEventListener("change", () => {
 $("set-preset").addEventListener("change", () => {
   const data = state.settingsLoaded;
   const preset = (data.presets || []).find((item) => item.id === $("set-preset").value);
-  if (!preset || preset.id === "custom") return;
+  if (!preset || preset.id === "custom") {
+    $("set-api-hint").textContent = apiHint(data, "custom");
+    $("set-model").placeholder = t("settings.modelPlaceholder");
+    return;
+  }
   $("set-base-url").value = preset.llm_base_url || "";
   $("set-model").value = preset.llm_model || "";
+  $("set-model").placeholder = modelPlaceholder(preset);
   $("set-review-model").value = preset.llm_review_model || "";
+  $("set-api-hint").textContent = apiHint(data, preset.id);
 });
 $("set-java-detect").addEventListener("click", async () => {
   const res = await fetch("/api/settings/probe-java", {
@@ -819,10 +985,10 @@ settingsForm.addEventListener("submit", async (event) => {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    toast(err.detail || "No pude guardar los ajustes.", "bad");
+    toast(translateNote(err.detail) || t("toast.settingsSaveFail"), "bad");
     return;
   }
-  toast("Ajustes guardados.", "ok");
+  toast(t("toast.settingsSaved"), "ok");
   closeSettings();
   send({ type: "status.refresh" });
 });
@@ -833,5 +999,12 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+$("lang-switch").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-set-lang]");
+  if (!button || button.dataset.setLang === state.lang) return;
+  setLang(button.dataset.setLang);
+});
+
+applyDom();
 connect();
 els.input.focus();

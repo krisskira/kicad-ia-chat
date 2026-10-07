@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,30 +8,34 @@
   </head>
   <body>
     <header class="topbar">
-      <button class="icon-button only-narrow" id="toggle-side" type="button" aria-label="Mostrar panel">☰</button>
+      <button class="icon-button only-narrow" id="toggle-side" type="button" data-i18n-aria="nav.menu" aria-label="Show panel">☰</button>
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">⌁</span>
         <span class="brand-name">KiCad IA</span>
         <span class="brand-project" id="project-name"></span>
       </div>
       <div class="indicators">
-        <span class="pill" id="ind-ws" title="Canal en vivo con el servidor"><i></i><span>Conectando</span></span>
-        <span class="pill" id="ind-kicad" title="Conexión con KiCad"><i></i><span>KiCad</span></span>
-        <span class="pill" id="ind-model" title="Modelo de lenguaje"><i></i><span>Modelo</span></span>
-        <span class="pill tokens" id="ind-tokens" title="Tokens consumidos desde que se abrió el chat"><span>0 tokens</span></span>
-        <button class="icon-button" id="open-settings" type="button" title="Ajustes" aria-label="Ajustes">⚙</button>
+        <span class="pill" id="ind-ws" data-i18n-title="pill.wsTitle" title="Live channel with the server"><i></i><span>Connecting</span></span>
+        <span class="pill" id="ind-kicad" data-i18n-title="pill.kicadTitle" title="KiCad connection"><i></i><span>KiCad</span></span>
+        <span class="pill" id="ind-model" data-i18n-title="pill.modelTitle" title="Language model"><i></i><span>Model</span></span>
+        <span class="pill tokens" id="ind-tokens" data-i18n-title="pill.tokensTitle" title="Tokens used since the chat was opened"><span>0 tokens</span></span>
+        <div class="lang-switch" id="lang-switch" role="group" aria-label="Language">
+          <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-set-lang="es" aria-pressed="false">ES</button>
+        </div>
+        <button class="icon-button" id="open-settings" type="button" data-i18n-title="nav.settings" data-i18n-aria="nav.settings" title="Settings" aria-label="Settings">⚙</button>
       </div>
     </header>
 
     <div class="layout">
       <aside class="side" id="side">
         <section class="card coffee">
-          <a class="coffee-qr" href="https://www.paypal.com/donate/?hosted_button_id=6REM8H9YX742C" target="_blank" rel="noopener" title="Donar con PayPal">
-            <img src="/static/donar-qr.png" width="88" height="88" alt="Código QR para donar con PayPal" />
+          <a class="coffee-qr" href="https://www.paypal.com/donate/?hosted_button_id=6REM8H9YX742C" target="_blank" rel="noopener" data-i18n-title="nav.donate" title="Donate with PayPal">
+            <img src="/static/donar-qr.png" width="88" height="88" data-i18n-alt="coffee.qr" alt="QR code to donate with PayPal" />
           </a>
           <div class="coffee-text">
-            <strong class="">☕ ¿Te ahorró tiempo?</strong>
-            <span class="coffee-text">Invítame un café y ayúdame a seguir mejorando KiCad IA.</span>
+            <strong data-i18n="coffee.title">☕ Did this save you time?</strong>
+            <span class="coffee-text" data-i18n="coffee.body">Buy me a coffee and help me keep improving KiCad IA.</span>
             <div id="donate-button-container">
               <div id="donate-button"></div>
               <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
@@ -50,21 +54,21 @@
           </div>
         </section>
         <section class="card">
-          <h2>Proyecto</h2>
+          <h2 data-i18n="side.project">Project</h2>
           <dl class="facts" id="facts">
-            <dt>Estado</dt><dd>Esperando al servidor…</dd>
+            <dt data-i18n="side.project">Project</dt><dd data-i18n="side.waiting">Waiting for the server…</dd>
           </dl>
           <ul class="notes" id="notes"></ul>
         </section>
 
         <section class="card">
-          <h2>Selección <span class="count" id="selection-count">0</span></h2>
-          <div class="chips" id="selection"><span class="muted">Selecciona huellas en el editor de PCB.</span></div>
+          <h2><span data-i18n="side.selection">Selection</span> <span class="count" id="selection-count">0</span></h2>
+          <div class="chips" id="selection"><span class="muted" data-i18n="side.selectionEmpty">Select footprints in the PCB editor.</span></div>
         </section>
 
         <section class="card sessions-card">
-          <h2>Historial <button class="icon-button" id="new-chat" type="button" title="Conversación nueva" aria-label="Conversación nueva">＋</button></h2>
-          <p class="muted" id="sessions-empty">Lo hecho en este proyecto queda aquí, solo para leer. El chat lo usa como memoria.</p>
+          <h2><span data-i18n="side.history">History</span> <button class="icon-button" id="new-chat" type="button" data-i18n-title="nav.newChat" data-i18n-aria="nav.newChat" title="New conversation" aria-label="New conversation">＋</button></h2>
+          <p class="muted" id="sessions-empty" data-i18n="side.historyEmpty">What happened in this project stays here, read-only. The chat uses it as memory.</p>
           <ul class="sessions" id="sessions"></ul>
         </section>
       </aside>
@@ -72,31 +76,31 @@
       <main class="chat">
         <div class="messages" id="messages" aria-live="polite">
           <div class="welcome" id="welcome">
-            <h1>¿Qué diseñamos?</h1>
-            <p>Pido piezas a las bibliotecas de tu KiCad, escribo el esquemático, ordeno la placa y te enseño imágenes del resultado.</p>
+            <h1 data-i18n="welcome.title">What should we design?</h1>
+            <p data-i18n="welcome.body">I ask your KiCad libraries for parts, write the schematic, arrange the board, and show you pictures of the result.</p>
             <div class="examples">
-              <button type="button" data-prompt="Diseña un LED con su resistencia alimentado a 5 V por USB-C.">LED con USB-C</button>
-              <button type="button" data-prompt="¿Qué tengo seleccionado en la placa?">¿Qué tengo seleccionado?</button>
-              <button type="button" data-prompt="Agrupa los componentes por función y distribúyelos mejor en la placa.">Ordenar la placa</button>
+              <button type="button" data-i18n="ex.led" data-i18n-prompt="prompt.led" data-prompt="Design an LED with its resistor, powered at 5 V from USB-C.">LED with USB-C</button>
+              <button type="button" data-i18n="ex.selection" data-i18n-prompt="prompt.selection" data-prompt="What do I have selected on the board?">What do I have selected?</button>
+              <button type="button" data-i18n="ex.layout" data-i18n-prompt="prompt.layout" data-prompt="Group the components by function and spread them out better on the board.">Arrange the board</button>
             </div>
           </div>
         </div>
 
         <form class="composer" id="composer">
           <div class="composer-box">
-            <button type="button" class="composer-plus" id="quick-actions" aria-label="Acciones rápidas" title="Acciones rápidas" aria-expanded="false">＋</button>
-            <textarea id="input" rows="1" placeholder="Escribe aquí. Enter envía, Shift+Enter hace un salto de línea." maxlength="8000"></textarea>
-            <button type="submit" id="send" class="send" aria-label="Enviar">➤</button>
+            <button type="button" class="composer-plus" id="quick-actions" data-i18n-aria="nav.quick" data-i18n-title="nav.quick" aria-label="Quick actions" title="Quick actions" aria-expanded="false">＋</button>
+            <textarea id="input" rows="1" data-i18n-placeholder="composer.placeholder" placeholder="Write here. Enter sends, Shift+Enter adds a line." maxlength="8000"></textarea>
+            <button type="submit" id="send" class="send" data-i18n-aria="nav.send" aria-label="Send">➤</button>
             <div class="quick-menu" id="quick-menu" hidden>
-              <button type="button" data-prompt="Enséñame una imagen del esquemático.">🖼️ Imagen del esquemático</button>
-              <button type="button" data-prompt="Enséñame la placa en 3D.">🧊 Placa en 3D</button>
-              <button type="button" data-prompt="Enséñame la placa vista desde arriba con las capas de cobre.">🟩 Capas de la placa</button>
-              <button type="button" data-prompt="Organiza el circuito agrupado por funciones, en el esquemático y en la placa. Antes explícame los grupos que vas a usar.">🧩 Organizar por funciones</button>
-              <button type="button" data-prompt="Coloca los componentes en la PCB siguiendo normas IPC Clase 2. Primero muéstrame la propuesta sin aplicar.">📐 Colocar IPC</button>
-              <button type="button" id="btn-autoroute" data-prompt="Autorutea la placa con FreeRouting, valida con DRC e IPC y enséñame el antes y el después sin aplicar todavía.">🛤️ Autorutear</button>
-              <button type="button" data-prompt="Valida la PCB con DRC e IPC Clase 2 y corrige solo lo seguro. Explica qué no puedes corregir solo.">🔍 Validar IPC</button>
-              <button type="button" data-prompt="Valida el esquemático con ERC y dime qué hay que corregir.">✅ Revisar ERC</button>
-              <button type="button" data-local="/estado">ℹ️ Estado de KiCad</button>
+              <button type="button" data-i18n="qa.schematic" data-i18n-prompt="prompt.schematic" data-prompt="Show me an image of the schematic.">🖼️ Schematic image</button>
+              <button type="button" data-i18n="qa.pcb3d" data-i18n-prompt="prompt.pcb3d" data-prompt="Show me the board in 3D.">🧊 Board in 3D</button>
+              <button type="button" data-i18n="qa.layers" data-i18n-prompt="prompt.layers" data-prompt="Show me the board from above with the copper layers.">🟩 Board layers</button>
+              <button type="button" data-i18n="qa.organize" data-i18n-prompt="prompt.organize" data-prompt="Organize the circuit grouped by function, on the schematic and on the board. First explain the groups you will use.">🧩 Arrange by function</button>
+              <button type="button" data-i18n="qa.place" data-i18n-prompt="prompt.place" data-prompt="Place the components on the PCB following IPC Class 2. First show me the proposal without applying it.">📐 Place (IPC)</button>
+              <button type="button" id="btn-autoroute" data-i18n="qa.route" data-i18n-prompt="prompt.route" data-prompt="Autoroute the board with FreeRouting, validate with DRC and IPC, and show me before and after without applying yet.">🛤️ Autoroute</button>
+              <button type="button" data-i18n="qa.validate" data-i18n-prompt="prompt.validate" data-prompt="Validate the PCB with DRC and IPC Class 2 and fix only what is safe. Explain what you cannot fix on your own.">🔍 Validate IPC</button>
+              <button type="button" data-i18n="qa.erc" data-i18n-prompt="prompt.erc" data-prompt="Validate the schematic with ERC and tell me what needs fixing.">✅ Check ERC</button>
+              <button type="button" data-i18n="qa.status" data-i18n-prompt="prompt.status" data-prompt="/status">ℹ️ KiCad status</button>
             </div>
           </div>
         </form>
@@ -105,18 +109,18 @@
     </div>
 
     <div class="lightbox" id="lightbox" hidden>
-      <button class="icon-button close" type="button" id="lightbox-close" aria-label="Cerrar">✕</button>
-      <img alt="Vista ampliada del circuito" id="lightbox-img" />
-      <a class="lightbox-open" id="lightbox-open" target="_blank" rel="noopener">Abrir en otra pestaña</a>
+      <button class="icon-button close" type="button" id="lightbox-close" data-i18n-aria="nav.close" aria-label="Close">✕</button>
+      <img data-i18n-alt="image.alt" alt="Enlarged view of the circuit" id="lightbox-img" />
+      <a class="lightbox-open" id="lightbox-open" data-i18n="image.openTab" target="_blank" rel="noopener">Open in another tab</a>
     </div>
 
     <div class="modal" id="history-modal" hidden>
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="history-title">
         <header class="modal-head">
-          <h2 id="history-title">Conversación</h2>
-          <button class="icon-button" type="button" id="history-close" aria-label="Cerrar">✕</button>
+          <h2 id="history-title" data-i18n="history.title">Conversation</h2>
+          <button class="icon-button" type="button" id="history-close" data-i18n-aria="nav.close" aria-label="Close">✕</button>
         </header>
-        <p class="field-hint">Solo lectura. No continúa esta conversación: el chat la usa como memoria del proyecto.</p>
+        <p class="field-hint" data-i18n="history.hint">Read only. It does not continue this conversation: the chat uses it as project memory.</p>
         <div class="transcript" id="history-body"></div>
       </div>
     </div>
@@ -124,63 +128,64 @@
     <div class="modal" id="settings-modal" hidden>
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <header class="modal-head">
-          <h2 id="settings-title">Ajustes</h2>
-          <button class="icon-button" type="button" id="settings-close" aria-label="Cerrar">✕</button>
+          <h2 id="settings-title" data-i18n="settings.title">Settings</h2>
+          <button class="icon-button" type="button" id="settings-close" data-i18n-aria="nav.close" aria-label="Close">✕</button>
         </header>
         <form id="settings-form" class="settings-form">
           <section>
-            <h3>Modelo (LLM)</h3>
-            <label>Proveedor
+            <h3 data-i18n="settings.model">Model (LLM)</h3>
+            <label><span data-i18n="settings.provider">Provider</span>
               <select id="set-preset"></select>
             </label>
-            <label>URL base
+            <label><span data-i18n="settings.url">Base URL</span>
               <input id="set-base-url" type="url" placeholder="https://…/v1" autocomplete="off" />
             </label>
-            <label>API key
-              <input id="set-api-key" type="password" placeholder="Se guarda en este equipo" autocomplete="off" />
+            <label><span data-i18n="settings.key">API key</span>
+              <input id="set-api-key" type="password" data-i18n-placeholder="settings.keyPlaceholder" placeholder="Stored on this computer" autocomplete="off" />
             </label>
             <p class="field-hint" id="set-api-hint"></p>
-            <label>Modelo
-              <input id="set-model" type="text" placeholder="gemini-2.5-flash" />
+            <label><span data-i18n="settings.modelName">Model</span>
+              <input id="set-model" type="text" data-i18n-placeholder="settings.modelPlaceholder" placeholder="model-name" />
             </label>
-            <label>Modelo revisor (opcional)
-              <input id="set-review-model" type="text" placeholder="Vacío = sin revisor" />
+            <label><span data-i18n="settings.reviewer">Reviewer model (optional)</span>
+              <input id="set-review-model" type="text" data-i18n-placeholder="settings.reviewerPlaceholder" placeholder="Empty = code rules only" />
             </label>
+            <p class="field-hint" data-i18n="settings.reviewerHint">The reviewer uses the same URL and key. Any model from the same provider works; if you leave it empty, the hard rules are enough.</p>
           </section>
 
           <section>
-            <h3>Java (FreeRouting)</h3>
-            <label>Ruta de <code>java</code>
-              <input id="set-java" type="text" placeholder="/ruta/…/bin/java" spellcheck="false" />
+            <h3 data-i18n="settings.java">Java (FreeRouting)</h3>
+            <label><span data-i18n="settings.javaPath">Path to java</span>
+              <input id="set-java" type="text" data-i18n-placeholder="settings.javaPlaceholder" placeholder="/path/…/bin/java" spellcheck="false" />
             </label>
             <div class="row-actions">
-              <button type="button" id="set-java-detect">Detectar Java</button>
+              <button type="button" id="set-java-detect" data-i18n="settings.detect">Detect Java</button>
               <span class="field-hint" id="set-java-status"></span>
             </div>
           </section>
 
           <section>
-            <h3>Autoruteo</h3>
+            <h3 data-i18n="settings.route">Autoroute</h3>
             <label class="check">
               <input id="set-autoroute" type="checkbox" />
-              Permitir que el agente autorutee con FreeRouting
+              <span data-i18n="settings.routeAllow">Let the agent autoroute with FreeRouting</span>
             </label>
             <div id="fab-fields" class="fab-fields" hidden>
-              <p class="field-hint">Valores mínimos de fabricación (mm). Se aplican al candidato antes de rutear.</p>
+              <p class="field-hint" data-i18n="settings.fabHint">Minimum fabrication values (mm). Applied to the candidate before routing.</p>
               <div class="fab-grid">
-                <label>Ancho de pista
+                <label><span data-i18n="settings.track">Track width</span>
                   <input id="fab-track" type="number" min="0.05" step="0.01" />
                 </label>
-                <label>Clearance
+                <label><span data-i18n="settings.clearance">Clearance</span>
                   <input id="fab-clearance" type="number" min="0.05" step="0.01" />
                 </label>
-                <label>Diámetro de vía
+                <label><span data-i18n="settings.viaDia">Via diameter</span>
                   <input id="fab-via-dia" type="number" min="0.1" step="0.01" />
                 </label>
-                <label>Taladro de vía
+                <label><span data-i18n="settings.viaDrill">Via drill</span>
                   <input id="fab-via-drill" type="number" min="0.1" step="0.01" />
                 </label>
-                <label>Agujero mínimo
+                <label><span data-i18n="settings.hole">Minimum hole</span>
                   <input id="fab-hole" type="number" min="0.1" step="0.01" />
                 </label>
               </div>
@@ -190,8 +195,8 @@
           <footer class="modal-foot">
             <p class="field-hint" id="settings-path"></p>
             <div class="row-actions">
-              <button type="button" id="settings-cancel">Cancelar</button>
-              <button type="submit" class="primary">Guardar</button>
+              <button type="button" id="settings-cancel" data-i18n="settings.cancel">Cancel</button>
+              <button type="submit" class="primary" data-i18n="settings.save">Save</button>
             </div>
           </footer>
         </form>
@@ -199,6 +204,7 @@
     </div>
 
     <div class="toasts" id="toasts" aria-live="assertive"></div>
+    <script src="/static/i18n.js" defer></script>
     <script src="/static/app.js" defer></script>
   </body>
 </html>

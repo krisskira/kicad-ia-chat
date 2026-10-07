@@ -115,6 +115,20 @@ def test_api_settings_roundtrip(tmp_path, monkeypatch):
     assert status["autoroute_enabled"] is True
 
 
+def test_presets_are_openai_compatible_and_review_is_optional():
+    """Los presets solo rellenan URL y modelo. Ninguno exige revisor ni un SDK propio."""
+    from kicad_ia.user_prefs import LLM_PRESETS
+
+    ids = {row["id"] for row in LLM_PRESETS}
+    assert ids == {"gemini", "ollama", "openai", "custom"}
+    for row in LLM_PRESETS:
+        assert row["llm_review_model"] == ""
+        if row["id"] != "custom":
+            assert row["llm_base_url"].rstrip("/").endswith("/openai") or row["llm_base_url"].rstrip("/").endswith("/v1")
+        assert "needs_key" in row
+        assert "key_hint" in row
+
+
 def test_registry_excludes_autoroute():
     registry = build_registry()
     names = registry.names(exclude={"autoroute_board"})

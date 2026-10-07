@@ -38,7 +38,7 @@ class TokenMeter:
 
     def add(self, usage) -> None:
         """Suma el `usage` de una respuesta. Si viene vacío o en cero, no cuenta."""
-        prompt, completion, reported = parse_usage({"usage": usage} if isinstance(usage, dict) else {})
+        prompt, completion, reported, _cached = parse_usage_detail({"usage": usage} if isinstance(usage, dict) else {})
         with self._lock:
             self._calls += 1
             if not reported:
@@ -83,14 +83,15 @@ def _first_int(data: dict, *keys: str) -> int:
 
 
 def parse_usage(body: dict) -> tuple[int, int, bool]:
-    """Lee el consumo venga como lo mande el proveedor.
+    """Lee el consumo venga como lo mande el proveedor. Compatible con el API antiguo."""
+    prompt, completion, reported, _cached = parse_usage_detail(body)
+    return prompt, completion, reported
 
-    OpenAI usa prompt_tokens / completion_tokens. Gemini a veces manda
-    usageMetadata con promptTokenCount, y a veces un usage con todo a cero:
-    ese cero no es un dato, es ausencia.
-    """
+
+def parse_usage_detail(body: dict) -> tuple[int, int, bool, int]:
+    """Devuelve prompt, completion, reported y tokens de entrada en caché."""
     if not isinstance(body, dict):
-        return 0, 0, False
+        return 0, 0, False, 0
     usage = body.get("usage") if isinstance(body.get("usage"), dict) else {}
     meta = body.get("usageMetadata") or body.get("usage_metadata") or {}
     if not isinstance(meta, dict):
@@ -101,12 +102,16 @@ def parse_usage(body: dict) -> tuple[int, int, bool]:
     completion = _first_int(
         usage, "completion_tokens", "output_tokens", "candidatesTokenCount", "completionTokenCount"
     ) or _first_int(meta, "candidatesTokenCount", "candidates_token_count", "completionTokenCount")
+    details = usage.get("prompt_tokens_details") if isinstance(usage.get("prompt_tokens_details"), dict) else {}
+    cached = _first_int(details, "cached_tokens", "cachedTokenCount") or _first_int(
+        meta, "cachedContentTokenCount", "cached_content_token_count"
+    )
     if prompt or completion:
-        return prompt, completion, True
+        return prompt, completion, True, cached
     total = _first_int(usage, "total_tokens", "totalTokenCount") or _first_int(meta, "totalTokenCount", "total_token_count")
     if total:
-        return total, 0, True
-    return 0, 0, False
+        return total, 0, True, cached
+    return 0, 0, False, 0
 
 
 def rough_tokens(value) -> int:
@@ -127,6 +132,30 @@ def retry_delay(response: httpx.Response) -> float | None:
 
 
 @dataclass
+class CallUsage:
+    prompt: int = 0
+    completion: int = 0
+    total: int = 0
+    cached: int = 0
+    reported: bool = False
+    estimated: bool = False
+    model: str = ""
+    role: str = "main"
+
+    def as_dict(self) -> dict:
+        return {
+            "prompt": self.prompt,
+            "completion": self.completion,
+            "total": self.total or (self.prompt + self.completion),
+            "cached": self.cached,
+            "reported": self.reported,
+            "estimated": self.estimated,
+            "model": self.model,
+            "role": self.role,
+        }
+
+
+@dataclass
 class ToolCall:
     id: str
     name: str
@@ -138,6 +167,7 @@ class ToolCall:
 class LlmReply:
     content: str
     tool_calls: list[ToolCall] = field(default_factory=list)
+    usage: CallUsage | None = None
 
     def as_message(self) -> dict:
         message: dict = {"role": "assistant", "content": self.content or ""}
@@ -158,9 +188,10 @@ class LlmReply:
 
 
 class OpenAiCompatibleClient:
-    def __init__(self, settings: Settings, model: str = "") -> None:
+    def __init__(self, settings: Settings, model: str = "", role: str = "main") -> None:
         self._settings = settings
         self._model = model or settings.llm_model
+        self.role = role
 
     def complete(self, messages: list[dict], tools: list[dict], system: str) -> LlmReply:
         payload = {
@@ -204,13 +235,30 @@ class OpenAiCompatibleClient:
 
         body = response.json()
         message = body["choices"][0]["message"]
-        prompt, completion, reported = parse_usage(body)
+        prompt, completion, reported, cached = parse_usage_detail(body)
         if reported:
             USAGE.add({"prompt_tokens": prompt, "completion_tokens": completion})
+            usage = CallUsage(
+                prompt=prompt,
+                completion=completion,
+                total=prompt + completion,
+                cached=cached,
+                reported=True,
+                model=self._model,
+                role=self.role,
+            )
         else:
             outgoing = rough_tokens([{"role": "system", "content": system}, *messages])
             incoming = rough_tokens(message.get("content") or "") + rough_tokens(message.get("tool_calls") or "")
             USAGE.add_estimate(outgoing, incoming)
+            usage = CallUsage(
+                prompt=outgoing,
+                completion=incoming,
+                total=outgoing + incoming,
+                estimated=True,
+                model=self._model,
+                role=self.role,
+            )
         calls = []
         for call in message.get("tool_calls") or []:
             raw = call.get("function", {}).get("arguments") or "{}"
@@ -226,19 +274,23 @@ class OpenAiCompatibleClient:
                     extra={key: value for key, value in call.items() if key not in ("id", "type", "function", "index")},
                 )
             )
-        return LlmReply(content=message.get("content") or "", tool_calls=calls)
+        return LlmReply(content=message.get("content") or "", tool_calls=calls, usage=usage)
 
 
 class ScriptedClient:
     """Cliente fijo para pruebas del bucle de herramientas."""
 
-    def __init__(self, replies: list[LlmReply]) -> None:
+    def __init__(self, replies: list[LlmReply], role: str = "main") -> None:
         self._replies = list(replies)
         self.seen: list[list[dict]] = []
+        self.role = role
 
     def complete(self, messages: list[dict], tools: list[dict], system: str) -> LlmReply:
         del tools, system
         self.seen.append(messages)
         if not self._replies:
-            return LlmReply(content="Sin más respuestas de prueba.")
-        return self._replies.pop(0)
+            return LlmReply(content="Sin más respuestas de prueba.", usage=CallUsage(role=self.role, estimated=True))
+        reply = self._replies.pop(0)
+        if reply.usage is None:
+            reply.usage = CallUsage(role=self.role, estimated=True, model="scripted")
+        return reply

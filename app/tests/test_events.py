@@ -1,3 +1,4 @@
+import threading
 import time
 
 from fastapi.testclient import TestClient
@@ -101,5 +102,65 @@ def test_websocket_rejects_a_second_message_while_busy():
         ws.receive_json()
         ws.send_json({"type": "chat.send", "text": "uno"})
         ws.send_json({"type": "chat.send", "text": "dos"})
-        assert "anterior" in _receive_until(ws, "error")["error"]
+        error = _receive_until(ws, "error")["error"]
+        assert "previous message" in error or "mensaje anterior" in error
         assert _receive_until(ws, "turn.finished")["reply"] == "ok"
+
+
+def test_chat_service_cancel_stops_turn():
+    from kicad_ia.events import TURN_FINISHED
+    from kicad_ia.services.chat import ChatService
+    from kicad_ia.tools.registry import build_registry
+
+    settings = Settings(kicad_mode="fake", llm_base_url="http://llm", llm_model="test")
+    bus = EventBus()
+    seen: list = []
+    bus.subscribe(seen.append)
+    entered = threading.Event()
+    release = threading.Event()
+
+    class Slow:
+        def complete(self, *_args):
+            entered.set()
+            release.wait(2.0)
+            return LlmReply(content="llegó tarde", tool_calls=[])
+
+    chat = ChatService(settings, FakeGateway(), build_registry(), Slow(), bus)
+    session_id = chat.session_id(None)
+    assert chat.submit(session_id, "uno", "es")
+    assert entered.wait(2.0)
+    assert chat.cancel(session_id) is True
+    release.set()
+    for _ in range(40):
+        if any(event.type == TURN_FINISHED for event in seen):
+            break
+        time.sleep(0.05)
+    finished = [event for event in seen if event.type == TURN_FINISHED][-1]
+    assert finished.data.get("cancelled") is True
+    assert "Paré" in finished.data["reply"]
+    assert chat.busy(session_id) is False
+
+
+def test_websocket_accepts_chat_cancel():
+    settings = Settings(kicad_mode="fake", llm_base_url="http://llm", llm_model="test")
+    entered = threading.Event()
+    release = threading.Event()
+
+    class Slow:
+        def complete(self, *_args):
+            entered.set()
+            release.wait(2.0)
+            return LlmReply(content="llegó tarde", tool_calls=[])
+
+    app = create_app(settings, FakeGateway(), client=Slow())
+    with TestClient(app) as http, http.websocket_connect("/ws") as ws:
+        ws.receive_json()
+        ws.send_json({"type": "chat.send", "text": "uno", "lang": "es"})
+        assert _receive_until(ws, "turn.started")
+        assert entered.wait(2.0)
+        ws.send_json({"type": "chat.cancel"})
+        time.sleep(0.05)
+        release.set()
+        done = _receive_until(ws, "turn.finished")
+        assert done.get("cancelled") is True
+        assert "Paré" in done["reply"]

@@ -30,6 +30,8 @@ export function Footer() {
   const footer = site.footer ?? {};
   const columns = footer.columns ?? [];
   const logo = footer.logo || site.logo;
+  const logoHref = footer.logoHref || '#top';
+  const logoExternal = isExternal(logoHref);
   const developer = site.author?.name && site.author.name !== footer.rights ? site.author : null;
   const year = new Date().getFullYear();
 
@@ -41,7 +43,13 @@ export function Footer() {
       />
       <div className={`${wrap} relative grid gap-12 py-16 md:grid-cols-2 ${GRID_COLUMNS[Math.min(columns.length, 3)]} lg:py-20`}>
         <div className="max-w-[420px]">
-          <a href="https://kriverdevice.krisskira.com" target="_blank" rel="noopener noreferrer" title="Kriver Device" className={`inline-flex items-center gap-3 rounded-md ${focusRing}`}>
+          <a
+            href={logoHref}
+            target={logoExternal ? '_blank' : undefined}
+            rel={logoExternal ? 'noopener noreferrer' : undefined}
+            title={footer.logoTitle}
+            className={`inline-flex items-center gap-3 rounded-md ${focusRing}`}
+          >
             {logo ? (
               <img
                 src={asset(logo)}

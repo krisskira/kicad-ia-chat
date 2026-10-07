@@ -24,14 +24,18 @@ DEFAULT_FAB = {
     "min_hole_mm": 0.3,
 }
 
+# Solo rellenan el formulario. El chat habla siempre con /chat/completions
+# compatible con OpenAI (Gemini, Ollama, OpenAI o cualquier proxy).
 LLM_PRESETS = [
     {
         "id": "gemini",
         "label": "Google Gemini",
         "llm_base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "llm_model": "gemini-2.5-flash",
-        "llm_review_model": "gemini-2.5-flash",
+        "llm_review_model": "",
+        "model_placeholder": "gemini-2.5-flash",
         "needs_key": True,
+        "key_hint": "Este proveedor pide API key.",
     },
     {
         "id": "ollama",
@@ -39,7 +43,9 @@ LLM_PRESETS = [
         "llm_base_url": "http://127.0.0.1:11434/v1",
         "llm_model": "qwen2.5-coder",
         "llm_review_model": "",
+        "model_placeholder": "qwen2.5-coder",
         "needs_key": False,
+        "key_hint": "Ollama no necesita API key.",
     },
     {
         "id": "openai",
@@ -47,7 +53,9 @@ LLM_PRESETS = [
         "llm_base_url": "https://api.openai.com/v1",
         "llm_model": "gpt-4o-mini",
         "llm_review_model": "",
+        "model_placeholder": "gpt-4o-mini",
         "needs_key": True,
+        "key_hint": "Este proveedor pide API key.",
     },
     {
         "id": "custom",
@@ -55,7 +63,9 @@ LLM_PRESETS = [
         "llm_base_url": "",
         "llm_model": "",
         "llm_review_model": "",
+        "model_placeholder": "nombre-del-modelo",
         "needs_key": True,
+        "key_hint": "Si el servidor lo exige, pon la API key. Si no, déjala vacía.",
     },
 ]
 

@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from kicad_ia.agent.llm import OpenAiCompatibleClient
 from kicad_ia.config import Settings
 from kicad_ia.events import EventBus
+from kicad_ia.i18n import normalize_lang, tr
 from kicad_ia.kicad.freerouting import probe_java
 from kicad_ia.kicad.gateway import Gateway
 from kicad_ia.kicad.render import renders_dir
@@ -43,6 +44,7 @@ log = logging.getLogger(__name__)
 class ChatIn(BaseModel):
     message: str = Field(max_length=MAX_MESSAGE)
     session_id: str | None = None
+    lang: str | None = None
 
 
 class SettingsIn(BaseModel):
@@ -65,7 +67,7 @@ def _excluded_tools(settings: Settings) -> set[str]:
 
 
 def _refresh_llm(settings: Settings, chat: ChatService) -> None:
-    client = OpenAiCompatibleClient(settings) if settings.llm_ready else None
+    client = OpenAiCompatibleClient(settings, role="main") if settings.llm_ready else None
     chat.apply_runtime(settings, client)
 
 
@@ -93,7 +95,7 @@ def create_app(
     shared = SerializedGateway(gateway or open_gateway(settings))
     registry = registry or build_registry()
     if client is None and settings.llm_ready:
-        client = OpenAiCompatibleClient(settings)
+        client = OpenAiCompatibleClient(settings, role="main")
     bus = EventBus()
     hub = Hub(bus)
     watcher = KicadWatcher(settings, shared, bus, settings.watch_interval, connector)
@@ -194,13 +196,14 @@ def create_app(
 
     @app.post("/api/chat")
     def chat_once(body: ChatIn) -> dict:
-        return chat.run_sync(body.session_id, body.message)
+        return chat.run_sync(body.session_id, body.message, lang=normalize_lang(body.lang))
 
     @app.websocket("/ws")
     async def socket(ws: WebSocket) -> None:
         await ws.accept()
         session_id = chat.session_id(ws.query_params.get("session"))
         client = hub.connect(session_id)
+        client.lang = normalize_lang(ws.query_params.get("lang"))
         try:
             await ws.send_json(await _hello(session_id))
             sender = asyncio.create_task(_pump(ws, client.queue))
@@ -238,12 +241,15 @@ def create_app(
         kind = message.get("type") if isinstance(message, dict) else None
         if kind == "ping":
             return {"type": "pong"}
+        if kind == "ui.lang":
+            client.lang = normalize_lang(message.get("lang"))
+            return None
         if kind == "status.refresh":
             watcher.poke(force=True)
             return None
         if kind == "session.reset" or kind == "session.bind":
             if kind == "session.bind" and chat.busy(client.session_id):
-                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
+                return {"type": "error", "error": tr(client.lang, "busy")}
             fresh = chat.session_id(None)
             hub.move(client, fresh)
             opened = await _hello(fresh)
@@ -257,13 +263,13 @@ def create_app(
             return listing
         if kind == "session.preview" or kind == "session.open":
             wanted = str(message.get("session_id") or "")
-            preview = chat.preview(wanted)
+            preview = chat.preview(wanted, client.lang)
             if preview is None:
-                return {"type": "error", "error": "No encuentro esa conversación en este proyecto."}
+                return {"type": "error", "error": tr(client.lang, "unknown_session")}
             return {"type": "session.preview", **preview}
         if kind == "session.delete":
             if chat.busy(client.session_id):
-                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
+                return {"type": "error", "error": tr(client.lang, "busy")}
             wanted = str(message.get("session_id") or "")
             chat.forget(wanted)
             if client.session_id == wanted:
@@ -275,12 +281,18 @@ def create_app(
             return listing
         if kind == "chat.send":
             text = str(message.get("text") or "").strip()[:MAX_MESSAGE]
+            if message.get("lang"):
+                client.lang = normalize_lang(message.get("lang"))
             if not text:
-                return {"type": "error", "error": "El mensaje está vacío."}
-            if chat.submit(client.session_id, text) is None:
-                return {"type": "error", "error": "Todavía estoy con el mensaje anterior. Espera a que termine."}
+                return {"type": "error", "error": tr(client.lang, "empty_message")}
+            if chat.submit(client.session_id, text, client.lang) is None:
+                return {"type": "error", "error": tr(client.lang, "busy")}
             return None
-        return {"type": "error", "error": f"Mensaje desconocido: {kind}"}
+        if kind == "chat.cancel":
+            if not chat.cancel(client.session_id):
+                return {"type": "error", "error": tr(client.lang, "nothing_to_cancel")}
+            return None
+        return {"type": "error", "error": tr(client.lang, "unknown_message", kind=kind)}
 
     @app.get("/")
     def index() -> FileResponse:

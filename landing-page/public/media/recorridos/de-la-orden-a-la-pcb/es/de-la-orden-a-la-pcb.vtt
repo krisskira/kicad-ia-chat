@@ -1,0 +1,141 @@
+WEBVTT
+
+1
+00:00:00.700 --> 00:00:04.533
+Abre tu proyecto en KiCad 10 y entra al editor de PCB.
+
+2
+00:00:04.533 --> 00:00:08.367
+En la barra de herramientas está el botón de KiCad IA.
+
+3
+00:00:08.367 --> 00:00:12.342
+Al pulsarlo, el plugin arranca su servidor en tu equipo.
+
+4
+00:00:13.942 --> 00:00:17.794
+El chat se abre en tu navegador, en una dirección local.
+
+5
+00:00:17.794 --> 00:00:23.090
+Arriba ves si KiCad responde, qué modelo está activo y cuántos tokens llevas.
+
+6
+00:00:23.090 --> 00:00:26.803
+A la izquierda, el proyecto abierto y sus bibliotecas.
+
+7
+00:00:28.403 --> 00:00:31.020
+Describe el circuito con tus palabras.
+
+8
+00:00:31.020 --> 00:00:36.323
+Por ejemplo: un LED con su resistencia, alimentado a cinco voltios por USB-C.
+
+9
+00:00:36.323 --> 00:00:41.970
+El chat fija primero lo que pediste y busca cada pieza en tus propias bibliotecas.
+
+10
+00:00:41.970 --> 00:00:45.688
+Cada herramienta aparece en pantalla mientras trabaja.
+
+11
+00:00:47.288 --> 00:00:50.716
+Si falta un dato, pregunta en lugar de inventarlo.
+
+12
+00:00:50.716 --> 00:00:53.870
+Aquí, la resistencia y el LED no traen huella,
+
+13
+00:00:53.870 --> 00:00:57.160
+así que te ofrece los encapsulados que encontró.
+
+14
+00:00:57.160 --> 00:01:02.507
+También propone dos resistencias de cinco coma un kiloohmios en las líneas CC,
+
+15
+00:01:02.507 --> 00:01:04.015
+y espera tu respuesta.
+
+16
+00:01:05.615 --> 00:01:08.212
+Con tu respuesta escribe el esquemático,
+
+17
+00:01:08.212 --> 00:01:11.652
+guarda una copia de seguridad y lo valida con el ERC.
+
+18
+00:01:11.652 --> 00:01:15.871
+Para escribir, el editor de esquemáticos tiene que estar cerrado.
+
+19
+00:01:15.871 --> 00:01:19.636
+Después te dice el siguiente paso y el tamaño de la placa.
+
+20
+00:01:21.236 --> 00:01:27.755
+En el editor de PCB, abre Herramientas y elige Actualizar PCB desde el esquemático,
+
+21
+00:01:27.755 --> 00:01:28.619
+o pulsa F8.
+
+22
+00:01:28.619 --> 00:01:33.724
+Este paso es tuyo: el plugin no importa la netlist por su cuenta.
+
+23
+00:01:33.724 --> 00:01:37.337
+Las huellas llegan juntas, fuera del contorno.
+
+24
+00:01:38.937 --> 00:01:40.289
+Pide la colocación.
+
+25
+00:01:40.289 --> 00:01:47.121
+El plugin calcula una propuesta con un prechequeo IPC Clase 2 y te la enseña sin tocar la placa.
+
+26
+00:01:47.121 --> 00:01:50.893
+Si configuraste un modelo revisor, también la revisa.
+
+27
+00:01:50.893 --> 00:01:53.170
+Solo se aplica cuando confirmas.
+
+28
+00:01:54.770 --> 00:01:58.077
+Con las huellas en su sitio, pide el autoruteo.
+
+29
+00:01:58.077 --> 00:02:01.453
+FreeRouting trabaja sobre una copia de la placa.
+
+30
+00:02:01.453 --> 00:02:06.096
+El plugin pasa el DRC y te enseña el candidato antes de aplicarlo.
+
+31
+00:02:06.096 --> 00:02:09.824
+En esta placa: cero errores y ninguna red sin rutear.
+
+32
+00:02:11.424 --> 00:02:15.491
+Confirmas, y el cobre pasa a la placa abierta en KiCad.
+
+33
+00:02:15.491 --> 00:02:19.187
+Si quieres, pídele una vista en 3D para revisarla.
+
+34
+00:02:20.787 --> 00:02:24.628
+De vuelta en KiCad, la placa ya está colocada y ruteada.
+
+35
+00:02:24.628 --> 00:02:29.155
+Revísala, guárdala y sigue con tu flujo de fabricación de siempre.

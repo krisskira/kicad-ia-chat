@@ -1,0 +1,97 @@
+WEBVTT
+
+1
+00:00:00.700 --> 00:00:02.925
+The first time, the chat has no model.
+
+2
+00:00:02.925 --> 00:00:06.673
+The indicator shows it in red and you can only check the status.
+
+3
+00:00:06.673 --> 00:00:08.839
+Open the settings with the gear icon.
+
+4
+00:00:10.439 --> 00:00:15.913
+In the Model block, choose the provider: Google Gemini, local Ollama, OpenAI,
+
+5
+00:00:15.913 --> 00:00:18.259
+or any OpenAI-compatible address.
+
+6
+00:00:18.259 --> 00:00:20.676
+Picking one fills in the base URL.
+
+7
+00:00:22.276 --> 00:00:23.410
+Paste the API key.
+
+8
+00:00:23.410 --> 00:00:27.188
+It is stored only on this computer, in your settings folder,
+
+9
+00:00:27.188 --> 00:00:28.952
+and never in the repository.
+
+10
+00:00:28.952 --> 00:00:30.841
+With Ollama it can stay empty.
+
+11
+00:00:32.441 --> 00:00:35.945
+Enter the model that runs the conversation and builds the design.
+
+12
+00:00:35.945 --> 00:00:37.616
+The reviewer model is optional:
+
+13
+00:00:37.616 --> 00:00:42.359
+it reads each circuit before it is written and each board proposal before it is applied.
+
+14
+00:00:42.359 --> 00:00:45.000
+Leave it empty to work without that second check.
+
+15
+00:00:46.600 --> 00:00:50.613
+Autorouting uses FreeRouting, which needs Java 17 or later.
+
+16
+00:00:50.613 --> 00:00:53.673
+Press Detect Java, or type the path yourself.
+
+17
+00:00:55.273 --> 00:01:00.269
+Turn autorouting on and set the fabrication minimums in millimetres: track width,
+
+18
+00:01:00.269 --> 00:01:03.476
+clearance, via diameter and drill, and minimum hole.
+
+19
+00:01:03.476 --> 00:01:06.128
+While it is off, the tool does not show up.
+
+20
+00:01:07.728 --> 00:01:08.063
+Save.
+
+21
+00:01:08.063 --> 00:01:13.013
+The settings stay on your computer and take precedence over any .env file.
+
+22
+00:01:14.613 --> 00:01:18.722
+The model indicator turns green and the project shows autorouting as active.
+
+23
+00:01:18.722 --> 00:01:21.317
+Autoroute now appears in the quick actions menu.
+
+24
+00:01:21.317 --> 00:01:23.750
+You are ready to describe your first circuit.

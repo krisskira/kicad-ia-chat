@@ -51,6 +51,8 @@ sequenceDiagram
     C-->>U: turn.finished
 ```
 
+El idioma de la interfaz viaja con el mensaje (`en` por defecto, `es` si el usuario pulsa ES en la barra). El orquestador responde en ese idioma. Las instrucciones del sistema siguen en español.
+
 `Session.memory` (`DesignMemory`) dura toda la conversación. `run_turn` la fija
 en un `ContextVar` para que las herramientas del registro, que solo reciben
 `gateway` y `args`, lean la memoria de esa sesión. Fuera del chat (MCP) hay una
@@ -200,45 +202,15 @@ flowchart TD
     Q -- sí --> REV[CircuitReviewer] --> W[escritura + ERC]
 ```
 
-El revisor de circuito corre en `loop._call_tool` antes del registro; el
-guardia de intención corre dentro del handler del registro, así que MCP
-también lo cumple.
+En el chat, `loop._call_tool` corre `guard_place`, luego las reglas duras y el
+revisor opcional, y después el registro (que vuelve a llamar a `guard_place`
+para MCP).
 
-## Esquemático → placa
+## Paso a la placa
 
-```mermaid
-flowchart LR
-    W[place_circuit escrito] --> SB[sync_board: ERC + netlist]
-    SB --> F8[Usuario: F8 en el editor de PCB]
-    SB --> BA[board_area]
-    BA -->|hay Edge.Cuts| OK[medidas del contorno]
-    BA -->|sin contorno, hay huellas| PR[rectángulo: caja de huellas + 5 mm]
-    BA -->|sin contorno ni huellas| AS[no elegir a ojo; volver a medir tras F8]
-    F8 --> BS[board_state: board_area con huellas]
-```
+El camino, con los diagramas, está en [placa.md](placa.md): quién decide, la vista previa, el revisor y el autoruteo.
 
-`sync_board`, `board_state` e `ipc_place_components` devuelven
-`board_area.must_tell_user`. El modelo copia ese texto en la respuesta: nunca
-deja al usuario adivinar el tamaño de la placa. El cálculo está en
-`kicad/board_area.py`.
-
-## Placa: colocación, ruteo y vuelta a selección
-
-```mermaid
-flowchart TD
-    IP[ipc_place_components apply=false] --> PR1[PcbReviewer]
-    PR1 -->|rechaza| X1[no se aplica]
-    PR1 -->|ok| U1{¿usuario confirma?}
-    U1 -->|sí| AP1[apply=true + candidate_id]
-    AP1 --> AR[autoroute_board apply=false]
-    AR --> DRC[DRC + score frente a la placa actual]
-    DRC --> PR2[PcbReviewer: solo errores nuevos bloquean]
-    PR2 -->|ok| U2{¿usuario confirma?}
-    U2 -->|sí| AP2[apply=true + candidate_id]
-    DRC -->|la huella no cabe o no cumple clearance| SC[select_component con stage y footprint nuevo]
-    SC --> CS[change_set: requires_revalidation]
-    CS --> W[place_circuit + F8 + volver a validar]
-```
+`sync_board`, `board_state` e `ipc_place_components` devuelven `board_area.must_tell_user`. El modelo copia ese texto. El cálculo está en `kicad/board_area.py`.
 
 ## No regenerar lo que ya está
 
@@ -252,7 +224,7 @@ flowchart TD
 
 Cada turno con texto del usuario se guarda en `sessions/` dentro del directorio de ajustes, marcado con la carpeta del proyecto abierto. La barra solo lista ese proyecto. Abrir una sesión enseña el texto y no la continúa: el modelo recibe un resumen de las demás sesiones del mismo proyecto y no puede usarlo para deshacer trabajo. El botón ＋ de esa lista empieza otra sesión. El ＋ del campo de texto abre las acciones rápidas.
 
-## Tokens
+## Tokens y coste del bucle
 
 `OpenAiCompatibleClient` suma el consumo en `llm.USAGE` (`TokenMeter`): modelo
 principal y revisores, desde que arrancó el chat. Acepta `usage` de OpenAI y
@@ -261,11 +233,39 @@ ese caso se estima por el tamaño del texto (unos 4 caracteres por token) y la
 cabecera lo marca con `~`. El bucle publica `llm.usage` tras cada ronda y el
 turno terminado también trae el total, para que la cabecera no se quede en 0.
 
+Cada llamada deja una entrada en `session.usage_log` (prompt, completion, caché,
+modelo, rol `main` o `review`). Al empezar un turno nuevo,
+`compact_closed_turns` acorta los resultados `tool` del historial cerrado. En el
+mismo mensaje, la misma herramienta con los mismos argumentos no se reejecuta
+(salvo tras un rechazo). Medición y por qué no migrar a LangChain/Genkit:
+[agente-coste.md](agente-coste.md).
+
+## Revisor eléctrico
+
+Antes de escribir, `place_circuit` pasa por:
+
+1. `guard_place` (contrato, selección, huella).
+2. Reglas duras en código (`_hard_block`: pines inexistentes, `power_in` suelto,
+   EN de ESP32 sin pull-up, IO35–37 en S3 R8, enable de regulador a la salida).
+3. Modelo revisor opcional (`LLM_REVIEW_MODEL`), solo si las reglas duras pasan.
+
+Sin modelo revisor, bastan las reglas duras. El registry vuelve a llamar a
+`guard_place` (también por MCP).
+
+## Etapas del esquemático
+
+`organize_layout` usa `plan_stages` (`kicad/layout.py`): agrupa pasivos con su
+ancla, marca ambigüedades, propone nombres conservadores (Alimentación,
+Microcontrolador, Conectores…) y solo dibuja recuadros si hay ≥2 etapas
+elegibles sin ambigüedad crítica. Con `apply=false` devuelve el plan sin
+escribir. Aplicar rehace la hoja (queda copia).
+
 ## Qué falta de la arquitectura objetivo
 
 Lo siguiente está diseñado pero no implementado:
 
-- Agentes de arquitectura y de etapas funcionales separados del orquestador.
+- Agentes de arquitectura separados del orquestador (las etapas del esquemático
+  ya son deterministas vía `plan_stages`, no un segundo LLM).
 - Análisis de impacto automático (redes, huellas, ruteo) antes de una sustitución.
 - Detección de deriva de intención comparando el contrato con el estado del diseño.
 - Validación final de `acceptance` contra el esquemático y la placa.

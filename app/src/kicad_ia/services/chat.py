@@ -12,6 +12,7 @@ from kicad_ia.agent.dispatch import ChatBook, dispatch
 from kicad_ia.agent.llm import USAGE
 from kicad_ia.agent.sessions import SessionStore
 from kicad_ia.config import Settings
+from kicad_ia.i18n import normalize_lang, tr
 from kicad_ia.events import SESSIONS, TURN_FAILED, TURN_FINISHED, TURN_STARTED, Event, EventBus
 from kicad_ia.tools.registry import ToolRegistry
 
@@ -41,6 +42,7 @@ class ChatService:
             book.store = self._store
         self._on_turn_end = on_turn_end
         self._busy: set[str] = set()
+        self._cancel: dict[str, threading.Event] = {}
         self._project = ""
         self._lock = threading.Lock()
         self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="chat-turn")
@@ -80,7 +82,16 @@ class ChatService:
         with self._lock:
             return session_id in self._busy
 
-    def submit(self, session_id: str, text: str) -> str | None:
+    def cancel(self, session_id: str) -> bool:
+        """Pide parar el turno en marcha. Tiene efecto al acabar la ronda/herramienta actual."""
+        with self._lock:
+            flag = self._cancel.get(session_id)
+            if flag is None or session_id not in self._busy:
+                return False
+            flag.set()
+            return True
+
+    def submit(self, session_id: str, text: str, lang: str = "en") -> str | None:
         """Devuelve el id del turno, o None si la sesión ya tiene uno en marcha."""
         session = self.book.session(session_id)
         self._stamp(session)
@@ -88,9 +99,10 @@ class ChatService:
             if session.id in self._busy:
                 return None
             self._busy.add(session.id)
+            self._cancel[session.id] = threading.Event()
         turn_id = uuid.uuid4().hex[:12]
         self._bus.publish(Event(TURN_STARTED, {"session_id": session.id, "turn_id": turn_id, "text": text}, target=session.id))
-        self._executor.submit(self._run, session, turn_id, text)
+        self._executor.submit(self._run, session, turn_id, text, normalize_lang(lang))
         return turn_id
 
     def apply_runtime(self, settings: Settings, client) -> None:
@@ -104,14 +116,18 @@ class ChatService:
             return []
         return self._store.summaries(self.project_key())
 
-    def preview(self, session_id: str) -> dict | None:
+    def preview(self, session_id: str, lang: str = "en") -> dict | None:
         found = self.book.find(session_id)
         if found is None:
             return None
         project = self.project_key()
         if project and found.project and found.project != project:
             return None
-        return {"session_id": found.id, "title": found.title or "Conversación", "history": self.history(found.id)}
+        return {
+            "session_id": found.id,
+            "title": found.title or tr(lang, "conversation"),
+            "history": self.history(found.id),
+        }
 
     def forget(self, session_id: str) -> bool:
         found = self.book.find(session_id)
@@ -121,10 +137,12 @@ class ChatService:
         self.book.sessions.pop(session_id, None)
         return self._store.delete(session_id) if self._store is not None else False
 
-    def run_sync(self, session_id: str | None, text: str) -> dict:
+    def run_sync(self, session_id: str | None, text: str, lang: str = "en") -> dict:
         session = self.book.session(session_id)
         self._stamp(session)
-        payload = dispatch(text, session, self._settings, self._gateway, self._registry, self._client, prior=self._prior(session))
+        payload = dispatch(
+            text, session, self._settings, self._gateway, self._registry, self._client, prior=self._prior(session), lang=lang
+        )
         self._remember(session)
         return payload
 
@@ -157,29 +175,46 @@ class ChatService:
     def shutdown(self) -> None:
         self._executor.shutdown(wait=False, cancel_futures=True)
 
-    def _run(self, session, turn_id: str, text: str) -> None:
+    def _run(self, session, turn_id: str, text: str, lang: str = "en") -> None:
         base = {"session_id": session.id, "turn_id": turn_id}
 
         def emit(kind: str, data: dict) -> None:
             self._bus.publish(Event(kind, {**base, **data}, target=session.id))
 
+        def cancelled() -> bool:
+            with self._lock:
+                flag = self._cancel.get(session.id)
+            return bool(flag and flag.is_set())
+
         try:
             payload = dispatch(
-                text, session, self._settings, self._gateway, self._registry, self._client, emit, prior=self._prior(session)
+                text,
+                session,
+                self._settings,
+                self._gateway,
+                self._registry,
+                self._client,
+                emit,
+                prior=self._prior(session),
+                lang=lang,
+                cancelled=cancelled,
             )
             self._remember(session)
-            self._bus.publish(
-                Event(
-                    TURN_FINISHED,
-                    {**base, "reply": payload["reply"], "steps": payload["steps"], "tokens": USAGE.snapshot()},
-                    target=session.id,
-                )
-            )
+            finished = {
+                **base,
+                "reply": payload["reply"],
+                "steps": payload["steps"],
+                "tokens": USAGE.snapshot(),
+            }
+            if payload.get("cancelled"):
+                finished["cancelled"] = True
+            self._bus.publish(Event(TURN_FINISHED, finished, target=session.id))
         except Exception as exc:
             log.exception("Falló un turno de chat")
             self._bus.publish(Event(TURN_FAILED, {**base, "error": str(exc)}, target=session.id))
         finally:
             with self._lock:
                 self._busy.discard(session.id)
+                self._cancel.pop(session.id, None)
             if self._on_turn_end is not None:
                 self._on_turn_end()

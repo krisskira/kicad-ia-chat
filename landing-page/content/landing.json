@@ -2,59 +2,141 @@
   "sections": [
     {
       "type": "hero",
-      "badge": "Plugin con IA para KiCad 10",
-      "title": "De la idea a la PCB,",
-      "highlight": "con la IA dentro de KiCad",
-      "lead": "KiCad IA lleva la inteligencia artificial a tu mesa de diseño. Cuentas el circuito en un chat y arma el esquemático con tus propias bibliotecas, cada pieza con su huella. Luego lo organiza en la placa, propone la colocación y la autorutea con revisión DRC. Tú confirmas cada paso: menos horas dibujando y más tiempo para afinar el prototipo hasta dejarlo listo para fabricar.",
+      "badge": "Gratis y de código abierto · KiCad 10",
+      "title": "Diseña tu PCB en KiCad más rápido",
+      "highlight": "con inteligencia artificial",
+      "lead": "Solo describe en pocas palabras lo que necesitas. KiCad IA arma el esquemático con las piezas de tus bibliotecas, ordena la placa y te propone cómo colocar y rutear los componentes.",
       "actions": [
-        { "label": "Instalar gratis", "href": "#instalar" },
-        { "label": "Código", "href": "https://github.com/krisskira/kicad-ia-chat", "icon": "github", "variant": "secondary" }
+        {
+          "label": "Instalar gratis",
+          "href": "#instalar"
+        },
+        {
+          "label": "Ver cómo funciona",
+          "href": "#recorrido",
+          "icon": "play",
+          "variant": "secondary"
+        }
+      ],
+      "more": [
+        {
+          "label": "GitHub",
+          "href": "https://github.com/krisskira/kicad-ia-chat",
+          "icon": "github",
+          "iconOnly": true,
+          "variant": "secondary"
+        },
+        {
+          "label": "Invítame un café",
+          "href": "https://paypal.me/KRIVERDEVICE?locale.x=es_XC&country.x=CO",
+          "icon": "coffee",
+          "iconOnly": true,
+          "variant": "secondary"
+        }
       ],
       "media": {
-        "src": "media/chat-inicio.png",
+        "src": {
+          "es": "media/es/chat-inicio.png",
+          "en": "media/en/chat-inicio.png"
+        },
         "alt": "Chat de KiCad IA con KiCad 10 conectado, el proyecto abierto y las conversaciones guardadas a la izquierda",
         "width": 1280,
         "height": 1120,
         "frame": "plain"
       },
-      "next": { "label": "El flujo", "href": "#flujo" }
+      "next": {
+        "label": "Descubre más",
+        "href": "#beneficios"
+      }
     },
     {
       "type": "features",
-      "id": "idea",
-      "nav": "Idea",
-      "kicker": "La idea",
-      "title": "Tus bibliotecas, tu proyecto",
-      "lead": "El chat trabaja sobre el KiCad que está abierto.",
+      "id": "beneficios",
+      "nav": "Beneficios",
+      "kicker": "Por qué usarlo",
+      "title": "Menos tiempo dibujando, más tiempo diseñando",
+      "lead": "Tú pones la idea y el criterio. KiCad IA se encarga del trabajo repetitivo.",
       "columns": 3,
       "items": [
-        { "icon": "circuit", "title": "Tus bibliotecas", "text": "Símbolos y huellas salen de `sym-lib-table` y `fp-lib-table`." },
-        { "icon": "file", "title": "El esquemático", "text": "Escribe el `.kicad_sch` del proyecto y deja una copia en `.kicad-ia-backup/`." },
-        { "icon": "shield", "title": "Sin inventar piezas", "text": "Si la pieza no está, no se dibuja otra en su lugar. Colocar y autorutear esperan tu confirmación." },
-        { "icon": "search", "title": "Con huella", "text": "Un componente sin huella no se escribe. El chat elige una de tus bibliotecas con el mismo número de pads, o te pregunta." },
-        { "icon": "layers", "title": "Lo que ya está se queda", "text": "Si la referencia ya está en el esquemático y en la placa, se conserva con su id. No se duplica ni se rompe el enlace con la PCB." },
-        { "icon": "clock", "title": "Memoria del proyecto", "text": "Las sesiones de este proyecto quedan en tu equipo. El chat las lee como resumen; no se puede volver atrás en una conversación." }
+        {
+          "icon": "zap",
+          "title": "De una frase al esquemático",
+          "text": "Escribe algo como «un LED con su resistencia, alimentado por USB-C» y recibe el esquemático listo para revisar."
+        },
+        {
+          "icon": "circuit",
+          "title": "Con tus piezas de siempre",
+          "text": "Usa los símbolos y las huellas de las bibliotecas que ya tienes en KiCad."
+        },
+        {
+          "icon": "shield",
+          "title": "Siempre en control",
+          "text": "Cada paso aparece en el chat. Ves qué está haciendo, mantienes el control y puedes ajustar lo que quieras sobre la marcha."
+        },
+        {
+          "icon": "layers",
+          "title": "Respeta lo que ya hiciste",
+          "text": "Si vuelves a pedir el circuito, no duplica piezas ni rompe lo que ya está en la placa."
+        },
+        {
+          "icon": "file",
+          "title": "Siempre con respaldo",
+          "text": "Antes de tocar el esquemático guarda una copia, por si quieres volver atrás."
+        },
+        {
+          "icon": "sparkles",
+          "title": "Usa la IA que prefieras",
+          "text": "Funciona con Gemini, OpenAI, Ollama en tu propio equipo o cualquier servicio compatible con OpenAI."
+        }
+      ]
+    },
+    {
+      "type": "features",
+      "id": "para-quien",
+      "tone": "alt",
+      "kicker": "Para quién es",
+      "title": "Hecho para quienes diseñan con KiCad",
+      "lead": "Da igual si es tu primera placa o la número cien.",
+      "columns": 3,
+      "items": [
+        {
+          "icon": "cpu",
+          "title": "Ingenieros y diseñadores",
+          "text": "Adelanta el trabajo repetitivo y dedica tu tiempo a las decisiones que de verdad importan."
+        },
+        {
+          "icon": "wrench",
+          "title": "Makers y prototipos",
+          "text": "Pasa de la idea a una placa de prueba en menos tiempo, sin perder el control del diseño."
+        },
+        {
+          "icon": "book",
+          "title": "Docentes y estudiantes",
+          "text": "Mira cómo se arma un circuito paso a paso y revisa cada decisión antes de aceptarla."
+        }
       ]
     },
     {
       "type": "split",
       "id": "flujo",
       "nav": "Flujo",
-      "tone": "alt",
-      "kicker": "Paso a paso",
-      "title": "Del botón en KiCad a la placa",
+      "kicker": "Cómo funciona",
+      "title": "De una frase a la placa, paso a paso",
       "body": [
-        "Abres el editor de PCB y pulsas **KiCad IA**. El chat queda en el navegador, en `http://127.0.0.1:8765`.",
-        "Cierras el editor de esquemáticos antes de que escriba: KiCad 10 no expone el esquemático por API, así que el plugin edita el archivo. Después, en KiCad, **F8** actualiza la placa."
+        "Abres tu proyecto en el editor de PCB y pulsas el botón **KiCad IA**. El chat se abre en tu navegador y trabaja con el KiCad que tienes abierto.",
+        "Mientras el chat escribe el esquemático, mantén cerrado el editor de esquemáticos. Cuando termine, pulsa **F8** en KiCad para llevar los cambios a la placa."
       ],
       "bullets": [
-        "Sin modelo configurado solo puedes mirar el estado.",
-        "Antes de colocar, el chat fija lo que pediste y elige cada pieza con su huella.",
-        "Colocar muestra la propuesta y se aplica cuando confirmas.",
-        "El autoruteo no aparece hasta que lo activas en Ajustes."
+        "Te pregunta lo que falta en lugar de decidir por ti.",
+        "Cada componente lleva una huella de tus bibliotecas.",
+        "Ves la propuesta de colocación antes de aplicarla.",
+        "El autoruteo solo aparece si lo activas en Ajustes."
       ],
       "media": {
-        "src": "media/flujo.svg",
+        "src": {
+          "es": "media/es/flujo.svg",
+          "en": "media/en/flujo.svg"
+        },
         "alt": "Diagrama de bloques: editor de PCB, chat, bibliotecas, esquemático, F8, y luego organizar, colocar o autorutear",
         "width": 1200,
         "height": 560,
@@ -63,35 +145,384 @@
       }
     },
     {
+      "type": "walkthrough",
+      "id": "recorrido",
+      "nav": "Recorrido",
+      "tone": "alt",
+      "kicker": "Míralo en acción",
+      "title": "De la orden a la PCB",
+      "lead": "Un ejemplo real: un LED alimentado por USB-C, desde el botón en KiCad hasta la placa ruteada. Míralo paso a paso o en video.",
+      "seconds": 8,
+      "steps": [
+        {
+          "title": "Pulsa el botón en KiCad",
+          "text": "En el editor de PCB, pulsa el botón **KiCad IA** de la barra de herramientas. El plugin se inicia en tu equipo.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/01-boton.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/01-boton.webp"
+            },
+            "alt": "Editor de PCB de KiCad con el botón de KiCad IA resaltado en la barra de herramientas",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Se abre el chat",
+          "text": "El chat se abre en tu navegador. Arriba ves si KiCad está conectado, qué modelo usas y cuántos tokens llevas. A la izquierda, tu proyecto y sus bibliotecas.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/02-chat.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/02-chat.webp"
+            },
+            "alt": "Chat de KiCad IA recién abierto, con el estado de KiCad, el modelo y el panel del proyecto resaltados",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Pide el circuito",
+          "text": "Escríbelo con tus palabras. El chat entiende lo que necesitas y busca cada pieza en tus bibliotecas. Puedes ver qué está haciendo en cada momento.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/03-orden.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/03-orden.webp"
+            },
+            "alt": "El usuario pide un LED con su resistencia alimentado a 5 V por USB-C y el chat muestra las búsquedas en las bibliotecas",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Pregunta lo que falta",
+          "text": "La resistencia y el LED no traen huella, así que te ofrece las opciones de tus bibliotecas. También sugiere resistencias de 5,1 kΩ en CC1 y CC2, y espera tu respuesta.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/04-pregunta.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/04-pregunta.webp"
+            },
+            "alt": "El chat pregunta qué encapsulado usar, 0603, 0805 o THT, y propone resistencias de 5,1 kΩ en las líneas CC",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Escribe el esquemático",
+          "text": "Con tu respuesta escribe el esquemático, guarda una copia de respaldo y revisa que no haya errores eléctricos (ERC). Recuerda que el editor de esquemáticos debe estar cerrado.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/05-esquematico.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/05-esquematico.webp"
+            },
+            "alt": "El chat muestra el esquemático con el conector USB-C, las resistencias y el LED, y el siguiente paso: F8 en el editor de PCB",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Tú pulsas F8",
+          "text": "En KiCad, ve a **Herramientas › Actualizar PCB desde el esquemático** (F8). Este paso lo haces tú. Las huellas aparecen junto al contorno de la placa.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/06-f8.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/06-f8.webp"
+            },
+            "alt": "Menú Herramientas de KiCad con Actualizar PCB desde el esquemático resaltado y las huellas junto al contorno vacío",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Coloca con tu confirmación",
+          "text": "Calcula dónde va cada componente, lo revisa con criterios IPC Clase 2 y te muestra la propuesta sin tocar la placa. Si configuraste un modelo revisor, este le da una segunda mirada. Se aplica cuando confirmas.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/07-colocacion.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/07-colocacion.webp"
+            },
+            "alt": "Propuesta de colocación con el conector a la izquierda, R2 y R3 junto a las líneas CC y R1 con el LED a la derecha, pendiente de confirmar",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Autorutea sobre una copia",
+          "text": "FreeRouting traza las pistas sobre una copia de tu placa. Luego el plugin comprueba las reglas de diseño (DRC) y te muestra el resultado antes de aplicarlo.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/08-autoruteo.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/08-autoruteo.webp"
+            },
+            "alt": "Candidato de FreeRouting con las pistas trazadas y el resumen: DRC sin errores y ninguna red sin rutear",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Confirma y aplica",
+          "text": "Al confirmar, las pistas pasan a la placa que tienes abierta en KiCad. Si quieres, pide una vista 3D para revisarla.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/09-aplicado.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/09-aplicado.webp"
+            },
+            "alt": "El chat confirma el ruteo aplicado y muestra la placa en 3D con el conector USB-C, las resistencias y el LED",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "La placa en KiCad",
+          "text": "Listo: la placa queda colocada y ruteada. Revísala, guárdala y sigue con la fabricación.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/10-kicad-final.webp",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/10-kicad-final.webp"
+            },
+            "alt": "Editor de PCB de KiCad con la placa colocada y ruteada",
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ],
+      "video": {
+        "src": {
+          "es": "media/recorridos/de-la-orden-a-la-pcb/es/de-la-orden-a-la-pcb.mp4",
+          "en": "media/recorridos/de-la-orden-a-la-pcb/en/de-la-orden-a-la-pcb.mp4"
+        },
+        "webm": {
+          "es": "media/recorridos/de-la-orden-a-la-pcb/es/de-la-orden-a-la-pcb.webm",
+          "en": "media/recorridos/de-la-orden-a-la-pcb/en/de-la-orden-a-la-pcb.webm"
+        },
+        "poster": {
+          "es": "media/recorridos/de-la-orden-a-la-pcb/es/01-boton.webp",
+          "en": "media/recorridos/de-la-orden-a-la-pcb/en/01-boton.webp"
+        },
+        "alt": "Video narrado: de la orden a la PCB en KiCad IA",
+        "width": 1920,
+        "height": 1080,
+        "tracks": [
+          {
+            "src": {
+              "es": "media/recorridos/de-la-orden-a-la-pcb/es/de-la-orden-a-la-pcb.vtt",
+              "en": "media/recorridos/de-la-orden-a-la-pcb/en/de-la-orden-a-la-pcb.vtt"
+            },
+            "srclang": {
+              "es": "es",
+              "en": "en"
+            },
+            "label": {
+              "es": "Español",
+              "en": "English"
+            },
+            "default": true
+          }
+        ]
+      },
+      "caption": "Recreación con la interfaz real del chat y una placa generada de verdad con KiCad 10 y FreeRouting. El marco de la ventana de KiCad es ilustrativo y los tokens son de ejemplo. El video se narra en el idioma de la página."
+    },
+    {
+      "type": "walkthrough",
+      "id": "configuracion",
+      "kicker": "Configuración",
+      "title": "Configuración inicial",
+      "lead": "Lo haces una sola vez: eliges el modelo, pegas tu clave y, si quieres, activas el autoruteo. Todo queda guardado en tu equipo.",
+      "seconds": 8,
+      "steps": [
+        {
+          "title": "Sin modelo, solo estado",
+          "text": "La primera vez, el indicador del modelo aparece en rojo: puedes ver el estado, pero todavía no diseñar. Abre Ajustes con el ícono del engranaje.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/01-sin-modelo.webp",
+              "en": "media/recorridos/configuracion-inicial/en/01-sin-modelo.webp"
+            },
+            "alt": "Chat sin modelo configurado, con el indicador en rojo y el engranaje de Ajustes resaltado",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Elige el proveedor",
+          "text": "Escoge Google Gemini, Ollama en tu equipo, OpenAI o cualquier servicio compatible con OpenAI. La dirección del servicio se completa sola.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/02-proveedor.webp",
+              "en": "media/recorridos/configuracion-inicial/en/02-proveedor.webp"
+            },
+            "alt": "Ajustes con la lista de proveedores abierta y Google Gemini seleccionado",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Pega la clave de la API",
+          "text": "La clave se guarda solo en tu equipo, nunca en el repositorio. Si usas Ollama, puedes dejarla vacía.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/03-api-key.webp",
+              "en": "media/recorridos/configuracion-inicial/en/03-api-key.webp"
+            },
+            "alt": "Campo de la clave de la API con una clave de ejemplo",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Modelo y revisor",
+          "text": "El modelo principal conversa contigo y arma el diseño. El revisor es opcional: le da una segunda mirada a cada circuito y a cada propuesta de placa antes de aplicarla.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/04-modelos.webp",
+              "en": "media/recorridos/configuracion-inicial/en/04-modelos.webp"
+            },
+            "alt": "Campos del modelo principal y del modelo revisor en Ajustes",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Java para FreeRouting",
+          "text": "El autoruteo usa FreeRouting, que necesita Java 17 o posterior. Pulsa **Detectar Java** o escribe la ruta a mano.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/05-java.webp",
+              "en": "media/recorridos/configuracion-inicial/en/05-java.webp"
+            },
+            "alt": "Bloque de autoruteo con el botón Detectar Java y la versión encontrada",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Activa el autoruteo",
+          "text": "Indica los mínimos de fabricación en milímetros: ancho de pista, separación, vía, taladro y agujero. Si lo dejas apagado, la opción no aparece en el chat.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/06-autoruteo.webp",
+              "en": "media/recorridos/configuracion-inicial/en/06-autoruteo.webp"
+            },
+            "alt": "Autoruteo activado con los mínimos de fabricación: pista 0,25, separación 0,2, vía 0,6, taladro 0,3 y agujero 0,3 mm",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Guarda",
+          "text": "Pulsa **Guardar**. Estos ajustes tienen prioridad sobre cualquier archivo `.env`.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/07-guardar.webp",
+              "en": "media/recorridos/configuracion-inicial/en/07-guardar.webp"
+            },
+            "alt": "Botón Guardar de Ajustes resaltado",
+            "width": 1920,
+            "height": 1080
+          }
+        },
+        {
+          "title": "Listo para diseñar",
+          "text": "El indicador del modelo pasa a verde y **Autorutear** aparece entre las acciones rápidas. Ya puedes empezar.",
+          "media": {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/08-listo.webp",
+              "en": "media/recorridos/configuracion-inicial/en/08-listo.webp"
+            },
+            "alt": "Chat con el modelo en verde, el autoruteo activo y el menú de acciones rápidas con Autorutear",
+            "width": 1920,
+            "height": 1080
+          }
+        }
+      ],
+      "video": {
+        "src": {
+          "es": "media/recorridos/configuracion-inicial/es/configuracion-inicial.mp4",
+          "en": "media/recorridos/configuracion-inicial/en/configuracion-inicial.mp4"
+        },
+        "webm": {
+          "es": "media/recorridos/configuracion-inicial/es/configuracion-inicial.webm",
+          "en": "media/recorridos/configuracion-inicial/en/configuracion-inicial.webm"
+        },
+        "poster": {
+          "es": "media/recorridos/configuracion-inicial/es/01-sin-modelo.webp",
+          "en": "media/recorridos/configuracion-inicial/en/01-sin-modelo.webp"
+        },
+        "alt": "Video narrado: configuración inicial de KiCad IA",
+        "width": 1920,
+        "height": 1080,
+        "tracks": [
+          {
+            "src": {
+              "es": "media/recorridos/configuracion-inicial/es/configuracion-inicial.vtt",
+              "en": "media/recorridos/configuracion-inicial/en/configuracion-inicial.vtt"
+            },
+            "srclang": {
+              "es": "es",
+              "en": "en"
+            },
+            "label": {
+              "es": "Español",
+              "en": "English"
+            },
+            "default": true
+          }
+        ]
+      },
+      "caption": "Recreación con la interfaz real del chat y una placa generada de verdad con KiCad 10 y FreeRouting. El marco de la ventana de KiCad es ilustrativo y los tokens son de ejemplo. El video se narra en el idioma de la página."
+    },
+    {
       "type": "steps",
       "id": "usar",
+      "tone": "alt",
       "kicker": "Uso",
-      "title": "Siete pasos",
+      "title": "Empieza en siete pasos",
       "items": [
-        { "title": "Instala", "text": "Gestor de complementos, script o zip. Reinicia KiCad." },
-        { "title": "Abre la placa", "text": "Entra al editor de PCB del proyecto y pulsa **KiCad IA**." },
-        { "title": "Elige el modelo", "text": "En Ajustes: Gemini, Ollama, OpenAI o una URL compatible." },
-        { "title": "Describe el circuito", "text": "Una frase, o una acción rápida del botón **＋** del campo de texto." },
-        { "title": "Deja escribir", "text": "Cierra el editor de esquemáticos. El chat guarda el archivo y una copia." },
-        { "title": "Pasa a la placa", "text": "En KiCad, Herramientas → Actualizar PCB desde el esquemático (F8)." },
-        { "title": "Revisa la propuesta", "text": "Organizar, colocar o autorutear. Los dos últimos se aplican si confirmas." }
+        {
+          "title": "Instala",
+          "text": "Desde el Gestor de complementos, con un script o con el ZIP. Luego reinicia KiCad."
+        },
+        {
+          "title": "Abre la placa",
+          "text": "Abre el editor de PCB de tu proyecto y pulsa **KiCad IA**."
+        },
+        {
+          "title": "Elige el modelo",
+          "text": "En Ajustes escoge Gemini, Ollama, OpenAI u otro servicio compatible."
+        },
+        {
+          "title": "Describe el circuito",
+          "text": "Escribe una frase o usa una acción rápida del botón **＋**."
+        },
+        {
+          "title": "Deja que escriba",
+          "text": "Cierra el editor de esquemáticos mientras el chat guarda el archivo y su copia."
+        },
+        {
+          "title": "Pasa a la placa",
+          "text": "En KiCad, pulsa F8 (Herramientas → Actualizar PCB desde el esquemático)."
+        },
+        {
+          "title": "Revisa y aprueba",
+          "text": "Pide organizar, colocar o autorutear. Colocar y autorutear esperan tu visto bueno."
+        }
       ]
     },
     {
       "type": "showcase",
       "id": "capturas",
-      "nav": "Capturas",
-      "tone": "alt",
       "kicker": "El chat",
-      "title": "Lo que ves al abrirlo",
-      "lead": "La barra dice si KiCad responde, qué modelo está elegido y cuántos tokens van. A la izquierda, el proyecto y tus conversaciones.",
+      "title": "Así se ve el chat",
+      "lead": "Arriba sabes si KiCad está conectado, qué modelo usas y cuántos tokens llevas. A la izquierda tienes tu proyecto y tus conversaciones.",
       "items": [
         {
           "label": "Inicio",
           "title": "Proyecto abierto",
-          "text": "Con KiCad en marcha el indicador muestra la versión. El historial es de este proyecto: un clic lo enseña en solo lectura y el **＋** empieza otra sesión.",
+          "text": "Con KiCad abierto, el indicador muestra la versión. Las conversaciones son de este proyecto: con un clic las consultas y con **＋** empiezas una nueva.",
           "media": {
-            "src": "media/chat-inicio.png",
+            "src": {
+              "es": "media/es/chat-inicio.png",
+              "en": "media/en/chat-inicio.png"
+            },
             "alt": "Pantalla de inicio del chat, conectada a KiCad 10.0.1, con bibliotecas y tres conversaciones guardadas",
             "width": 1280,
             "height": 1120,
@@ -101,9 +532,12 @@
         {
           "label": "Acciones",
           "title": "Acciones rápidas",
-          "text": "El **＋** del campo de texto abre la lista: imágenes, organizar, colocar, validar y revisar el ERC. El autoruteo solo sale si lo activaste.",
+          "text": "El botón **＋** abre los atajos: enviar imágenes, organizar, colocar, validar y revisar el ERC. Autorutear solo aparece si lo activaste.",
           "media": {
-            "src": "media/chat-acciones.png",
+            "src": {
+              "es": "media/es/chat-acciones.png",
+              "en": "media/en/chat-acciones.png"
+            },
             "alt": "Menú de acciones rápidas abierto encima del campo de texto del chat",
             "width": 1280,
             "height": 1120,
@@ -113,9 +547,12 @@
         {
           "label": "Ajustes",
           "title": "Modelo, Java y autoruteo",
-          "text": "La API key se queda en este equipo. Java solo hace falta para autorutear. Los anchos mínimos aparecen cuando el autoruteo está activo.",
+          "text": "Tu clave de la API se queda en este equipo. Java solo hace falta para autorutear, y los mínimos de fabricación aparecen al activarlo.",
           "media": {
-            "src": "media/chat-ajustes.png",
+            "src": {
+              "es": "media/es/chat-ajustes.png",
+              "en": "media/en/chat-ajustes.png"
+            },
             "alt": "Ajustes con Google Gemini, la API key vacía, Java detectado y el autoruteo activado",
             "width": 1100,
             "height": 1053,
@@ -128,18 +565,19 @@
       "type": "code",
       "id": "instalar",
       "nav": "Instalar",
+      "tone": "alt",
       "kicker": "Instalación",
-      "title": "Elige cómo instalar KiCad IA",
+      "title": "Instálalo en pocos minutos",
       "body": [
-        "Las cuatro opciones instalan el mismo plugin. El **Gestor de complementos** es la vía más sencilla; los scripts permiten automatizar o fijar una versión; el ZIP sirve para una instalación manual.",
-        "Necesitas **KiCad 10**. Ábrelo una vez antes de instalar. La primera vez KiCad requiere conexión para descargar las dependencias. Java 17 o posterior solo hace falta si activas el autoruteo."
+        "Hay cuatro formas de instalarlo y todas dejan el mismo plugin. Si no sabes cuál elegir, usa el **Gestor de complementos** de KiCad. Los scripts sirven para automatizar o fijar una versión, y el ZIP para instalarlo a mano.",
+        "Necesitas **KiCad 10**. Ábrelo una vez antes de instalar. La primera vez, KiCad necesita internet para descargar lo que el plugin requiere. Java 17 o posterior solo hace falta si vas a autorutear."
       ],
       "items": [
         {
           "kicker": "Recomendado",
           "title": "Desde el Gestor de complementos",
           "body": [
-            "Abre KiCad y entra en **Preferencias → Gestor de complementos → repositorios**. Añade la URL que aparece a la derecha y busca **KiCad IA** en el gestor.",
+            "Abre KiCad y entra en **Preferencias → Gestor de complementos → repositorios**. Añade la URL de abajo y busca **KiCad IA** en el gestor.",
             "Instálalo desde KiCad y reinicia la aplicación. El gestor administra su propia carpeta de complementos y también las actualizaciones."
           ],
           "commandLabel": "URL del repositorio",
@@ -148,25 +586,32 @@
         },
         {
           "kicker": "Script",
-          "title": "macOS y Linux",
+          "title": "Con el instalador",
           "body": [
-            "Ejecuta el instalador desde una terminal. Necesita `curl` y `unzip`; descarga el último release, verifica su SHA256 e instala en `~/Documents/KiCad/<versión>/plugins/kicad-ia`.",
-            "Si ya existe una instalación, conserva la anterior como `kicad-ia.bak`. También puedes fijar la versión del plugin, elegir la carpeta de KiCad o desinstalarlo."
+            "El script descarga el último release, comprueba su SHA256 y deja el plugin en la carpeta de KiCad. Si ya había una instalación, guarda la anterior como `kicad-ia.bak`. Elige tu sistema."
           ],
-          "commandLabel": "Terminal",
-          "code": "curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh\n\n# Una versión o una carpeta de KiCad concretas\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --version 0.1.0 --kicad-version 10.0\n\n# Desinstalar\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --uninstall",
-          "note": "Si prefieres revisarlo antes, descarga `install.sh`, léelo y ejecútalo con `sh install.sh`."
-        },
-        {
-          "kicker": "Script",
-          "title": "Windows",
-          "body": [
-            "Abre PowerShell y ejecuta el instalador. Descarga el release, comprueba su SHA256 y lo deja en `Documentos\\KiCad\\<versión>\\plugins\\kicad-ia`.",
-            "La primera orden instala la versión más reciente. Las siguientes muestran cómo elegir versiones concretas o desinstalar."
-          ],
-          "commandLabel": "PowerShell",
-          "code": "irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex\n\n# Una versión o una carpeta de KiCad concretas\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Version 0.1.0 -KicadVersion 10.0\n\n# Desinstalar\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Uninstall",
-          "note": "También puedes descargar `install.ps1`, revisarlo y ejecutar `.\\install.ps1` con los mismos parámetros."
+          "tabs": [
+            {
+              "label": "macOS / Linux",
+              "body": [
+                "Ejecútalo desde una terminal. Necesita `curl` y `unzip` e instala en `~/Documents/KiCad/<versión>/plugins/kicad-ia`.",
+                "La primera orden instala la versión más reciente. Las otras fijan la versión del plugin o la carpeta de KiCad, o lo desinstalan."
+              ],
+              "commandLabel": "Terminal",
+              "code": "curl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh\n\n# Una versión o una carpeta de KiCad concretas\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --version 0.1.0 --kicad-version 10.0\n\n# Desinstalar\ncurl -fsSL https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.sh | sh -s -- --uninstall",
+              "note": "Si prefieres revisarlo antes, descarga `install.sh`, léelo y ejecútalo con `sh install.sh`."
+            },
+            {
+              "label": "Windows",
+              "body": [
+                "Ejecútalo en PowerShell. Instala en `Documentos\\KiCad\\<versión>\\plugins\\kicad-ia`.",
+                "La primera orden instala la versión más reciente. Las otras fijan la versión del plugin o la carpeta de KiCad, o lo desinstalan."
+              ],
+              "commandLabel": "PowerShell",
+              "code": "irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1 | iex\n\n# Una versión o una carpeta de KiCad concretas\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Version 0.1.0 -KicadVersion 10.0\n\n# Desinstalar\n& ([scriptblock]::Create((irm https://raw.githubusercontent.com/krisskira/kicad-ia-chat/main/install/install.ps1))) -Uninstall",
+              "note": "También puedes descargar `install.ps1`, revisarlo y ejecutar `.\\install.ps1` con los mismos parámetros."
+            }
+          ]
         },
         {
           "kicker": "Manual",
@@ -182,58 +627,215 @@
       ]
     },
     {
+      "type": "code",
+      "id": "mcp",
+      "nav": "MCP",
+      "kicker": "MCP",
+      "title": "Úsalo desde Cursor u otro cliente MCP",
+      "body": [
+        "KiCad IA también funciona como servidor **MCP**. Así, Cursor, Claude Desktop o cualquier cliente compatible pueden usar las mismas herramientas del chat sobre el KiCad que tienes abierto. En este caso el modelo lo pone tu cliente, así que no necesitas configurar uno en Ajustes.",
+        "Las reglas no cambian: cada pieza sale de tus bibliotecas con su huella, el editor de esquemáticos debe estar cerrado para escribir y colocar o autorutear siempre muestran primero una propuesta. El autoruteo solo aparece si lo activaste en Ajustes. Aquí no corren los revisores del chat; la revisión queda en manos del modelo de tu cliente.",
+        "El plugin que instala KiCad no trae el servidor MCP. Para usarlo necesitas una copia del repositorio con su propio entorno de Python. El chat y el MCP pueden funcionar al mismo tiempo."
+      ],
+      "items": [
+        {
+          "kicker": "Paso 1",
+          "title": "Prepara el entorno",
+          "body": [
+            "Clona el repositorio e instala el plugin con los extras `mcp` y `kicad` en un entorno virtual. Hace falta Python 3.9 o posterior."
+          ],
+          "tabs": [
+            {
+              "label": "macOS / Linux",
+              "body": [
+                "Con KiCad abierto, la última orden debe quedarse esperando sin errores. Sal con Ctrl+C: quien lo arranca de verdad es tu cliente MCP."
+              ],
+              "commandLabel": "Terminal",
+              "code": "git clone https://github.com/krisskira/kicad-ia-chat.git\ncd kicad-ia-chat/app\npython3 -m venv .venv\n.venv/bin/pip install -e \".[mcp,kicad]\"\n\n# Prueba (Ctrl+C para salir)\n.venv/bin/python -m kicad_ia.mcp"
+            },
+            {
+              "label": "Windows",
+              "body": [
+                "Con KiCad abierto, la última orden debe quedarse esperando sin errores. Sal con Ctrl+C: quien lo arranca de verdad es tu cliente MCP."
+              ],
+              "commandLabel": "PowerShell",
+              "code": "git clone https://github.com/krisskira/kicad-ia-chat.git\ncd kicad-ia-chat\\app\npy -m venv .venv\n.venv\\Scripts\\pip install -e \".[mcp,kicad]\"\n\n# Prueba (Ctrl+C para salir)\n.venv\\Scripts\\python -m kicad_ia.mcp"
+            }
+          ]
+        },
+        {
+          "kicker": "Paso 2",
+          "title": "Conéctalo a Cursor",
+          "body": [
+            "Añade el servidor a `.cursor/mcp.json` del proyecto o a `~/.cursor/mcp.json`. Cambia las dos rutas por las de tu copia; en Windows el Python está en `.venv/Scripts/python.exe`.",
+            "Reinicia los servidores MCP de Cursor y comprueba que `kicad-ia` aparece con sus herramientas. Otros clientes usan el mismo comando, el mismo argumento y la misma carpeta."
+          ],
+          "commandLabel": "mcp.json",
+          "code": "{\n  \"mcpServers\": {\n    \"kicad-ia\": {\n      \"command\": \"/ruta/a/kicad-ia-chat/app/.venv/bin/python\",\n      \"args\": [\"-m\", \"kicad_ia.mcp\"],\n      \"cwd\": \"/ruta/a/kicad-ia-chat/app\",\n      \"env\": { \"KICAD_MODE\": \"auto\" }\n    }\n  }\n}",
+          "note": "Hay una plantilla en `app/doc/mcp.cursor.example.json` dentro del repositorio."
+        }
+      ],
+      "actions": [
+        {
+          "label": "Guía MCP",
+          "href": "https://github.com/krisskira/kicad-ia-chat/blob/main/app/doc/mcp.md",
+          "icon": "github",
+          "variant": "secondary"
+        }
+      ]
+    },
+    {
+      "type": "features",
+      "id": "colabora",
+      "nav": "Colabora",
+      "tone": "alt",
+      "kicker": "Código abierto",
+      "title": "Úsalo, estúdialo y ayúdanos a mejorarlo",
+      "lead": "KiCad IA es gratis y de código abierto, con licencia MIT. Puedes ver cómo funciona por dentro, adaptarlo a tu forma de trabajar y aportar para que mejore para todos.",
+      "columns": 4,
+      "items": [
+        {
+          "icon": "play",
+          "title": "Pruébalo y cuéntanos",
+          "text": "Úsalo en tus proyectos y comparte qué te funcionó y qué no. Cada caso real nos ayuda a mejorarlo."
+        },
+        {
+          "icon": "wrench",
+          "title": "Reporta un problema",
+          "text": "Si algo falla, abre un issue en GitHub con los pasos para repetirlo."
+        },
+        {
+          "icon": "book",
+          "title": "Mejora la documentación",
+          "text": "Una explicación más clara o un buen ejemplo le ahorra tiempo a la siguiente persona."
+        },
+        {
+          "icon": "code",
+          "title": "Aporta código",
+          "text": "Corrige un error o propón una mejora con un pull request."
+        }
+      ]
+    },
+    {
+      "type": "projects",
+      "id": "autor",
+      "kicker": "Quién está detrás",
+      "title": "Hecho en Colombia por Crhistian Vergara",
+      "lead": "¿Tienes una pregunta, una idea o un proyecto en mente? Escríbeme.",
+      "items": [
+        {
+          "id": "desarrollador",
+          "meta": "Desarrollador",
+          "title": "Crhistian David Vergara Gómez",
+          "email": "krisskira@gmail.com",
+          "summary": "Ingeniero de software en Palmira, Colombia. Creó KiCad IA para quitarle horas de trabajo repetitivo al diseño electrónico, sin quitarle el control a quien diseña.",
+          "tags": [
+            "Software",
+            "Electrónica",
+            "Inteligencia artificial"
+          ],
+          "actions": [
+            {
+              "label": "Escríbele",
+              "href": "https://wa.me/573183919187"
+            },
+            {
+              "label": "Portafolio",
+              "href": "https://krisskira.com/"
+            },
+            {
+              "label": "LinkedIn",
+              "href": "https://www.linkedin.com/in/cristian-david-vergara-gomez/"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "type": "faq",
       "id": "preguntas",
       "nav": "Preguntas",
+      "tone": "alt",
       "kicker": "Preguntas",
-      "title": "Antes de instalar",
+      "title": "Preguntas frecuentes",
       "items": [
         {
-          "q": "¿Qué KiCad hace falta?",
-          "a": "KiCad 10. Abre KiCad una vez antes de instalar, para que exista la carpeta `Documentos/KiCad/<versión>/`."
+          "q": "¿Es gratis?",
+          "a": "Sí. KiCad IA es gratis y de código abierto, con licencia MIT. Lo único que puede tener costo es el servicio de IA que elijas; con Ollama puedes usar un modelo en tu propio equipo."
+        },
+        {
+          "q": "¿Necesito saber programar?",
+          "a": "No. Lo instalas desde KiCad y lo configuras en la ventana de Ajustes. Solo necesitas la terminal si quieres usarlo como servidor MCP o aportar código."
+        },
+        {
+          "q": "¿Qué versión de KiCad necesito?",
+          "a": "KiCad 10. Ábrelo una vez antes de instalar para que se cree la carpeta `Documentos/KiCad/<versión>/`."
         },
         {
           "q": "¿De dónde salen las piezas?",
-          "a": "De las bibliotecas que ya configuraste en KiCad. Si una pieza no está, el chat no dibuja un símbolo inventado."
+          "a": "De las bibliotecas que ya tienes configuradas en KiCad. Si una pieza no está, el chat te avisa en lugar de dibujar un símbolo inventado."
         },
         {
-          "q": "¿Y si el símbolo no trae huella?",
-          "a": "No se escribe sin ella. El chat busca en tus bibliotecas una huella con el mismo número de pads y, si hay varias, te pregunta cuál."
+          "q": "¿Y si un símbolo no tiene huella?",
+          "a": "No lo agrega sin ella. Busca en tus bibliotecas una huella con el mismo número de pads y, si hay varias opciones, te pregunta cuál prefieres."
         },
         {
           "q": "Si vuelvo a pedir el circuito, ¿se duplican las piezas?",
-          "a": "No. Una referencia que ya está con el mismo símbolo se conserva con su id y su posición. Si esa referencia ya está en la placa, el chat no rehace la hoja."
+          "a": "No. Si una referencia ya existe con el mismo símbolo, se conserva con su identificador y su posición. Y si ya está en la placa, el chat no rehace la hoja."
         },
         {
-          "q": "¿Se guardan las conversaciones?",
-          "a": "Sí, por proyecto, junto a los ajustes. Otro proyecto no las ve. El chat las usa como resumen de solo lectura: no reabren la conversación ni deshacen lo hecho. No guardan la API key."
+          "q": "¿Se guardan mis conversaciones?",
+          "a": "Sí, en tu equipo y por proyecto; otro proyecto no las ve. El chat las usa como memoria de lo que ya decidiste, pero no las reabre ni deshace cambios. Tu clave de la API no se guarda en ellas."
         },
         {
           "q": "¿Por qué hay que cerrar el editor de esquemáticos?",
-          "a": "KiCad 10 no deja escribir el esquemático por API. El plugin edita el `.kicad_sch` y guarda una copia en `.kicad-ia-backup/`. Con el editor abierto, no escribe."
+          "a": "Porque KiCad 10 todavía no permite escribir el esquemático por API. El plugin edita el archivo `.kicad_sch` directamente y antes guarda una copia en `<proyecto>-backups/kicad-ia/`. Si el editor está abierto, no escribe, para no pisar tus cambios."
         },
         {
-          "q": "¿El chat actualiza la placa solo?",
-          "a": "No. Después del esquemático, en el editor de PCB usas F8: Herramientas → Actualizar PCB desde el esquemático."
+          "q": "¿El chat actualiza la placa por su cuenta?",
+          "a": "No. Cuando el esquemático esté listo, pulsa F8 en el editor de PCB (Herramientas → Actualizar PCB desde el esquemático)."
         },
         {
           "q": "¿El autoruteo viene activado?",
-          "a": "No. Lo enciendes en Ajustes, con Java 17 o posterior y los anchos mínimos de fabricación. La propuesta se aplica cuando confirmas."
+          "a": "No. Lo activas en Ajustes, con Java 17 o posterior y los mínimos de fabricación de tu proveedor. Aun así, cada propuesta espera tu confirmación."
         },
         {
-          "q": "¿Colocar la placa certifica el diseño?",
-          "a": "No. El informe es un prechequeo IPC Clase 2. Validar corrige solo lo que puede hacer con seguridad."
+          "q": "¿La colocación certifica mi diseño?",
+          "a": "No. Hace una revisión previa con criterios IPC Clase 2, pero no reemplaza tu revisión ni la del fabricante. Al validar, solo corrige lo que puede arreglar de forma segura."
         }
       ]
     },
     {
       "type": "cta",
       "id": "repo",
-      "title": "El código y el desarrollo",
-      "lead": "La página cubre el uso. El arranque del plugin, las pruebas y el enlace con Cursor están en el repositorio.",
+      "title": "Ayúdanos a hacerlo mejor",
+      "lead": "Dale una estrella en GitHub, cuéntanos qué falla o envía tu primer pull request. La guía de desarrollo te explica cómo arrancar el proyecto, correr las pruebas y entender cómo está hecho.",
       "actions": [
-        { "label": "Ver el repositorio", "href": "https://github.com/krisskira/kicad-ia-chat", "icon": "github" },
-        { "label": "Guía de desarrollo", "href": "https://github.com/krisskira/kicad-ia-chat/blob/main/app/README.md", "variant": "secondary" }
+        {
+          "label": "Ir a GitHub",
+          "href": "https://github.com/krisskira/kicad-ia-chat",
+          "icon": "github",
+          "iconOnly": true
+        },
+        {
+          "label": "Reportar un problema",
+          "href": "https://github.com/krisskira/kicad-ia-chat/issues",
+          "variant": "secondary"
+        },
+        {
+          "label": "Guía de desarrollo",
+          "href": "https://github.com/krisskira/kicad-ia-chat/blob/main/app/README.md",
+          "variant": "secondary"
+        }
+      ],
+      "more": [
+        {
+          "label": "Invítame un café",
+          "href": "https://paypal.me/KRIVERDEVICE?locale.x=es_XC&country.x=CO",
+          "icon": "coffee",
+          "iconOnly": true,
+          "variant": "secondary"
+        }
       ]
     }
   ]

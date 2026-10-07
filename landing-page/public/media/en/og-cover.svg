@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#fffdf8" stroke-opacity="0.07"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#1f1f1f"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <circle cx="80" cy="40" r="280" fill="#f0df41" fill-opacity="0.16"/>
+  <circle cx="1120" cy="620" r="320" fill="#51a1eb" fill-opacity="0.2"/>
+  <rect x="72" y="78" width="18" height="18" fill="#f0df41"/>
+  <rect x="96" y="96" width="18" height="18" fill="#51a1eb"/>
+  <rect x="78" y="114" width="18" height="18" fill="#eb5151"/>
+  <text x="132" y="118" fill="#fffdf8" font-family="Poppins, Noto Sans, sans-serif" font-size="28" font-weight="600">KiCad IA</text>
+  <text x="72" y="280" fill="#fffdf8" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">Design your PCB</text>
+  <text x="72" y="360" fill="#51a1eb" font-family="Poppins, Noto Sans, sans-serif" font-size="64" font-weight="600">with artificial intelligence</text>
+  <text x="72" y="460" fill="#fffdf8" fill-opacity="0.75" font-family="Noto Sans, sans-serif" font-size="28">Free and open source &#183; KiCad 10</text>
+  <rect y="618" width="400" height="12" fill="#2a74c0"/>
+  <rect x="400" y="618" width="400" height="12" fill="#f0df41"/>
+  <rect x="800" y="618" width="400" height="12" fill="#eb5151"/>
+</svg>

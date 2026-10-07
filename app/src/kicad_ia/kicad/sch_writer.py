@@ -15,6 +15,7 @@ import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from kicad_ia.kicad.backups import plugin_backup_dir
 from kicad_ia.kicad.geometry import SCH_GRID_MM, snap_mm
 from kicad_ia.kicad.layout import Box, group_layout, normalize_groups
 from kicad_ia.kicad.libraries import LibraryIndex, symbol_pins
@@ -307,8 +308,7 @@ class SchematicDocument:
                 del holder[1:]
 
     def save(self) -> Path:
-        backup_dir = self.path.parent / ".kicad-ia-backup"
-        backup_dir.mkdir(exist_ok=True)
+        backup_dir = plugin_backup_dir(self.path.parent)
         backup = backup_dir / f"{self.path.stem}.{time.strftime('%Y%m%d-%H%M%S')}.kicad_sch"
         shutil.copy2(self.path, backup)
         self.path.write_text(dumps(self.tree) + "\n", encoding="utf-8")
@@ -388,13 +388,17 @@ GROUP_HEADER_MM = 7.62
 
 
 def grouped_layout_on_paper(
-    sizes: dict[str, tuple[float, float]], groups: list[dict], top: float = 25.4
+    sizes: dict[str, tuple[float, float]],
+    groups: list[dict],
+    top: float = 25.4,
+    draw_frames: bool = True,
 ) -> tuple[str, dict[str, tuple[float, float]], list[Box]]:
+    header = GROUP_HEADER_MM if draw_frames else 0.0
     padded = {ref: (w + 2 * LABEL_ROOM_MM, h + 2 * LABEL_ROOM_MM) for ref, (w, h) in sizes.items()}
     for paper, (width, height) in PAPER_MM.items():
         centers, blocks, (_, used) = group_layout(
             padded, groups, max_width=width - 50.8, item_gap=2.54, group_gap=10.16,
-            padding=GROUP_PADDING_MM, header=GROUP_HEADER_MM,
+            padding=GROUP_PADDING_MM, header=header,
         )
         if top + used <= height - TITLE_BLOCK_MM:
             break
@@ -402,7 +406,7 @@ def grouped_layout_on_paper(
     for block in blocks:
         block.x += 25.4
         block.y += top
-    return paper, shifted, blocks
+    return paper, shifted, blocks if draw_frames else []
 
 
 def _reference_of(node) -> str:
@@ -450,6 +454,7 @@ def write_circuit(
     groups: list[dict] | None = None,
     check_power: bool = True,
     board_parts: dict | None = None,
+    draw_frames: bool = True,
 ) -> dict:
     """Escribe el circuito. Si la referencia ya está, reutiliza ese símbolo y su uuid.
 
@@ -533,7 +538,7 @@ def write_circuit(
             refs = [str(spec.get("reference") or "") for spec, _, _, _ in fresh]
             clean, _ = normalize_groups(groups, refs)
             size_by_ref = {ref: (size["width"], size["height"]) for ref, size in zip(refs, sizes)}
-            paper, centers, blocks = grouped_layout_on_paper(size_by_ref, clean, top)
+            paper, centers, blocks = grouped_layout_on_paper(size_by_ref, clean, top, draw_frames=draw_frames)
             layout = [
                 (snap_mm(centers[ref][0] - dx), snap_mm(centers[ref][1] - dy))
                 for ref, (dx, dy) in zip(refs, offsets)

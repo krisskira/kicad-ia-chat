@@ -22,6 +22,7 @@ export function Cta({ section }) {
             </p>
           ) : null}
           <Actions actions={section.actions} tone="hero" className="mt-9 justify-center" />
+          <Actions actions={section.more} tone="hero" className="mt-4 justify-center" />
         </div>
       </Reveal>
     </Section>

@@ -1,0 +1,110 @@
+{
+  "voces": {
+    "es": { "voz": "Paulina", "velocidad": 178 },
+    "en": { "voz": "Samantha", "velocidad": 170 }
+  },
+  "recorridos": [
+    {
+      "id": "de-la-orden-a-la-pcb",
+      "titulo": "De la orden a la PCB",
+      "escenas": [
+        {
+          "id": "boton",
+          "es": "Abre tu proyecto en KiCad 10 y entra al editor de PCB. En la barra de herramientas está el botón de KiCad IA. Al pulsarlo, el plugin arranca su servidor en tu equipo.",
+          "en": "Open your project in KiCad 10 and go to the PCB editor. The KiCad IA button is in the toolbar. Pressing it starts the plugin's server on your computer."
+        },
+        {
+          "id": "chat",
+          "es": "El chat se abre en tu navegador, en una dirección local. Arriba ves si KiCad responde, qué modelo está activo y cuántos tokens llevas. A la izquierda, el proyecto abierto y sus bibliotecas.",
+          "en": "The chat opens in your browser, at a local address. The top bar shows whether KiCad is responding, which model is active, and how many tokens you have used. On the left, the open project and its libraries."
+        },
+        {
+          "id": "orden",
+          "es": "Describe el circuito con tus palabras. Por ejemplo: un LED con su resistencia, alimentado a cinco voltios por USB-C. El chat fija primero lo que pediste y busca cada pieza en tus propias bibliotecas. Cada herramienta aparece en pantalla mientras trabaja.",
+          "en": "Describe the circuit in your own words. For example: an LED with its resistor, powered at five volts over USB-C. The chat first pins down what you asked for and looks for each part in your own libraries. Every tool shows on screen while it runs."
+        },
+        {
+          "id": "pregunta",
+          "es": "Si falta un dato, pregunta en lugar de inventarlo. Aquí, la resistencia y el LED no traen huella, así que te ofrece los encapsulados que encontró. También propone dos resistencias de cinco coma un kiloohmios en las líneas CC, y espera tu respuesta.",
+          "en": "When something is missing, it asks instead of guessing. Here the resistor and the LED have no footprint, so it offers the packages it found. It also proposes two 5.1 kilohm resistors on the CC lines, and waits for your answer."
+        },
+        {
+          "id": "esquematico",
+          "es": "Con tu respuesta escribe el esquemático, guarda una copia de seguridad y lo valida con el ERC. Para escribir, el editor de esquemáticos tiene que estar cerrado. Después te dice el siguiente paso y el tamaño de la placa.",
+          "en": "With your answer it writes the schematic, keeps a backup, and checks it with ERC. To write, the schematic editor must be closed. Then it tells you the next step and the board size."
+        },
+        {
+          "id": "f8",
+          "es": "En el editor de PCB, abre Herramientas y elige Actualizar PCB desde el esquemático, o pulsa F8. Este paso es tuyo: el plugin no importa la netlist por su cuenta. Las huellas llegan juntas, fuera del contorno.",
+          "en": "In the PCB editor, open Tools and choose Update PCB from Schematic, or press F8. This step is yours: the plugin does not import the netlist on its own. The footprints arrive together, outside the outline."
+        },
+        {
+          "id": "colocacion",
+          "es": "Pide la colocación. El plugin calcula una propuesta con un prechequeo IPC Clase 2 y te la enseña sin tocar la placa. Si configuraste un modelo revisor, también la revisa. Solo se aplica cuando confirmas.",
+          "en": "Ask for placement. The plugin computes a proposal with an IPC Class 2 pre-check and shows it without touching the board. If you set up a reviewer model, it reviews it too. It is only applied when you confirm."
+        },
+        {
+          "id": "autoruteo",
+          "es": "Con las huellas en su sitio, pide el autoruteo. FreeRouting trabaja sobre una copia de la placa. El plugin pasa el DRC y te enseña el candidato antes de aplicarlo. En esta placa: cero errores y ninguna red sin rutear.",
+          "en": "With the footprints in place, ask for autorouting. FreeRouting works on a copy of the board. The plugin runs DRC and shows you the candidate before applying it. On this board: zero errors and no unrouted nets."
+        },
+        {
+          "id": "aplicado",
+          "es": "Confirmas, y el cobre pasa a la placa abierta en KiCad. Si quieres, pídele una vista en 3D para revisarla.",
+          "en": "You confirm, and the copper goes to the board open in KiCad. If you like, ask for a 3D view to check it."
+        },
+        {
+          "id": "kicad-final",
+          "es": "De vuelta en KiCad, la placa ya está colocada y ruteada. Revísala, guárdala y sigue con tu flujo de fabricación de siempre.",
+          "en": "Back in KiCad, the board is placed and routed. Check it, save it, and carry on with your usual fabrication flow."
+        }
+      ]
+    },
+    {
+      "id": "configuracion-inicial",
+      "titulo": "Configuración inicial",
+      "escenas": [
+        {
+          "id": "sin-modelo",
+          "es": "La primera vez, el chat no tiene modelo. El indicador lo marca en rojo y solo puedes consultar el estado. Abre los ajustes con el engranaje.",
+          "en": "The first time, the chat has no model. The indicator shows it in red and you can only check the status. Open the settings with the gear icon."
+        },
+        {
+          "id": "proveedor",
+          "es": "En el bloque Modelo, elige el proveedor: Google Gemini, Ollama local, OpenAI, o cualquier dirección compatible con OpenAI. Al elegirlo se rellena la URL base.",
+          "en": "In the Model block, choose the provider: Google Gemini, local Ollama, OpenAI, or any OpenAI-compatible address. Picking one fills in the base URL."
+        },
+        {
+          "id": "api-key",
+          "es": "Pega la clave de la API. Se guarda solo en este equipo, en tu carpeta de ajustes, y nunca en el repositorio. Con Ollama puede ir vacía.",
+          "en": "Paste the API key. It is stored only on this computer, in your settings folder, and never in the repository. With Ollama it can stay empty."
+        },
+        {
+          "id": "modelos",
+          "es": "Escribe el modelo que lleva la conversación y arma el diseño. El modelo revisor es opcional: lee cada circuito antes de escribirlo y cada propuesta de placa antes de aplicarla. Si lo dejas vacío, se trabaja sin esa segunda lectura.",
+          "en": "Enter the model that runs the conversation and builds the design. The reviewer model is optional: it reads each circuit before it is written and each board proposal before it is applied. Leave it empty to work without that second check."
+        },
+        {
+          "id": "java",
+          "es": "El autoruteo usa FreeRouting, que necesita Java diecisiete o posterior. Pulsa Detectar Java, o escribe la ruta a mano.",
+          "en": "Autorouting uses FreeRouting, which needs Java 17 or later. Press Detect Java, or type the path yourself."
+        },
+        {
+          "id": "autoruteo",
+          "es": "Activa el autoruteo y define los mínimos de fabricación en milímetros: ancho de pista, separación, diámetro y taladro de la vía, y agujero mínimo. Mientras esté apagado, la herramienta no aparece.",
+          "en": "Turn autorouting on and set the fabrication minimums in millimetres: track width, clearance, via diameter and drill, and minimum hole. While it is off, the tool does not show up."
+        },
+        {
+          "id": "guardar",
+          "es": "Guarda. Los ajustes quedan en tu equipo y mandan sobre cualquier archivo punto env.",
+          "en": "Save. The settings stay on your computer and take precedence over any .env file."
+        },
+        {
+          "id": "listo",
+          "es": "El indicador del modelo pasa a verde y el proyecto muestra el autoruteo activo. En el menú de acciones rápidas ya aparece Autorutear. Ya puedes describir tu primer circuito.",
+          "en": "The model indicator turns green and the project shows autorouting as active. Autoroute now appears in the quick actions menu. You are ready to describe your first circuit."
+        }
+      ]
+    }
+  ]
+}

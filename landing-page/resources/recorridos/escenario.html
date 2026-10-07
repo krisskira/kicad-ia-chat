@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Escenario de los recorridos</title>
+<style>
+  :root {
+    --accent: #2f6fde;
+    --mark: #f5a524;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; }
+  body {
+    background:
+      radial-gradient(900px 600px at 12% 0%, rgb(47 111 222 / 28%), transparent 70%),
+      radial-gradient(800px 600px at 100% 100%, rgb(245 165 36 / 14%), transparent 70%),
+      #0d1117;
+    display: grid;
+    place-items: center;
+  }
+  .window {
+    position: relative;
+    width: 1560px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 55%), 0 0 0 1px rgb(255 255 255 / 8%);
+    background: #fff;
+  }
+
+  /* Navegador */
+  .browser-bar {
+    height: 48px; display: flex; align-items: center; gap: 14px; padding: 0 18px;
+    background: #e9ebef; border-bottom: 1px solid #d5d9e0;
+  }
+  .dots { display: flex; gap: 8px; }
+  .dots i { width: 13px; height: 13px; border-radius: 50%; display: block; }
+  .dots i:nth-child(1) { background: #ff5f57; }
+  .dots i:nth-child(2) { background: #febc2e; }
+  .dots i:nth-child(3) { background: #28c840; }
+  .url {
+    flex: 1; max-width: 640px; height: 30px; border-radius: 8px; background: #fff;
+    display: flex; align-items: center; padding: 0 14px; font-size: 15px; color: #3b4352;
+    border: 1px solid #d5d9e0;
+  }
+  .url b { color: #1d2330; font-weight: 600; }
+  .shot { display: block; width: 1560px; height: auto; }
+
+  /* KiCad */
+  .kicad { background: #ececec; color: #222; font-size: 14px; }
+  .k-title { height: 34px; display: flex; align-items: center; justify-content: center; position: relative; background: #e3e3e3; border-bottom: 1px solid #cfcfcf; font-size: 14px; color: #444; }
+  .k-title .dots { position: absolute; left: 16px; }
+  .k-menu { height: 30px; display: flex; gap: 22px; align-items: center; padding: 0 16px; background: #f3f3f3; border-bottom: 1px solid #d6d6d6; }
+  .k-menu span { padding: 3px 6px; border-radius: 4px; }
+  .k-menu span.open { background: var(--accent); color: #fff; }
+  .k-tools { height: 46px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: #f6f6f6; border-bottom: 1px solid #d6d6d6; }
+  .k-tools i { width: 28px; height: 28px; border-radius: 5px; background: #dcdfe4; display: block; }
+  .k-tools .sep { width: 1px; height: 26px; background: #c9c9c9; margin: 0 6px; border-radius: 0; }
+  .k-tools .grow { flex: 1; background: none; }
+  .k-tools .plugin { width: 36px; height: 36px; border-radius: 6px; background: #fff; border: 1px solid #c9ced6; display: grid; place-items: center; }
+  .k-tools .plugin img { width: 28px; height: 28px; }
+  .k-body { display: grid; grid-template-columns: 44px 1fr 44px; height: 860px; }
+  .k-side { background: #f3f3f3; display: flex; flex-direction: column; gap: 8px; align-items: center; padding-top: 10px; }
+  .k-side i { width: 26px; height: 26px; border-radius: 5px; background: #dcdfe4; display: block; }
+  .k-side.left { border-right: 1px solid #d6d6d6; }
+  .k-side.right { border-left: 1px solid #d6d6d6; }
+  .k-canvas { background: #001023; position: relative; display: grid; place-items: center; overflow: hidden; }
+  .k-canvas img { width: 86%; height: auto; max-height: 88%; object-fit: contain; }
+  .k-status { height: 26px; background: #e9e9e9; border-top: 1px solid #d0d0d0; display: flex; align-items: center; gap: 28px; padding: 0 14px; font-size: 12.5px; color: #555; }
+  .k-dropdown {
+    position: absolute; top: 64px; width: 470px; background: #fbfbfb; border: 1px solid #c4c4c4; border-radius: 6px;
+    box-shadow: 0 12px 30px rgb(0 0 0 / 25%); padding: 6px 0; font-size: 14px; z-index: 3;
+  }
+  .k-dropdown div { display: flex; justify-content: space-between; padding: 7px 18px; color: #2a2a2a; }
+  .k-dropdown div.active { background: var(--accent); color: #fff; }
+  .k-dropdown hr { border: 0; border-top: 1px solid #e0e0e0; margin: 5px 0; }
+
+  /* Resaltado y cursor */
+  .mark {
+    position: absolute; border: 4px solid var(--mark); border-radius: 12px; z-index: 5;
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 70%), 0 0 28px rgb(245 165 36 / 70%);
+    pointer-events: none;
+  }
+  .cursor { position: absolute; width: 38px; height: 38px; z-index: 6; filter: drop-shadow(0 3px 4px rgb(0 0 0 / 45%)); }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+  const SCALE_FROM = 1280;
+
+  function cursorSvg() {
+    return '<svg viewBox="0 0 24 24" class="cursor"><path d="M4 2l16 10.5-7.2 1.4 4.3 7.6-3 1.6-4.3-7.7L4 20z" fill="#fff" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+  }
+
+  function browser(scene) {
+    return `<div class="window">
+      <div class="browser-bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="url"><b>127.0.0.1</b>:8765</span></div>
+      <img class="shot" id="shot" src="${scene.image}" alt="" />
+    </div>`;
+  }
+
+  function kicad(scene) {
+    const tools = Array.from({ length: 22 }, (_, i) => (i === 6 || i === 13 ? '<i class="sep"></i>' : '<i></i>')).join('');
+    const side = Array.from({ length: 14 }, () => '<i></i>').join('');
+    const lang = scene.lang === 'en' ? 'en' : 'es';
+    const menus = {
+      es: ['Archivo', 'Editar', 'Ver', 'Colocar', 'Rutear', 'Inspeccionar', 'Herramientas', 'Preferencias', 'Ayuda'],
+      en: ['File', 'Edit', 'View', 'Place', 'Route', 'Inspect', 'Tools', 'Preferences', 'Help'],
+    };
+    const drops = {
+      es: [
+        ['Actualizar PCB desde el esquemático…', 'F8'],
+        ['Actualizar huellas desde la biblioteca…', ''],
+        ['Limpiar pistas y vías…', ''],
+        ['Eliminar elementos no usados…', ''],
+        ['Consola de scripting', ''],
+      ],
+      en: [
+        ['Update PCB from Schematic…', 'F8'],
+        ['Update Footprints from Library…', ''],
+        ['Cleanup Tracks and Vias…', ''],
+        ['Delete Unused Items…', ''],
+        ['Scripting Console', ''],
+      ],
+    };
+    const menu = menus[lang]
+      .map((name, index) => `<span class="${scene.menu && index === 6 ? 'open' : ''}" data-menu="${name}">${name}</span>`).join('');
+    const items = drops[lang];
+    const dropdown = scene.menu ? `<div class="k-dropdown" id="dropdown">
+        <div class="active" id="f8"><span>${items[0][0]}</span><span>${items[0][1]}</span></div>
+        <div><span>${items[1][0]}</span><span></span></div>
+        <hr />
+        <div><span>${items[2][0]}</span><span></span></div>
+        <div><span>${items[3][0]}</span><span></span></div>
+        <hr />
+        <div><span>${items[4][0]}</span><span></span></div>
+      </div>` : '';
+    return `<div class="window kicad">
+      <div class="k-title"><span class="dots"><i></i><i></i><i></i></span>${scene.title}</div>
+      <div class="k-menu" id="menu">${menu}</div>
+      <div class="k-tools">${tools}<i class="grow"></i>
+        <span class="plugin" id="plugin" title="KiCad IA"><img src="${scene.icon}" alt="" /></span></div>
+      <div class="k-body">
+        <div class="k-side left">${side}</div>
+        <div class="k-canvas" id="canvas"><img id="board" src="${scene.board}" alt="" /></div>
+        <div class="k-side right">${side}</div>
+      </div>
+      <div class="k-status">${Object.entries(scene.status || {}).map(([k, v]) => `<span>${k} ${v}</span>`).join('')}</div>
+      ${dropdown}
+    </div>`;
+  }
+
+  function rectOf(node, origin) {
+    const r = node.getBoundingClientRect();
+    return { x: r.left - origin.left, y: r.top - origin.top, w: r.width, h: r.height };
+  }
+
+  function place(win, rect, pad = 8) {
+    const mark = document.createElement('div');
+    mark.className = 'mark';
+    Object.assign(mark.style, {
+      left: `${rect.x - pad}px`, top: `${rect.y - pad}px`, width: `${rect.w + pad * 2}px`, height: `${rect.h + pad * 2}px`,
+    });
+    win.append(mark);
+    return mark;
+  }
+
+  async function render(scene) {
+    const stage = document.getElementById('stage');
+    stage.innerHTML = scene.kind === 'kicad' ? kicad(scene) : browser(scene);
+    await Promise.all([...stage.querySelectorAll('img')].map((img) => (img.complete ? null : new Promise((ok) => { img.onload = ok; img.onerror = ok; }))));
+    const win = stage.querySelector('.window');
+    const origin = win.getBoundingClientRect();
+    if (scene.menu) {
+      const tab = win.querySelector('.k-menu span:nth-child(7)');
+      win.querySelector('#dropdown').style.left = `${tab.getBoundingClientRect().left - origin.left}px`;
+    }
+    let rects = [];
+    if (scene.kind === 'kicad') {
+      rects = (scene.marks || []).map((selector) => rectOf(win.querySelector(selector), origin));
+    } else {
+      const shot = win.querySelector('#shot');
+      const top = shot.getBoundingClientRect().top - origin.top;
+      const k = shot.getBoundingClientRect().width / SCALE_FROM;
+      rects = (scene.marks || []).map((r) => ({ x: r.x * k, y: top + r.y * k, w: r.w * k, h: r.h * k }));
+    }
+    rects.forEach((rect) => place(win, rect));
+    if (scene.cursor && rects.length) {
+      const target = rects[scene.cursor === true ? 0 : scene.cursor];
+      const holder = document.createElement('div');
+      holder.innerHTML = cursorSvg();
+      const cursor = holder.firstChild;
+      cursor.style.left = `${target.x + target.w * 0.62}px`;
+      cursor.style.top = `${target.y + target.h * 0.55}px`;
+      win.append(cursor);
+    }
+    return true;
+  }
+  window.render = render;
+</script>
+</body>
+</html>

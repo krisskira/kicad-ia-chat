@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 from kicad_ia.config import Settings
+from kicad_ia.kicad.backups import plugin_backup_dir, plugin_temp_dir
 from kicad_ia.kicad.board_area import board_area_report
 from kicad_ia.kicad.candidates import STORE
 from kicad_ia.kicad.cli import export_netlist, find_kicad_cli, read_netlist, run_drc, run_erc
@@ -20,7 +21,7 @@ from kicad_ia.kicad.copper_apply import apply_copper_to_board
 from kicad_ia.kicad.freerouting import ensure_jar, probe_java, route_board_files
 from kicad_ia.kicad.gateway import Gateway, GatewayError
 from kicad_ia.kicad.ipc import audit_placement, place_ipc, profile, safe_fixes
-from kicad_ia.kicad.layout import auto_groups, group_layout, normalize_groups
+from kicad_ia.kicad.layout import auto_groups, group_layout, normalize_groups, plan_stages
 from kicad_ia.kicad.lcsc import import_lcsc, search_lcsc
 from kicad_ia.kicad.pcb_metrics import BoardSnapshot, better_than, compare_snapshots, score_routing
 from kicad_ia.kicad.pcbnew_bridge import find_pcbnew_python
@@ -70,7 +71,7 @@ class KipyGateway(Gateway):
         index = self._library_index()
         schematic_open = bool(schematic and lock_file(schematic).exists())
         notes = [
-            "KiCad 10 no expone el esquemático por API. El plugin escribe el .kicad_sch del proyecto y hace copia en .kicad-ia-backup.",
+            "KiCad 10 no expone el esquemático por API. El plugin escribe el .kicad_sch del proyecto y hace copia en <proyecto>-backups/kicad-ia/.",
             "Las piezas salen de sym-lib-table y fp-lib-table: las mismas bibliotecas que ves en KiCad.",
         ]
         if schematic_open:
@@ -376,7 +377,7 @@ class KipyGateway(Gateway):
             return result
         board = self._board()
         # Una copia junto al proyecto para que ${KIPRJMOD} resuelva los modelos 3D.
-        copy = project["path"] / ".kicad-ia-render.kicad_pcb"
+        copy = plugin_backup_dir(project["path"], project["name"]) / ".kicad-ia-render.kicad_pcb"
         try:
             copy.write_text(board.get_as_string(), encoding="utf-8")
             result = render_board(cli, copy, view)
@@ -396,27 +397,43 @@ class KipyGateway(Gateway):
             netlist = read_netlist(cli, schematic)
         result: dict = {"ok": True, "target": target}
         if groups:
-            plan = groups
+            components = (
+                [comp for comp in netlist["components"] if not comp["reference"].startswith("#")]
+                if netlist and netlist.get("ok")
+                else []
+            )
+            stage = plan_stages(components, (netlist or {}).get("nets") or [], groups=groups)
         elif netlist and netlist.get("ok"):
-            plan = auto_groups(
+            stage = plan_stages(
                 [comp for comp in netlist["components"] if not comp["reference"].startswith("#")],
                 netlist["nets"],
             )
-            result["auto_groups"] = True
         else:
             board = _try(self._board)
             refs = [_footprint_reference(item) for item in list(_call(board, "get_footprints") or [])] if board else []
-            plan = [{"name": "Circuito", "references": refs}]
-        result["groups"] = plan
+            stage = plan_stages([{"reference": ref, "value": ""} for ref in refs], [])
+        plan = stage.groups
+        result.update(stage.as_dict())
         if target in ("schematic", "both"):
-            result["schematic"] = self._organize_schematic(schematic, netlist, plan, apply, cli)
+            result["schematic"] = self._organize_schematic(
+                schematic, netlist, plan, apply, cli, draw_frames=stage.draw_frames, stage=stage
+            )
         if target in ("pcb", "both"):
             result["pcb"] = self._organize_board(plan, apply)
         parts = [result.get(key) for key in ("schematic", "pcb") if key in result]
         result["ok"] = all(part.get("ok") for part in parts)
         return result
 
-    def _organize_schematic(self, schematic: Path | None, netlist: dict | None, groups: list[dict], apply: bool, cli: str | None) -> dict:
+    def _organize_schematic(
+        self,
+        schematic: Path | None,
+        netlist: dict | None,
+        groups: list[dict],
+        apply: bool,
+        cli: str | None,
+        draw_frames: bool = True,
+        stage=None,
+    ) -> dict:
         if schematic is None or not schematic.is_file():
             return {"ok": False, "error": "No encuentro el .kicad_sch del proyecto."}
         if not netlist or not netlist.get("ok"):
@@ -432,16 +449,42 @@ class KipyGateway(Gateway):
             pins = [{"reference": node["ref"], "pin": node["pin"]} for node in net["nodes"] if node["ref"] in refs]
             if len(pins) >= 2:
                 nets.append({"name": net["name"], "pins": pins})
+        preview = {
+            "ok": True,
+            "applied": False,
+            "symbols": len(symbols),
+            "nets": len(nets),
+            "groups": groups,
+            "draw_frames": draw_frames,
+            "eligible": bool(getattr(stage, "eligible", draw_frames)),
+            "ambiguous": list(getattr(stage, "ambiguous", []) or []),
+            "reasons": list(getattr(stage, "reasons", []) or []),
+            "warning": (
+                "Aplicar rehace la hoja: se pierden cables, textos y símbolos de alimentación dibujados a mano. "
+                "Queda copia en <proyecto>-backups/kicad-ia/."
+            ),
+        }
         if not apply:
-            return {"ok": True, "applied": False, "symbols": len(symbols), "nets": len(nets)}
+            return preview
         try:
-            written = write_circuit(schematic, self._library_index(), symbols, nets, replace=True, groups=groups, check_power=False)
+            written = write_circuit(
+                schematic,
+                self._library_index(),
+                symbols,
+                nets,
+                replace=True,
+                groups=groups,
+                check_power=False,
+                draw_frames=draw_frames,
+            )
         except SchematicLocked as exc:
             return {"ok": False, "error": str(exc)}
         written["warning"] = (
             "El esquemático se rehizo con etiquetas de red por pin. Se pierden cables, textos y símbolos de alimentación dibujados a mano; "
-            f"la versión anterior está en {written.get('backup') or '.kicad-ia-backup'}."
+            f"la versión anterior está en {written.get('backup') or '<proyecto>-backups/kicad-ia/'}."
         )
+        written["draw_frames"] = draw_frames
+        written["groups"] = groups
         if written.get("written") and cli:
             written["erc"] = run_erc(cli, schematic)
         return written
@@ -590,7 +633,7 @@ class KipyGateway(Gateway):
         project = self._project()
         if project is None:
             return {"ok": False, "error": "No hay un proyecto abierto en KiCad."}
-        work = Path(tempfile.mkdtemp(prefix="kicad-ia-route-", dir=str(project["path"])))
+        work = plugin_temp_dir(project["path"], "kicad-ia-route-", project["name"])
         source = work / "live.kicad_pcb"
         source.write_text(board.get_as_string(), encoding="utf-8")
         before_snap = self._snapshot(board)
@@ -701,7 +744,7 @@ class KipyGateway(Gateway):
         project = self._project()
         drc = {"ok": False, "error": "sin kicad-cli"}
         if cli and project:
-            with tempfile.TemporaryDirectory(dir=str(project["path"])) as tmp:
+            with tempfile.TemporaryDirectory(dir=str(plugin_backup_dir(project["path"], project["name"]))) as tmp:
                 path = Path(tmp) / "drc-live.kicad_pcb"
                 path.write_text(board.get_as_string(), encoding="utf-8")
                 drc = run_drc(cli, path)
@@ -848,7 +891,11 @@ class KipyGateway(Gateway):
 
     def _backup_board(self, board) -> str:
         project = self._project()
-        root = (project["path"] / ".kicad-ia-backup") if project else Path(tempfile.gettempdir()) / "kicad-ia-backup"
+        root = (
+            plugin_backup_dir(project["path"], project["name"])
+            if project
+            else Path(tempfile.gettempdir()) / "kicad-ia-backup"
+        )
         root.mkdir(parents=True, exist_ok=True)
         stamp = time.strftime("%Y%m%d-%H%M%S")
         path = root / f"board-{stamp}.kicad_pcb"
@@ -872,7 +919,7 @@ class KipyGateway(Gateway):
             at = child(fp, "at")
             if at and len(at) >= 3:
                 at[1], at[2] = by_ref[ref]["x_mm"], by_ref[ref]["y_mm"]
-        preview = project["path"] / ".kicad-ia-place-preview.kicad_pcb"
+        preview = plugin_backup_dir(project["path"], project["name"]) / ".kicad-ia-place-preview.kicad_pcb"
         try:
             preview.write_text(dumps(root), encoding="utf-8")
             image = render_board(cli, preview, "pcb")

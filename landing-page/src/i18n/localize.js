@@ -10,6 +10,10 @@ const KEEP = new Set([
   'to',
   'src',
   'poster',
+  'webm',
+  'srclang',
+  'kind',
+  'logoHref',
   'frame',
   'type',
   'variant',
@@ -33,6 +37,8 @@ const KEEP = new Set([
 ]);
 
 function keepAsIs(key, value) {
+  // Un { es, en } se traduce aunque la clave sea src, poster u ogImage.
+  if (isLocaleMessage(value)) return false;
   // "columns" es un número en las secciones y una lista de enlaces en el footer.
   if (key === 'columns') return typeof value === 'number';
   if (KEEP.has(key)) return true;

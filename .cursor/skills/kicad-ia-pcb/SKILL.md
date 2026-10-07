@@ -8,7 +8,7 @@ description: >-
 
 # Skill: PCB / IPC / autoruteo
 
-Leer [app/AGENTS.md](../../../app/AGENTS.md), [app/doc/architecture.md](../../../app/doc/architecture.md) (sección PCB seguro) y el mapa en [app/README.md](../../../app/README.md).
+Leer [app/doc/placa.md](../../../app/doc/placa.md), [app/AGENTS.md](../../../app/AGENTS.md), [app/doc/architecture.md](../../../app/doc/architecture.md) (sección PCB seguro) y el mapa en [app/README.md](../../../app/README.md).
 
 ## Módulos
 
