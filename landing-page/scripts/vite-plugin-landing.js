@@ -209,6 +209,24 @@ function gtmBody(site) {
     <!-- End Google Tag Manager (noscript) -->`;
 }
 
+function gtagId(site) {
+  const id = String(site.gtag ?? '').trim();
+  return /^G-[A-Z0-9]+$/.test(id) ? id : '';
+}
+
+function gtagHead(site) {
+  const id = gtagId(site);
+  if (!id) return '';
+  return `<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${id}');
+    </script>`;
+}
+
 // Solo un id de proyecto válido llega al HTML: el valor va dentro de un <script>.
 function clarityId(site) {
   const id = String(site.clarity ?? '').trim();
@@ -234,6 +252,7 @@ function headTags(site, landing, base) {
   const color = site.themeColor ?? {};
   const tags = [
     gtmHead(site),
+    gtagHead(site),
     clarityHead(site),
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(site.description)}" />`,
